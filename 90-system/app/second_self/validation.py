@@ -22,6 +22,7 @@ IGNORED_TRACKED_PREFIXES = (
     ".second-self-cache/",
 )
 ALLOWED_PRIVATE_SCAFFOLD_FILES = {
+    "01-strategy-storage/README.md",
     "01-strategy-storage/00 Memory/.gitkeep",
     "01-strategy-storage/01 Notes/.gitkeep",
     "01-strategy-storage/02 Journal/.gitkeep",

@@ -5,6 +5,7 @@
 # Track only the empty user-facing Layer 1 folder scaffold. All private
 # contents and system-managed Layer 1 folders remain ignored.
 01-strategy-storage/*
+!01-strategy-storage/README.md
 !01-strategy-storage/00 Memory/
 !01-strategy-storage/01 Notes/
 !01-strategy-storage/02 Journal/
