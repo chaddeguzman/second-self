@@ -5,6 +5,7 @@ from pathlib import Path
 
 from main_brain.paths import BrainPaths
 from main_brain.projects import LOCAL_PATHS, register_project
+from main_brain.validation import validate
 
 
 def test_project_registration_is_local_and_ignored(
@@ -20,6 +21,14 @@ def test_project_registration_is_local_and_ignored(
     exclude = (project / ".git/info/exclude").read_text(encoding="utf-8")
     for local_path in LOCAL_PATHS:
         assert local_path in exclude
+    assert validate(brain) == []
+    record = brain.projects / "example.md"
+    malformed = record.read_text(encoding="utf-8").replace(
+        r"C:\\", "C:\\"
+    )
+    record.write_text(malformed, encoding="utf-8")
+    register_project(brain, project, "Example", "https://example.test/repo")
+    assert validate(brain) == []
     status = subprocess.check_output(
         ["git", "-C", str(project), "status", "--short"], text=True
     )
@@ -54,4 +63,3 @@ def test_hook_allows_unrelated_command() -> None:
         check=True,
     )
     assert result.stdout == ""
-

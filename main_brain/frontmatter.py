@@ -17,7 +17,10 @@ def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     if marker == -1:
         return {}, text
     raw = text[4:marker]
-    data = yaml.safe_load(raw) or {}
+    try:
+        data = yaml.safe_load(raw) or {}
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Invalid YAML frontmatter: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError("Frontmatter must be a mapping.")
     return data, text[marker + 5 :]
@@ -32,4 +35,3 @@ def validate_metadata(data: dict[str, Any]) -> list[str]:
     if data.get("status") not in STATUSES:
         errors.append(f"invalid status: {data.get('status')!r}")
     return errors
-

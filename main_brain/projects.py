@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -49,6 +51,8 @@ def register_project(
     created: list[Path] = []
     today = date.today().isoformat()
     record = paths.projects / f"{_slug(name)}.md"
+    repository_yaml = json.dumps(repository)
+    local_path_yaml = json.dumps(str(project_path))
     if not record.exists():
         record.write_text(
             f"""---
@@ -56,8 +60,8 @@ type: project
 created: {today}
 status: active
 project_state: active
-repository: "{repository}"
-local_path: "{project_path}"
+repository: {repository_yaml}
+local_path: {local_path_yaml}
 tags: []
 projects: []
 related: []
@@ -80,6 +84,23 @@ related: []
             encoding="utf-8",
         )
         created.append(record)
+    else:
+        existing = record.read_text(encoding="utf-8")
+        repaired = re.sub(
+            r"^repository:.*$",
+            lambda _: f"repository: {repository_yaml}",
+            existing,
+            flags=re.MULTILINE,
+        )
+        repaired = re.sub(
+            r"^local_path:.*$",
+            lambda _: f"local_path: {local_path_yaml}",
+            repaired,
+            flags=re.MULTILINE,
+        )
+        if repaired != existing:
+            record.write_text(repaired, encoding="utf-8")
+            created.append(record)
 
     skill = project_path / ".agents" / "skills" / "main-brain" / "SKILL.md"
     skill.parent.mkdir(parents=True, exist_ok=True)
@@ -156,4 +177,3 @@ for relevant local searches. Protected edits require the Main Brain broker.
             stream.write("# Main Brain local adapters\n")
             stream.write("\n".join(additions) + "\n")
     return created
-
