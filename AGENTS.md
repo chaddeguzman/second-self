@@ -10,11 +10,10 @@
 3. Read `90-system/docs/OPERATING-MODEL.md` and
    `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
-5. If private data is assembled, read the compact current-view indexes:
-   - `01-strategy-storage/10-current/Current Identity.md`
-   - `01-strategy-storage/10-current/Current Strategy.md`
-   - `02-skills-projects/projects/Projects Index.md`
-   - `01-strategy-storage/55-conflicts/Conflicts Index.md`
+5. If private data is assembled, retrieve only relevant notes from the approved
+   core folders under `01-strategy-storage` and from
+   `02-skills-projects/projects/Projects Index.md` when project context is
+   needed.
 6. Retrieve historical notes only when relevant.
 
 ## Evidence
@@ -34,6 +33,11 @@
 - Use `python -m second_self broker` for protected changes.
 - Protected changes include identity or strategy edits, private-context
   exports, deletes, moves, renames, and changes to five or more existing files.
+- The only approved top-level folders under `01-strategy-storage` are
+  `00 Memory`, `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and
+  `05 Reviews`.
+- Creating any other top-level folder under `01-strategy-storage` is protected
+  and requires intent approval followed by approval of the exact change.
 - Protected changes require proposal approval followed by approval of the exact
   diff. Changed inputs invalidate approval.
 - Deletion means moving to private trash. Permanent purge is separately
