@@ -55,6 +55,107 @@ GitHub.
 - `migrations`: controlled structure changes
 - `tests`: automated verification
 
+## Working with Project Repositories
+
+`02-skills-projects/projects` is the main local storage location for a user's
+projects. A GitHub repository can be cloned directly into this folder and used
+as an independent nested Git repository.
+
+For example, a project named `lakbay-itinerary-creator` can live at:
+
+```text
+second-self/
+`-- 02-skills-projects/
+    `-- projects/
+        `-- lakbay-itinerary-creator/
+            |-- .git/
+            `-- project files
+```
+
+The nested project has its own Git history and GitHub remote. Second Self
+ignores the whole nested project directory, including its `.git` metadata, so
+the project is never committed or pushed as part of the Second Self repository.
+
+### Clone a Project Using the Terminal
+
+From the Second Self repository root:
+
+```powershell
+cd "02-skills-projects/projects"
+git clone https://github.com/<username>/lakbay-itinerary-creator.git
+cd lakbay-itinerary-creator
+git remote -v
+```
+
+The final command confirms which GitHub repository will receive the project's
+commits.
+
+To commit and push project work:
+
+```powershell
+git status
+git add .
+git commit -m "Describe the project change"
+git push
+```
+
+Run these commands only from inside the nested project repository.
+
+### Clone a Project Using VS Code
+
+These steps assume the user is already signed in to GitHub through VS Code:
+
+1. Open the Second Self repository in VS Code.
+2. Press `Ctrl+Shift+P` to open the Command Palette.
+3. Run `Git: Clone`.
+4. Choose `Clone from GitHub`.
+5. Search for and select the repository. For this example, select
+   `lakbay-itinerary-creator`.
+6. In the destination-folder picker, select
+   `02-skills-projects\projects`. Select the `projects` folder itself; do not
+   create a `lakbay-itinerary-creator` folder first because Git creates it
+   during cloning.
+7. After cloning finishes, choose `Open in New Window` when VS Code prompts
+   you to open the repository. If no prompt appears, use **File > Open Folder**
+   and open `02-skills-projects\projects\lakbay-itinerary-creator`.
+8. In the new window, open Source Control with `Ctrl+Shift+G` and confirm that
+   `lakbay-itinerary-creator` is the active repository.
+
+Opening the project in its own VS Code window is recommended. If multiple
+repositories appear in Source Control, use the repository selector and verify
+the project name before staging or committing.
+
+### Commit and Push a Project Using VS Code
+
+From the VS Code window opened at the nested project:
+
+1. Open Source Control with `Ctrl+Shift+G`.
+2. Review the files listed under **Changes**.
+3. Select the **+** beside individual files to stage them, or select the **+**
+   beside **Changes** to stage all reviewed changes.
+4. Enter a commit message in the Source Control message box.
+5. Select **Commit**.
+6. Select **Sync Changes** or **Push** to send the commit to that project's own
+   GitHub repository. For a new local branch, VS Code may show
+   **Publish Branch** instead.
+7. Open the project on GitHub and confirm that the commit appears in the
+   expected repository.
+
+Normal VS Code **Sync Changes** may be used for an independent nested project
+when its own repository rules allow it. Do not use **Sync Changes** from the
+Second Self repository window: Second Self uses its protected
+`automation/main` pull-request workflow.
+
+### Keep the Two Repositories Separate
+
+- Run project Git commands from the nested project's root.
+- Run Second Self Git commands from the Second Self repository root.
+- Confirm the active repository in VS Code before every commit.
+- Each nested project follows its own branch protection, review, and deployment
+  rules.
+- Second Self may use project status and lessons through its controlled
+  handoff and writeback workflows without tracking the project's files.
+
 ## Quick Start
 
 Requirements: Windows, Git, Python 3.12+, Obsidian, and `age`.

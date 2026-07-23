@@ -52,44 +52,10 @@ projects folder without publishing private project information.
 
 #### Using independent Git repositories
 
-The `projects` folder can serve as the main local storage location for GitHub
-projects. A user may clone any project repository directly into this folder:
-
-```powershell
-cd "02-skills-projects/projects"
-git clone https://github.com/<username>/lakbay-itinerary-creator.git
-cd lakbay-itinerary-creator
-```
-
-The resulting layout is:
-
-```text
-second-self/
-└── 02-skills-projects/
-    └── projects/
-        └── lakbay-itinerary-creator/
-            ├── .git/
-            └── project files
-```
-
-`lakbay-itinerary-creator` remains an independent Git repository. Commits and
-pushes made from inside that folder go to its own configured GitHub remote:
-
-```powershell
-git add .
-git commit -m "Describe the project change"
-git push
-```
-
-The parent Second Self repository ignores the entire nested project directory,
-including its files and `.git` metadata. It will not commit or push
-`lakbay-itinerary-creator` as part of Second Self. Each project is versioned,
-published, and protected according to its own repository settings.
-
-Always run project Git commands from the nested project's repository root.
-Run Second Self Git commands from the Second Self repository root. Keeping
-these working directories distinct prevents commits from going to the wrong
-repository.
+Complete Terminal and VS Code instructions for cloning and managing independent
+project repositories are maintained in
+[Working with Project Repositories](../README.md#working-with-project-repositories)
+in the main system README.
 
 ## How Layer 1 and Layer 2 Work Together
 
