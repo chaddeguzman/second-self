@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $Python = Join-Path $RepoRoot ".venv\Scripts\python.exe"
 
 if (-not (Test-Path -LiteralPath $Python)) {
@@ -14,4 +14,3 @@ if (-not (Test-Path -LiteralPath $Python)) {
 
 & $Python -m main_brain @BrainArguments
 exit $LASTEXITCODE
-

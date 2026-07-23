@@ -6,11 +6,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/pre_tool_use.py"
+            "command": "python 90-system/automation/hooks/pre_tool_use.py"
           }
         ]
       }
     ]
   }
 }
-

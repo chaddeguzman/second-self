@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 
 function Require-Or-OfferInstall {
     param([string]$Command, [string]$WingetId)
@@ -96,7 +96,7 @@ if (-not $encryptionVerified) {
     }
 }
 
-git -C $RepoRoot config core.hooksPath .githooks
+git -C $RepoRoot config core.hooksPath 90-system/automation/git-hooks
 Write-Host "Main Brain assembled at $RepoRoot"
 Write-Host "Private data: $DataRoot"
 Write-Host "Open $RepoRoot as the Obsidian vault."

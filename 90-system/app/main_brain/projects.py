@@ -136,7 +136,9 @@ for relevant local searches. Protected edits require the Main Brain broker.
     )
     created.append(claude)
 
-    hook_source = paths.repo_root / "hooks" / "pre_tool_use.py"
+    hook_source = (
+        paths.repo_root / "90-system" / "automation" / "hooks" / "pre_tool_use.py"
+    )
     local_hook = project_path / ".codex" / "main-brain-hook.py"
     local_hook.parent.mkdir(parents=True, exist_ok=True)
     local_hook.write_text(

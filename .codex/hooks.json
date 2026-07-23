@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$(git rev-parse --show-toplevel)/hooks/pre_tool_use.py\"",
-            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; python (Join-Path $root 'hooks/pre_tool_use.py')\"",
+            "command": "python \"$(git rev-parse --show-toplevel)/90-system/automation/hooks/pre_tool_use.py\"",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; python (Join-Path $root '90-system/automation/hooks/pre_tool_use.py')\"",
             "timeout": 10,
             "statusMessage": "Checking Main Brain edit policy"
           }
@@ -17,4 +17,3 @@
     ]
   }
 }
-

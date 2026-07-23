@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_PATH = REPO_ROOT / ".main-brain.local.json"
 
 
@@ -45,7 +45,8 @@ def load_paths(require_config: bool = False) -> BrainPaths:
             data_root = Path(os.path.expandvars(configured)).expanduser()
     elif require_config:
         raise FileNotFoundError(
-            f"Missing {CONFIG_PATH.name}; run scripts/bootstrap.ps1 first."
+            f"Missing {CONFIG_PATH.name}; run "
+            "90-system/automation/scripts/bootstrap.ps1 first."
         )
     return BrainPaths(REPO_ROOT, data_root.resolve())
 
@@ -69,4 +70,3 @@ def resolve_private_path(paths: BrainPaths, value: str | Path) -> Path:
     except ValueError as exc:
         raise ValueError(f"Path escapes private data root: {value}") from exc
     return resolved
-

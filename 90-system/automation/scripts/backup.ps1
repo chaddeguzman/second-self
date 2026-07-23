@@ -5,10 +5,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $ConfigPath = Join-Path $RepoRoot ".main-brain.local.json"
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
-    throw "Run scripts/bootstrap.ps1 first."
+    throw "Run 90-system/automation/scripts/bootstrap.ps1 first."
 }
 $Age = Get-Command age -ErrorAction SilentlyContinue
 if (-not $Age) {
