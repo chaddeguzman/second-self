@@ -1,10 +1,14 @@
 # Second Self
 
-Second Self is a private-data, public-architecture system that represents Chad
-as a whole person for both personal use and trusted AI agents. It brings
-together identity, values, principles, knowledge, memories, experiences,
+Second Self is a private-data, public-architecture system that helps represent
+you as a whole person for both personal use and trusted AI agents. It brings
+together your identity, values, principles, knowledge, memories, experiences,
 events, strategy, projects, reviews, and learned ways of working across
 Obsidian, Codex, and Claude.
+
+The repository is designed to be reusable. Its public code, documentation, and
+workflows can be cloned or forked, while your personal context remains local
+and excluded from Git.
 
 ## Folder Guide
 
@@ -29,9 +33,11 @@ folders are:
 - `04 References`
 - `05 Reviews`
 
-You can copy existing documents directly into these folders. Agents may create
-additional support folders for indexes, audit records, imports, and trash; those
-are system-managed.
+You can copy existing documents directly into these folders. These six folders
+are the approved top-level structure for Layer 1. Agents must receive your
+approval before creating another top-level folder. Runtime indexes, audit
+records, imports, and recoverable trash belong in Git-ignored system storage,
+not alongside your core folders.
 
 ### Layer 2
 
@@ -58,9 +64,10 @@ Requirements: Windows, Git, Python 3.12+, Obsidian, and `age`.
 .\90-system\automation\scripts\second-self.ps1 validate
 ```
 
-Bootstrap creates `%USERPROFILE%\SecondSelfData`, writes an ignored local
-configuration file, and assembles the vault with directory junctions. It never
-commits personal data.
+After cloning or forking the repository, bootstrap creates
+`%USERPROFILE%\SecondSelfData`, writes an ignored local configuration file, and
+assembles the vault with directory junctions. Your personal data remains local
+and is never intentionally committed.
 
 Read the [Operating Model](90-system/docs/OPERATING-MODEL.md) and
 [Security Model](90-system/docs/SECURITY.md) before granting an agent write
@@ -82,3 +89,13 @@ access.
 Do not store passwords, API keys, recovery codes, or private keys anywhere in
 Second Self. Local and CI privacy checks reduce accidental exposure, but device
 encryption and careful review remain required.
+
+Before committing or publishing changes, run:
+
+```powershell
+.\90-system\automation\scripts\second-self.ps1 validate --privacy
+```
+
+Review `git status` before every commit. Your Layer 1 content, project records,
+local configuration, caches, backups, and recovery history must remain
+untracked.
