@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Restore"
+  short_description: "Verify and restore an encrypted brain snapshot."
+  default_prompt: "Use $brain-restore to restore this Main Brain backup safely."
+

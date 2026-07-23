@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chaddeguzman/main-brain/project.schema.json",
+  "title": "Main Brain Project",
+  "allOf": [{"$ref": "note.schema.json"}],
+  "type": "object",
+  "required": ["type", "created", "status", "project_state", "repository"],
+  "properties": {
+    "type": {"const": "project"},
+    "project_state": {
+      "enum": ["idea", "planned", "active", "paused", "completed", "cancelled", "archived"]
+    },
+    "repository": {"type": "string"},
+    "local_path": {"type": "string"}
+  }
+}
+

@@ -1,0 +1,33 @@
+# Local configuration and assembled private data.
+.main-brain.local.json
+01-strategy-storage/
+02-skills-projects/projects/
+
+# Private or generated runtime state.
+.brain-cache/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Obsidian device-specific state.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
+
+# Backups, archives, credentials, and temporary files.
+backups/
+*.age
+*.tar
+*.zip
+*.tmp
+*.bak
+.env
+.env.*
+secrets/
+

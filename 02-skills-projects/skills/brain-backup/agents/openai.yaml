@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Backup"
+  short_description: "Create a verified encrypted removable-drive snapshot."
+  default_prompt: "Use $brain-backup to back up my private Main Brain data."
+

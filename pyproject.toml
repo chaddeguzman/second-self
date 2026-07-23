@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "main-brain"
+version = "0.1.0"
+description = "Local tooling for the Main Brain knowledge system"
+requires-python = ">=3.12"
+dependencies = [
+  "openpyxl>=3.1,<4",
+  "pypdf>=5,<7",
+  "python-docx>=1.1,<2",
+  "PyYAML>=6,<7"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+brain = "main_brain.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["main_brain*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+

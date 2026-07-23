@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Weekly Review"
+  short_description: "Process the inbox and refresh project priorities."
+  default_prompt: "Use $brain-weekly-review to run my weekly brain review."
+

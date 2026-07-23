@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chaddeguzman/main-brain/note.schema.json",
+  "title": "Main Brain Note",
+  "type": "object",
+  "required": ["type", "created", "status"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "capture", "identity", "strategy", "note", "journal", "book",
+        "reference", "quote", "lesson", "review", "decision", "conflict",
+        "import", "project", "handoff"
+      ]
+    },
+    "created": {"type": "string", "format": "date"},
+    "status": {
+      "type": "string",
+      "enum": ["inbox", "proposed", "active", "superseded", "archived"]
+    },
+    "updated": {"type": "string", "format": "date"},
+    "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "source": {"type": ["string", "array"]},
+    "projects": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "related": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "additionalProperties": true
+}
+

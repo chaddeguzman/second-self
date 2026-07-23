@@ -1,0 +1,3 @@
+#!/bin/sh
+python -m main_brain validate --privacy
+

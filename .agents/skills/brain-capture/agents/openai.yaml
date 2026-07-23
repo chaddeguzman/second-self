@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Capture"
+  short_description: "Capture new context into the private brain inbox."
+  default_prompt: "Use $brain-capture to record this in my Main Brain inbox."
+

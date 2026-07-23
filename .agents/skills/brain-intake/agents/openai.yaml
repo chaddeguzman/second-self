@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Intake"
+  short_description: "Import supported documents with immutable provenance."
+  default_prompt: "Use $brain-intake to import and review this document."
+

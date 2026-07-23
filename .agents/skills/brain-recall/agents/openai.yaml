@@ -1,0 +1,5 @@
+interface:
+  display_name: "Brain Recall"
+  short_description: "Retrieve personal context with source citations."
+  default_prompt: "Use $brain-recall to answer this from my Main Brain."
+
