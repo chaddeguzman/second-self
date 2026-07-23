@@ -50,6 +50,47 @@ it remains local and is ignored by Git, except for the scaffold `.gitkeep`
 file. This allows every cloned Second Self repository to include a ready-to-use
 projects folder without publishing private project information.
 
+#### Using independent Git repositories
+
+The `projects` folder can serve as the main local storage location for GitHub
+projects. A user may clone any project repository directly into this folder:
+
+```powershell
+cd "02-skills-projects/projects"
+git clone https://github.com/<username>/lakbay-itinerary-creator.git
+cd lakbay-itinerary-creator
+```
+
+The resulting layout is:
+
+```text
+second-self/
+└── 02-skills-projects/
+    └── projects/
+        └── lakbay-itinerary-creator/
+            ├── .git/
+            └── project files
+```
+
+`lakbay-itinerary-creator` remains an independent Git repository. Commits and
+pushes made from inside that folder go to its own configured GitHub remote:
+
+```powershell
+git add .
+git commit -m "Describe the project change"
+git push
+```
+
+The parent Second Self repository ignores the entire nested project directory,
+including its files and `.git` metadata. It will not commit or push
+`lakbay-itinerary-creator` as part of Second Self. Each project is versioned,
+published, and protected according to its own repository settings.
+
+Always run project Git commands from the nested project's repository root.
+Run Second Self Git commands from the Second Self repository root. Keeping
+these working directories distinct prevents commits from going to the wrong
+repository.
+
 ## How Layer 1 and Layer 2 Work Together
 
 1. Layer 1 provides the relevant identity, strategy, notes, references,
@@ -68,6 +109,8 @@ into project execution while keeping the work auditable and private.
 ## Privacy
 
 - Do not commit files or subfolders inside `projects`.
+- Commit and push nested project repositories only through their own Git
+  remotes.
 - Do not place credentials, secrets, or private exports in tracked skill files.
 - Keep project-specific execution material in its project folder.
 - Return broader personal lessons or decisions through the controlled
