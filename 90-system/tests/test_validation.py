@@ -18,12 +18,28 @@ def test_layer1_readme_is_public_but_personal_notes_are_rejected(
 
     readme = repo / "01-strategy-storage" / "README.md"
     readme.write_text("# Strategy Storage\n", encoding="utf-8")
+    reference_scaffolds = [
+        repo / "01-strategy-storage" / "04 References" / name / ".gitkeep"
+        for name in ("00 books", "01 quotes", "02 research", "03 guides", "04 docs")
+    ]
+    for scaffold in reference_scaffolds:
+        scaffold.parent.mkdir(parents=True, exist_ok=True)
+        scaffold.touch()
     personal_note = memory / "personal.md"
     personal_note.write_text("# Private\n", encoding="utf-8")
 
     subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
     subprocess.run(
-        ["git", "-C", str(repo), "add", "--", str(readme), str(personal_note)],
+        [
+            "git",
+            "-C",
+            str(repo),
+            "add",
+            "--",
+            str(readme),
+            str(personal_note),
+            *(str(scaffold) for scaffold in reference_scaffolds),
+        ],
         check=True,
         capture_output=True,
     )

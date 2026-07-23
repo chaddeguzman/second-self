@@ -56,6 +56,19 @@ Use this folder for information that primarily comes from external sources.
 Keep enough source context to distinguish reference material from your own
 confirmed beliefs, decisions, or memories.
 
+Organize reference material into these subfolders:
+
+- `00 books` — Book notes, summaries, excerpts, reading highlights, and related
+  source information.
+- `01 quotes` — Quotations with enough attribution and context to identify
+  their original source.
+- `02 research` — Research notes, studies, findings, evidence, and analytical
+  source material.
+- `03 guides` — Instructions, playbooks, tutorials, checklists, and other
+  practical how-to material.
+- `04 docs` — General supporting documents that do not fit one of the more
+  specific reference categories.
+
 ### `05 Reviews`
 
 Stores periodic review records, including weekly and quarterly reflections,

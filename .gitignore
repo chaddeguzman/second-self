@@ -17,6 +17,21 @@
 01-strategy-storage/02 Journal/*
 01-strategy-storage/03 Strategy/*
 01-strategy-storage/04 References/*
+!01-strategy-storage/04 References/00 books/
+!01-strategy-storage/04 References/01 quotes/
+!01-strategy-storage/04 References/02 research/
+!01-strategy-storage/04 References/03 guides/
+!01-strategy-storage/04 References/04 docs/
+01-strategy-storage/04 References/00 books/*
+01-strategy-storage/04 References/01 quotes/*
+01-strategy-storage/04 References/02 research/*
+01-strategy-storage/04 References/03 guides/*
+01-strategy-storage/04 References/04 docs/*
+!01-strategy-storage/04 References/00 books/.gitkeep
+!01-strategy-storage/04 References/01 quotes/.gitkeep
+!01-strategy-storage/04 References/02 research/.gitkeep
+!01-strategy-storage/04 References/03 guides/.gitkeep
+!01-strategy-storage/04 References/04 docs/.gitkeep
 01-strategy-storage/05 Reviews/*
 !01-strategy-storage/00 Memory/.gitkeep
 !01-strategy-storage/01 Notes/.gitkeep
