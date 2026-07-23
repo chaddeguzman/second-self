@@ -25,9 +25,19 @@ function Require-Or-OfferInstall {
 
 Require-Or-OfferInstall -Command git -WingetId "Git.Git"
 Require-Or-OfferInstall -Command python -WingetId "Python.Python.3.12"
-Require-Or-OfferInstall -Command age -WingetId "FiloSottile.age"
-if (-not (Get-Command obsidian -ErrorAction SilentlyContinue) -and
-    -not (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA "Obsidian\Obsidian.exe"))) {
+$AgeInstalled = (Get-Command age -ErrorAction SilentlyContinue) -or
+    (Get-ChildItem (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages") -Filter "age.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+if (-not $AgeInstalled) {
+    Require-Or-OfferInstall -Command age -WingetId "FiloSottile.age"
+}
+$ObsidianPaths = @(
+    (Join-Path $env:LOCALAPPDATA "Programs\Obsidian\Obsidian.exe"),
+    (Join-Path $env:LOCALAPPDATA "Obsidian\Obsidian.exe"),
+    (Join-Path $env:ProgramFiles "Obsidian\Obsidian.exe")
+)
+$ObsidianDetected = (Get-Command obsidian -ErrorAction SilentlyContinue) -or
+    ($ObsidianPaths | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
+if (-not $ObsidianDetected) {
     Write-Warning "Obsidian was not detected."
     Write-Host "Suggested command: winget install --id Obsidian.Obsidian --exact"
     if (-not $SkipDependencyInstall) {

@@ -10,9 +10,14 @@ $ConfigPath = Join-Path $RepoRoot ".main-brain.local.json"
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
     throw "Run scripts/bootstrap.ps1 first."
 }
-if (-not (Get-Command age -ErrorAction SilentlyContinue)) {
+$Age = Get-Command age -ErrorAction SilentlyContinue
+if (-not $Age) {
+    $Age = Get-ChildItem (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages") -Filter "age.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+if (-not $Age) {
     throw "age is required. Install it with: winget install --id FiloSottile.age --exact"
 }
+$AgePath = if ($Age.Source) { $Age.Source } else { $Age.FullName }
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
     throw "tar is required."
 }
@@ -38,7 +43,7 @@ if (Test-Path -LiteralPath $Archive) {
 try {
     tar -cf $TempTar -C (Split-Path -Parent $DataRoot) (Split-Path -Leaf $DataRoot)
     if ($LASTEXITCODE -ne 0) { throw "tar failed." }
-    age -p -o $Archive $TempTar
+    & $AgePath -p -o $Archive $TempTar
     if ($LASTEXITCODE -ne 0) { throw "age encryption failed." }
     $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Archive).Hash.ToLowerInvariant()
     "$Hash  $([IO.Path]::GetFileName($Archive))" | Set-Content -Encoding ascii -LiteralPath $Checksum
@@ -56,4 +61,3 @@ finally {
         Remove-Item -LiteralPath $TempTar -Force
     }
 }
-

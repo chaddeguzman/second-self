@@ -7,9 +7,14 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-if (-not (Get-Command age -ErrorAction SilentlyContinue)) {
+$Age = Get-Command age -ErrorAction SilentlyContinue
+if (-not $Age) {
+    $Age = Get-ChildItem (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages") -Filter "age.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+if (-not $Age) {
     throw "age is required. Install it with: winget install --id FiloSottile.age --exact"
 }
+$AgePath = if ($Age.Source) { $Age.Source } else { $Age.FullName }
 $Archive = [IO.Path]::GetFullPath($Archive)
 $Destination = [IO.Path]::GetFullPath($Destination)
 $Checksum = "$Archive.sha256"
@@ -34,7 +39,7 @@ if ($Expected -ne $Actual) {
 
 $TempTar = Join-Path ([IO.Path]::GetTempPath()) "$([IO.Path]::GetFileNameWithoutExtension($Archive)).tar"
 try {
-    age -d -o $TempTar $Archive
+    & $AgePath -d -o $TempTar $Archive
     if ($LASTEXITCODE -ne 0) { throw "age decryption failed." }
     tar -xf $TempTar -C $Destination
     if ($LASTEXITCODE -ne 0) { throw "tar restore failed." }
@@ -45,4 +50,3 @@ finally {
         Remove-Item -LiteralPath $TempTar -Force
     }
 }
-
