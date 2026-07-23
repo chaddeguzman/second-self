@@ -4,17 +4,43 @@
 
 1. Always read
    `01-strategy-storage/00 Memory/Second Self Context.md`.
+   Treat `00 Memory` as the primary durable context and the first retrieval
+   location for personal recall.
 2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
    immediate task permits, ask one focused question from an incomplete memory
    topic and save only a user-confirmed summary.
 3. Read `90-system/docs/OPERATING-MODEL.md` and
    `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
-5. If private data is assembled, retrieve only relevant notes from the approved
-   core folders under `01-strategy-storage` and from
+5. When a task depends on personal context, begin with relevant notes under
+   `01-strategy-storage/00 Memory`. Expand only as needed into the other
+   approved Layer 1 folders and
    `02-skills-projects/projects/Projects Index.md` when project context is
-   needed.
+   relevant.
 6. Retrieve historical notes only when relevant.
+7. Use `01-strategy-storage/README.md` and
+   `02-skills-projects/README.md` as the folder-purpose guides. Use the main
+   `README.md` for the independent nested-project Git workflow.
+
+## Core Function: Second Brain
+
+- Second Self is an external memory system. Its central purpose is to help the
+  user recall facts, experiences, decisions, commitments, investigations,
+  project context, thoughts, and ideas that human memory may not reliably
+  retain.
+- Do not answer personal recall questions from model memory or assumptions.
+  Use the `second-self-recall` workflow and stored Markdown evidence.
+- Start recall in `01-strategy-storage/00 Memory`, then search the relevant
+  notes, journal, strategy, references, reviews, history, or project records
+  when the first source is insufficient.
+- Search narrowly to protect privacy, but do not stop after one file when the
+  requested memory could reasonably exist elsewhere in the approved sources.
+- Distinguish confirmed stored evidence, reasonable inference, and missing
+  information. Cite the relevant internal file and date.
+- Apply recalled context to project work, investigations, and idea development
+  when it helps the user. Layer 1 provides context; Layer 2 skills and commands
+  perform project work; important outcomes and reusable lessons return through
+  controlled writeback and review.
 
 ## Golden Rule: Main Must Stay Aligned
 
@@ -72,6 +98,6 @@
 Run:
 
 ```powershell
-.\90-system\automation\scripts\second-self.ps1 validate --privacy
+.\90-system\automation\scripts\second-self.ps1 validate --privacy --tracked-only
 python -m pytest
 ```
