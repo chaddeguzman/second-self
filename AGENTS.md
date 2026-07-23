@@ -2,14 +2,20 @@
 
 ## Startup
 
-1. Read `system/OPERATING-MODEL.md` and `system/SECURITY.md`.
-2. Resolve private paths through `.main-brain.local.json`; never hard-code them.
-3. If private data is assembled, read the compact current-view indexes:
+1. Always read
+   `01-strategy-storage/00 Memory/Main Brain Context.md`.
+2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
+   immediate task permits, ask one focused question from an incomplete memory
+   topic and save only a user-confirmed summary.
+3. Read `90-system/docs/OPERATING-MODEL.md` and
+   `90-system/docs/SECURITY.md`.
+4. Resolve private paths through `.main-brain.local.json`; never hard-code them.
+5. If private data is assembled, read the compact current-view indexes:
    - `01-strategy-storage/10-current/Current Identity.md`
    - `01-strategy-storage/10-current/Current Strategy.md`
    - `02-skills-projects/projects/Projects Index.md`
    - `01-strategy-storage/55-conflicts/Conflicts Index.md`
-4. Retrieve historical notes only when relevant.
+6. Retrieve historical notes only when relevant.
 
 ## Evidence
 
@@ -42,7 +48,6 @@
 Run:
 
 ```powershell
-.\scripts\brain.ps1 validate --privacy
+.\90-system\automation\scripts\brain.ps1 validate --privacy
 python -m pytest
 ```
-

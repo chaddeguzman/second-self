@@ -36,7 +36,9 @@ def test_project_registration_is_local_and_ignored(
 
 
 def test_hook_blocks_protected_edit(monkeypatch, tmp_path: Path) -> None:
-    script = Path(__file__).parents[1] / "hooks" / "pre_tool_use.py"
+    script = (
+        Path(__file__).parents[1] / "automation" / "hooks" / "pre_tool_use.py"
+    )
     event = {
         "tool_name": "apply_patch",
         "tool_input": {
@@ -54,7 +56,9 @@ def test_hook_blocks_protected_edit(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_hook_allows_unrelated_command() -> None:
-    script = Path(__file__).parents[1] / "hooks" / "pre_tool_use.py"
+    script = (
+        Path(__file__).parents[1] / "automation" / "hooks" / "pre_tool_use.py"
+    )
     result = subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps({"tool_input": {"command": "git status"}}),

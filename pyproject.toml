@@ -20,10 +20,13 @@ dev = ["pytest>=8,<10"]
 [project.scripts]
 brain = "main_brain.cli:main"
 
+[tool.setuptools]
+package-dir = {"" = "90-system/app"}
+
 [tool.setuptools.packages.find]
+where = ["90-system/app"]
 include = ["main_brain*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["90-system/tests"]
 addopts = "-q"
-
