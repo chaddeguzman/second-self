@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}Second Self Home{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+  <script defer src="{{ url_for('static', filename='home.js') }}"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="{{ url_for('home') }}" aria-label="Second Self Home">
+        <span class="brand-mark" aria-hidden="true">SS</span>
+        <span>
+          <strong>Second Self</strong>
+          <small>Private local workspace</small>
+        </span>
+      </a>
+      <span class="privacy-pill">Local only</span>
+    </div>
+    <nav class="shell navigation" aria-label="Primary navigation">
+      <a class="{{ 'active' if request.endpoint == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
+      <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
+      <span aria-disabled="true" title="Coming next">Search <small>Coming next</small></span>
+      <span aria-disabled="true" title="Coming next">Reviews <small>Coming next</small></span>
+      <span aria-disabled="true" title="Coming next">Conflicts <small>Coming next</small></span>
+      <span aria-disabled="true" title="Coming next">Projects <small>Coming next</small></span>
+      <span aria-disabled="true" title="Coming next">Memory <small>Coming next</small></span>
+    </nav>
+  </header>
+
+  <main id="main-content" class="shell main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="notice notice-{{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="shell site-footer">
+    <p>Markdown remains the source of truth. Capture is the only write action available in this release.</p>
+    {% if read_only %}<p><strong>Read-only mode is active.</strong></p>{% endif %}
+  </footer>
+</body>
+</html>

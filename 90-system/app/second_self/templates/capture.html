@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Capture · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Capture</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Private inbox</p>
+  <h1>Capture what is on your mind.</h1>
+  <p>Your wording is preserved in a new structured inbox record. Nothing else is edited or classified.</p>
+</section>
+
+{% if read_only %}
+  <div class="empty-panel large">
+    <strong>Capture is disabled in read-only mode.</strong>
+    <p>Restart without <code>--read-only</code> when you want to create a private inbox record.</p>
+  </div>
+{% else %}
+  <form class="capture-form" method="post" action="{{ url_for('capture') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+    <label for="title">Title</label>
+    <input id="title" name="title" maxlength="120" required value="{{ title or '' }}" autocomplete="off">
+    <div class="field-help">A short, single-line description.</div>
+
+    <label for="body">Body</label>
+    <textarea id="body" name="body" maxlength="102400" required rows="14">{{ body or '' }}</textarea>
+    <div class="field-help">Markdown is accepted. Maximum 100 KiB.</div>
+
+    <div class="form-actions">
+      <button class="button" type="submit">Save to private inbox</button>
+      <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>
+    </div>
+  </form>
+{% endif %}
+{% endblock %}

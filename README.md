@@ -69,6 +69,32 @@ After cloning or forking the repository, bootstrap creates
 assembles the vault with directory junctions. Your personal data remains local
 and is never intentionally committed.
 
+### Private local Home
+
+Launch the local dashboard after bootstrap:
+
+```powershell
+.\90-system\automation\scripts\second-self.ps1 web
+```
+
+Second Self opens a private Home page on `http://127.0.0.1:8765/`. If that
+port is occupied, it tries through port `8774`. The dashboard shows structured
+inbox work, recent imports, memories awaiting confirmation, conflicts, overdue
+commitments, pending project writebacks, and active projects. Legacy notes that
+lack structured metadata are reported as excluded instead of being guessed
+into a queue.
+
+Capture is the only write operation in this first release. Start in safe
+read-only mode with:
+
+```powershell
+.\90-system\automation\scripts\second-self.ps1 web --read-only
+```
+
+Use `--no-browser` to print the local URL without opening it, or `--port 9000`
+to request a specific local port. The server accepts only loopback requests,
+uses no remote assets, and stops with `Ctrl+C`.
+
 Read the [Operating Model](90-system/docs/OPERATING-MODEL.md) and
 [Security Model](90-system/docs/SECURITY.md) before granting an agent write
 access.
@@ -77,6 +103,7 @@ access.
 
 ```powershell
 .\90-system\automation\scripts\second-self.ps1 capture --title "Idea"
+.\90-system\automation\scripts\second-self.ps1 web
 .\90-system\automation\scripts\second-self.ps1 ingest "C:\path\document.pdf"
 .\90-system\automation\scripts\second-self.ps1 indexes
 .\90-system\automation\scripts\second-self.ps1 register-project "C:\path\project" --name "Project Name"

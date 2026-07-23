@@ -8,6 +8,8 @@ version = "0.1.0"
 description = "Local tooling for the Second Self knowledge system"
 requires-python = ">=3.12"
 dependencies = [
+  "Flask>=3.1,<4",
+  "Markdown>=3.10,<4",
   "openpyxl>=3.1,<4",
   "pypdf>=5,<7",
   "python-docx>=1.1,<2",
@@ -26,6 +28,9 @@ package-dir = {"" = "90-system/app"}
 [tool.setuptools.packages.find]
 where = ["90-system/app"]
 include = ["second_self*"]
+
+[tool.setuptools.package-data]
+second_self = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["90-system/tests"]
