@@ -23,7 +23,8 @@ Use an appropriate credential manager instead.
 
 ## Agent Trust
 
-Only trusted Codex and Claude sessions running locally may search the full brain.
+Only trusted Codex and Claude sessions running locally may search the full
+Second Self context.
 Project registration installs local, Git-ignored adapters. Remote automation,
 CI, and public repository workflows receive synthetic fixtures only.
 
@@ -40,4 +41,3 @@ files, and schema migrations.
 First approve intent and paths. Then approve the exact diff or payload. Input
 hash changes invalidate the approval. Default deletion moves data to dated
 private trash.
-

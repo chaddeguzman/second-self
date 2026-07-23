@@ -1,5 +1,0 @@
-interface:
-  display_name: "Brain Project Handoff"
-  short_description: "Prepare a cited private project context brief."
-  default_prompt: "Use $brain-project-handoff to prepare context for this project."
-

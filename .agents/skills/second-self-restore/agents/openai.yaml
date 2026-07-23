@@ -1,0 +1,4 @@
+interface:
+  display_name: "Second Self Restore"
+  short_description: "Verify and restore an encrypted Second Self snapshot."
+  default_prompt: "Use $second-self-restore to restore this Second Self backup safely."

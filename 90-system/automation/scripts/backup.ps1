@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
-$ConfigPath = Join-Path $RepoRoot ".main-brain.local.json"
+$ConfigPath = Join-Path $RepoRoot ".second-self.local.json"
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
     throw "Run 90-system/automation/scripts/bootstrap.ps1 first."
 }
@@ -31,7 +31,7 @@ $Destination = [IO.Path]::GetFullPath($Destination)
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 
 $Stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$Base = "main-brain-$Stamp"
+$Base = "second-self-$Stamp"
 $TempTar = Join-Path ([IO.Path]::GetTempPath()) "$Base.tar"
 $Archive = Join-Path $Destination "$Base.tar.age"
 $Manifest = Join-Path $Destination "$Base.manifest.json"
@@ -52,7 +52,7 @@ try {
         created = (Get-Date).ToString("o")
         archive = [IO.Path]::GetFileName($Archive)
         sha256 = $Hash
-        schema_version = (Get-Content -Raw -LiteralPath (Join-Path $DataRoot ".main-brain-schema")).Trim()
+        schema_version = (Get-Content -Raw -LiteralPath (Join-Path $DataRoot ".second-self-schema")).Trim()
     } | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath $Manifest
     Write-Host "Verified encrypted backup: $Archive"
 }

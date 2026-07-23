@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Weekly Review"
+  short_description: "Process the inbox and refresh project priorities."
+  default_prompt: "Use $second-self-weekly-review to run my weekly Second Self review."
+

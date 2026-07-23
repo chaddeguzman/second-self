@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$DataRoot = (Join-Path $env:USERPROFILE "MainBrainData"),
+    [string]$DataRoot = (Join-Path $env:USERPROFILE "SecondSelfData"),
     [switch]$SkipDependencyInstall
 )
 
@@ -60,7 +60,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Python dependency installation failed."
 }
 
-& $Python -m main_brain bootstrap --data-root $DataRoot
+& $Python -m second_self bootstrap --data-root $DataRoot
 if ($LASTEXITCODE -ne 0) {
     throw "Private-data bootstrap failed."
 }
@@ -97,6 +97,6 @@ if (-not $encryptionVerified) {
 }
 
 git -C $RepoRoot config core.hooksPath 90-system/automation/git-hooks
-Write-Host "Main Brain assembled at $RepoRoot"
+Write-Host "Second Self assembled at $RepoRoot"
 Write-Host "Private data: $DataRoot"
 Write-Host "Open $RepoRoot as the Obsidian vault."

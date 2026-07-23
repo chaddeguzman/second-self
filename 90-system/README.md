@@ -1,6 +1,6 @@
 # System
 
-This folder contains Main Brain internals maintained by agents and developers.
+This folder contains Second Self internals maintained by agents and developers.
 Users should work in `01-strategy-storage` and `02-skills-projects`.
 
 - `app`: Python package

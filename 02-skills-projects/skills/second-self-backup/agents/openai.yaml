@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Backup"
+  short_description: "Create a verified encrypted removable-drive snapshot."
+  default_prompt: "Use $second-self-backup to back up my private Second Self data."
+

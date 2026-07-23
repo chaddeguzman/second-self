@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/chaddeguzman/main-brain/project.schema.json",
-  "title": "Main Brain Project",
+  "$id": "https://github.com/chaddeguzman/second-self/project.schema.json",
+  "title": "Second Self Project",
   "allOf": [{"$ref": "note.schema.json"}],
   "type": "object",
   "required": ["type", "created", "status", "project_state", "repository"],

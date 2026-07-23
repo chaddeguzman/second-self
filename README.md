@@ -1,6 +1,9 @@
-# Main Brain
+# Second Self
 
-Main Brain is a private-data, public-architecture personal knowledge system for
+Second Self is a private-data, public-architecture system that represents Chad
+as a whole person for both personal use and trusted AI agents. It brings
+together identity, values, principles, knowledge, memories, experiences,
+events, strategy, projects, reviews, and learned ways of working across
 Obsidian, Codex, and Claude.
 
 ## Folder Guide
@@ -40,7 +43,7 @@ GitHub.
 
 `90-system` keeps technical internals out of the user workspace:
 
-- `app`: Main Brain Python application
+- `app`: Second Self Python application
 - `automation`: scripts, hooks, and Git hooks
 - `docs`: operating model, security guidance, schemas, and templates
 - `migrations`: controlled structure changes
@@ -52,10 +55,10 @@ Requirements: Windows, Git, Python 3.12+, Obsidian, and `age`.
 
 ```powershell
 .\90-system\automation\scripts\bootstrap.ps1
-.\90-system\automation\scripts\brain.ps1 validate
+.\90-system\automation\scripts\second-self.ps1 validate
 ```
 
-Bootstrap creates `%USERPROFILE%\MainBrainData`, writes an ignored local
+Bootstrap creates `%USERPROFILE%\SecondSelfData`, writes an ignored local
 configuration file, and assembles the vault with directory junctions. It never
 commits personal data.
 
@@ -66,16 +69,16 @@ access.
 ## Common Commands
 
 ```powershell
-.\90-system\automation\scripts\brain.ps1 capture --title "Idea"
-.\90-system\automation\scripts\brain.ps1 ingest "C:\path\document.pdf"
-.\90-system\automation\scripts\brain.ps1 indexes
-.\90-system\automation\scripts\brain.ps1 register-project "C:\path\project" --name "Project Name"
-.\90-system\automation\scripts\backup.ps1 -Destination "E:\MainBrainBackups"
-.\90-system\automation\scripts\restore.ps1 -Archive "E:\MainBrainBackups\main-brain-....tar.age" -Destination "C:\restore"
+.\90-system\automation\scripts\second-self.ps1 capture --title "Idea"
+.\90-system\automation\scripts\second-self.ps1 ingest "C:\path\document.pdf"
+.\90-system\automation\scripts\second-self.ps1 indexes
+.\90-system\automation\scripts\second-self.ps1 register-project "C:\path\project" --name "Project Name"
+.\90-system\automation\scripts\backup.ps1 -Destination "E:\SecondSelfBackups"
+.\90-system\automation\scripts\restore.ps1 -Archive "E:\SecondSelfBackups\second-self-....tar.age" -Destination "C:\restore"
 ```
 
 ## Privacy
 
 Do not store passwords, API keys, recovery codes, or private keys anywhere in
-the brain. Local and CI privacy checks reduce accidental exposure, but device
+Second Self. Local and CI privacy checks reduce accidental exposure, but device
 encryption and careful review remain required.

@@ -1,5 +1,0 @@
-interface:
-  display_name: "Brain Project Writeback"
-  short_description: "Return project decisions and lessons to the brain."
-  default_prompt: "Use $brain-project-writeback to record this project outcome."
-

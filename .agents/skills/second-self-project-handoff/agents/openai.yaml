@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Project Handoff"
+  short_description: "Prepare a cited private project context brief."
+  default_prompt: "Use $second-self-project-handoff to prepare context for this project."
+

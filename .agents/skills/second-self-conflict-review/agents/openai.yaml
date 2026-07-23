@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Conflict Review"
+  short_description: "Surface and resolve contradictory personal context."
+  default_prompt: "Use $second-self-conflict-review to review these conflicting notes."
+

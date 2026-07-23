@@ -1,10 +1,10 @@
 # Local configuration and assembled private data.
-.main-brain.local.json
+.second-self.local.json
 01-strategy-storage/
 02-skills-projects/projects/
 
 # Private or generated runtime state.
-.brain-cache/
+.second-self-cache/
 .venv/
 __pycache__/
 *.py[cod]
@@ -30,4 +30,3 @@ backups/
 .env
 .env.*
 secrets/
-

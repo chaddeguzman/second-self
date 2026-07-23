@@ -1,7 +1,7 @@
-# Main Brain
+# Second Self
 
 At the beginning of every session, read
-`01-strategy-storage/00 Memory/Main Brain Context.md` for the system's purpose,
+`01-strategy-storage/00 Memory/Second Self Context.md` for the system's purpose,
 architecture, privacy model, and shared human-agent context.
 Also read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
 user's immediate task permits, use one incomplete memory topic for a short,

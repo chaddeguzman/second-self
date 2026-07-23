@@ -1,5 +1,5 @@
 {
-  "description": "Protect Main Brain private-data operations.",
+  "description": "Protect Second Self private-data operations.",
   "hooks": {
     "PreToolUse": [
       {
@@ -10,7 +10,7 @@
             "command": "python \"$(git rev-parse --show-toplevel)/90-system/automation/hooks/pre_tool_use.py\"",
             "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; python (Join-Path $root '90-system/automation/hooks/pre_tool_use.py')\"",
             "timeout": 10,
-            "statusMessage": "Checking Main Brain edit policy"
+            "statusMessage": "Checking Second Self edit policy"
           }
         ]
       }

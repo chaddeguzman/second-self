@@ -1,5 +1,0 @@
-interface:
-  display_name: "Brain Conflict Review"
-  short_description: "Surface and resolve contradictory personal context."
-  default_prompt: "Use $brain-conflict-review to review these conflicting notes."
-

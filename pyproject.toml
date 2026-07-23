@@ -3,9 +3,9 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "main-brain"
+name = "second-self"
 version = "0.1.0"
-description = "Local tooling for the Main Brain knowledge system"
+description = "Local tooling for the Second Self knowledge system"
 requires-python = ">=3.12"
 dependencies = [
   "openpyxl>=3.1,<4",
@@ -18,14 +18,14 @@ dependencies = [
 dev = ["pytest>=8,<10"]
 
 [project.scripts]
-brain = "main_brain.cli:main"
+second-self = "second_self.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "90-system/app"}
 
 [tool.setuptools.packages.find]
 where = ["90-system/app"]
-include = ["main_brain*"]
+include = ["second_self*"]
 
 [tool.pytest.ini_options]
 testpaths = ["90-system/tests"]

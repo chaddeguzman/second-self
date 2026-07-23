@@ -16,4 +16,4 @@ jobs:
       - run: python -m pip install -r requirements.lock
       - run: python -m pip install --no-deps -e .
       - run: python -m pytest
-      - run: python -m main_brain validate --privacy
+      - run: python -m second_self validate --privacy

@@ -1,3 +1,3 @@
 # Migrations
 
-Agent-maintained specifications for controlled Main Brain structure changes.
+Agent-maintained specifications for controlled Second Self structure changes.

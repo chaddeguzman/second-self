@@ -1,5 +1,0 @@
-interface:
-  display_name: "Brain Quarterly Review"
-  short_description: "Reassess identity, strategy, goals, and lessons."
-  default_prompt: "Use $brain-quarterly-review to run my quarterly review."
-

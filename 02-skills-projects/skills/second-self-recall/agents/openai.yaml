@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Recall"
+  short_description: "Retrieve personal context with source citations."
+  default_prompt: "Use $second-self-recall to answer this from my Second Self."
+

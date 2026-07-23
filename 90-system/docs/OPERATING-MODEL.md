@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Main Brain supports two outcomes: reliable personal recall and decisions aligned
-with current identity, values, strategy, history, and commitments.
+Second Self supports reliable personal recall and action aligned with Chad's
+current identity, values, principles, knowledge, strategy, history,
+relationships, experiences, and commitments.
 
 ## Authority
 
@@ -25,13 +26,12 @@ project priorities, promoted lessons, and an unresolved-conflict list.
 
 ## Projects
 
-The brain owns project intent, status, decisions, next actions, and lessons.
+Second Self owns project intent, status, decisions, next actions, and lessons.
 Code and detailed execution artifacts remain in external repositories. Only
-explicitly registered, trusted local project agents receive brain adapters.
+explicitly registered, trusted local project agents receive Second Self adapters.
 
 ## Retrieval
 
 Session startup uses compact current-view and index notes. Use metadata indexes
 and text search for deeper retrieval. Do not load the entire archive into a
 prompt. Consequential responses cite the relevant private note and date.
-

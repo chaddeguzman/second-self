@@ -1,15 +1,15 @@
-# Main Brain Agent Rules
+# Second Self Agent Rules
 
 ## Startup
 
 1. Always read
-   `01-strategy-storage/00 Memory/Main Brain Context.md`.
+   `01-strategy-storage/00 Memory/Second Self Context.md`.
 2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
    immediate task permits, ask one focused question from an incomplete memory
    topic and save only a user-confirmed summary.
 3. Read `90-system/docs/OPERATING-MODEL.md` and
    `90-system/docs/SECURITY.md`.
-4. Resolve private paths through `.main-brain.local.json`; never hard-code them.
+4. Resolve private paths through `.second-self.local.json`; never hard-code them.
 5. If private data is assembled, read the compact current-view indexes:
    - `01-strategy-storage/10-current/Current Identity.md`
    - `01-strategy-storage/10-current/Current Strategy.md`
@@ -31,7 +31,7 @@
 
 ## Editing
 
-- Use `python -m main_brain broker` for protected changes.
+- Use `python -m second_self broker` for protected changes.
 - Protected changes include identity or strategy edits, private-context
   exports, deletes, moves, renames, and changes to five or more existing files.
 - Protected changes require proposal approval followed by approval of the exact
@@ -48,6 +48,6 @@
 Run:
 
 ```powershell
-.\90-system\automation\scripts\brain.ps1 validate --privacy
+.\90-system\automation\scripts\second-self.ps1 validate --privacy
 python -m pytest
 ```

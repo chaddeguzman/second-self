@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Self Capture"
+  short_description: "Capture new context into the private Second Self inbox."
+  default_prompt: "Use $second-self-capture to record this in my Second Self inbox."
+

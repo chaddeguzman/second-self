@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/chaddeguzman/main-brain/note.schema.json",
-  "title": "Main Brain Note",
+  "$id": "https://github.com/chaddeguzman/second-self/note.schema.json",
+  "title": "Second Self Note",
   "type": "object",
   "required": ["type", "created", "status"],
   "properties": {
