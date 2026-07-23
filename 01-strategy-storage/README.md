@@ -93,6 +93,28 @@ Markdown remains the source of truth. Second Self should retrieve only the
 material relevant to the current task, preserve historical evidence, and
 surface conflicts instead of silently choosing between contradictory records.
 
+## Using Layer 1 as Context
+
+`00 Memory` is the starting point for durable personal context, but it is not
+the only context available to the user, Codex, Claude, or another trusted
+agent. All six Layer 1 folders may contribute to recall and reasoning:
+
+- `00 Memory` provides stable personal context and confirmed understanding.
+- `01 Notes` contributes developed thoughts, observations, and working ideas.
+- `02 Journal` contributes dated experiences, events, and reflections.
+- `03 Strategy` contributes current direction, priorities, goals, and
+  commitments.
+- `04 References` contributes supporting sources, research, guides, and
+  documents.
+- `05 Reviews` contributes periodic assessments, decisions, follow-ups, and
+  explanations for previous changes.
+
+For a simple question, one relevant memory note may be enough. For deeper
+recall, investigations, project work, or idea development, use a larger
+task-relevant context set assembled from several folders. The goal is to use
+the available context window well without loading unrelated private material
+or the entire vault by default.
+
 ## Privacy and Structure
 
 - Personal contents inside these folders must not be committed to Git.

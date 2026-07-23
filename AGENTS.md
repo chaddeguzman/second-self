@@ -13,8 +13,10 @@
    `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
 5. When a task depends on personal context, begin with relevant notes under
-   `01-strategy-storage/00 Memory`. Expand only as needed into the other
-   approved Layer 1 folders and
+   `01-strategy-storage/00 Memory`, but do not treat Memory as the only context
+   source. When broader context is useful, also retrieve relevant material from
+   `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and `05 Reviews`,
+   plus
    `02-skills-projects/projects/Projects Index.md` when project context is
    relevant.
 6. Retrieve historical notes only when relevant.
@@ -30,11 +32,15 @@
   retain.
 - Do not answer personal recall questions from model memory or assumptions.
   Use the `second-self-recall` workflow and stored Markdown evidence.
-- Start recall in `01-strategy-storage/00 Memory`, then search the relevant
-  notes, journal, strategy, references, reviews, history, or project records
-  when the first source is insufficient.
-- Search narrowly to protect privacy, but do not stop after one file when the
-  requested memory could reasonably exist elsewhere in the approved sources.
+- Start recall in `01-strategy-storage/00 Memory`, then assemble additional
+  relevant context from `01 Notes`, `02 Journal`, `03 Strategy`,
+  `04 References`, `05 Reviews`, historical sources, and project records.
+- Use the available context window intentionally. A task may benefit from
+  multiple complementary sources across all six Layer 1 folders rather than a
+  single memory note.
+- Protect privacy by retrieving task-relevant material, but do not make the
+  search artificially narrow or stop after one file when useful context could
+  reasonably exist elsewhere in the approved sources.
 - Distinguish confirmed stored evidence, reasonable inference, and missing
   information. Cite the relevant internal file and date.
 - Apply recalled context to project work, investigations, and idea development
