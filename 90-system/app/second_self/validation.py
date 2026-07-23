@@ -34,6 +34,7 @@ ALLOWED_PRIVATE_SCAFFOLD_FILES = {
     "01-strategy-storage/04 References/03 guides/.gitkeep",
     "01-strategy-storage/04 References/04 docs/.gitkeep",
     "01-strategy-storage/05 Reviews/.gitkeep",
+    "02-skills-projects/projects/.gitkeep",
 }
 
 

@@ -1,6 +1,7 @@
 # Local configuration and assembled private data.
 .second-self.local.json
-02-skills-projects/projects/
+02-skills-projects/projects/*
+!02-skills-projects/projects/.gitkeep
 
 # Track only the empty user-facing Layer 1 folder scaffold. All private
 # contents and system-managed Layer 1 folders remain ignored.

@@ -54,3 +54,44 @@ def test_layer1_readme_is_public_but_personal_notes_are_rejected(
         "private/runtime path is tracked: "
         "01-strategy-storage/00 Memory/personal.md"
     ]
+
+
+def test_projects_placeholder_is_public_but_project_contents_are_rejected(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    data = tmp_path / "data"
+    project = repo / "02-skills-projects" / "projects" / "example"
+    project.mkdir(parents=True)
+    data.mkdir()
+
+    placeholder = repo / "02-skills-projects" / "projects" / ".gitkeep"
+    placeholder.touch()
+    private_file = project / "private.md"
+    private_file.write_text("# Private project\n", encoding="utf-8")
+
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "add",
+            "--",
+            str(placeholder),
+            str(private_file),
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    errors = validate(
+        SecondSelfPaths(repo_root=repo, data_root=data),
+        privacy=True,
+        check_private=False,
+    )
+
+    assert errors == [
+        "private/runtime path is tracked: "
+        "02-skills-projects/projects/example/private.md"
+    ]
