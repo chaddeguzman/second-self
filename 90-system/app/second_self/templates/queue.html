@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ queue.label }} · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>{{ queue.label }}</span>
+</nav>
+<section class="page-header">
+  <p class="eyebrow">Queue</p>
+  <h1>{{ queue.label }}</h1>
+  <p>{{ queue.rule }}</p>
+</section>
+
+{% if queue.state == 'unavailable' %}
+  <div class="empty-panel large">
+    <strong>Not configured yet</strong>
+    <p>{{ queue.unavailable_reason }}</p>
+  </div>
+{% elif queue.state == 'scan-error' %}
+  <div class="notice notice-error">This queue could not be scanned safely. No zero count was assumed.</div>
+{% elif queue.items %}
+  <div class="record-list">
+    {% for item in queue.items %}
+      <article>
+        <div>
+          <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+          <p class="path">{{ item.relative_path }}</p>
+        </div>
+        <dl>
+          <div><dt>Type</dt><dd>{{ item.record_type }}</dd></div>
+          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+          <div><dt>Date</dt><dd>{{ item.due or item.created or 'Unavailable' }}</dd></div>
+        </dl>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-panel large">
+    <strong>This queue is clear.</strong>
+    <p>No structured records match the rule above.</p>
+  </div>
+{% endif %}
+{% endblock %}

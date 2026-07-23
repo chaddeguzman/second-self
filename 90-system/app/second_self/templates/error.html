@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Unable to continue · Second Self{% endblock %}
+{% block content %}
+<section class="error-panel">
+  <p class="eyebrow">Local request {{ code }}</p>
+  <h1>Second Self could not complete that request.</h1>
+  <p>No private content or filesystem details were included in this error.</p>
+  <p class="correlation">Reference: <code>{{ correlation }}</code></p>
+  <a class="button" href="{{ url_for('home') }}">Return Home</a>
+</section>
+{% endblock %}

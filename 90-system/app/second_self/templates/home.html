@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Home · Second Self{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Today’s private overview</p>
+    <h1>A calm place to process what matters.</h1>
+    <p>Review structured queues without changing your existing notes or legacy folders.</p>
+  </div>
+  {% if read_only %}
+    <a class="button button-secondary" href="{{ url_for('capture') }}">Capture unavailable</a>
+  {% else %}
+    <a class="button" href="{{ url_for('capture') }}">Quick capture</a>
+  {% endif %}
+</section>
+
+{% if snapshot.legacy_excluded or snapshot.scan_errors %}
+<aside class="data-notice" aria-label="Data quality notice">
+  <strong>Legacy-safe view</strong>
+  <span>
+    {{ snapshot.legacy_excluded }} unstructured file{{ '' if snapshot.legacy_excluded == 1 else 's' }}
+    excluded from operational counts.
+    {% if snapshot.scan_errors %}
+      {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be scanned safely.
+    {% endif %}
+  </span>
+</aside>
+{% endif %}
+
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Unified inbox</p>
+    <h2>Action queues</h2>
+  </div>
+  <p>{{ snapshot.scanned_files }} structured or legacy Markdown files checked locally.</p>
+</section>
+
+<div class="card-grid">
+  {% for key in queue_order %}
+    {% set queue = snapshot.queues[key] %}
+    <article class="queue-card state-{{ queue.state }}">
+      <div class="card-topline">
+        <span class="state-label">
+          {% if queue.state == 'unavailable' %}Not configured yet
+          {% elif queue.state == 'scan-error' %}Needs attention
+          {% elif queue.state == 'configured-empty' %}Clear
+          {% else %}{{ queue.items|length }} open{% endif %}
+        </span>
+        {% if queue.state != 'unavailable' and queue.state != 'scan-error' %}
+          <strong class="count">{{ queue.items|length }}</strong>
+        {% endif %}
+      </div>
+      <h3><a href="{{ url_for('queue_view', queue_key=queue.key) }}">{{ queue.label }}</a></h3>
+      {% if queue.state == 'unavailable' %}
+        <p>{{ queue.unavailable_reason }}</p>
+      {% elif queue.state == 'scan-error' %}
+        <p>This queue could not be read safely. No conclusion was inferred.</p>
+      {% elif queue.items %}
+        <ul class="item-list">
+          {% for item in queue.items[:5] %}
+            <li>
+              <a href="{{ preview_url(item) }}">{{ item.title }}</a>
+              <small>{{ item.created or 'Date unavailable' }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No matching structured records.</p>
+      {% endif %}
+      <a class="card-link" href="{{ url_for('queue_view', queue_key=queue.key) }}">View queue <span aria-hidden="true">→</span></a>
+    </article>
+  {% endfor %}
+</div>
+
+<section class="projects-panel">
+  <div class="section-heading compact">
+    <div>
+      <p class="eyebrow">Current work</p>
+      <h2>Active projects</h2>
+    </div>
+    <span class="count">{{ snapshot.active_projects|length }}</span>
+  </div>
+  {% if snapshot.active_projects %}
+    <ul class="project-list">
+      {% for project in snapshot.active_projects[:5] %}
+        <li>
+          <a href="{{ preview_url(project) }}">{{ project.title }}</a>
+          <span>{{ project.status }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-panel">
+      <strong>No direct active project records found.</strong>
+      <p>Nested project repositories are intentionally not scanned.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

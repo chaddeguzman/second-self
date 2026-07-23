@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
 from pathlib import Path
 
 from .broker import approve_exact, approve_intent, load_proposal, propose
+from .capture import capture_note
 from .indexes import generate_indexes
 from .ingest import ingest
 from .paths import CONFIG_PATH, load_paths, write_config
@@ -47,27 +47,20 @@ def _command_validate(args: argparse.Namespace) -> int:
 
 def _command_capture(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
-    safe = "".join(char if char not in '<>:"/\\|?*' else "-" for char in args.title).strip()
-    target = paths.layer1 / "00-inbox" / f"{safe}.md"
-    if target.exists():
-        raise FileExistsError(target)
-    target.write_text(
-        f"""---
-type: capture
-created: {date.today().isoformat()}
-status: inbox
-tags: []
-projects: []
-related: []
----
+    captured = capture_note(paths, args.title, args.body or "", source="cli")
+    print(captured.path.relative_to(paths.data_root))
+    return 0
 
-# {args.title}
 
-{args.body or ""}
-""",
-        encoding="utf-8",
+def _command_web(args: argparse.Namespace) -> int:
+    from .web import serve_web
+
+    serve_web(
+        load_paths(require_config=True),
+        port=args.port,
+        open_browser=not args.no_browser,
+        read_only=args.read_only,
     )
-    print(target)
     return 0
 
 
@@ -110,6 +103,12 @@ def build_parser() -> argparse.ArgumentParser:
     capture.add_argument("--title", required=True)
     capture.add_argument("--body")
     capture.set_defaults(func=_command_capture)
+
+    web = sub.add_parser("web")
+    web.add_argument("--port", type=int)
+    web.add_argument("--no-browser", action="store_true")
+    web.add_argument("--read-only", action="store_true")
+    web.set_defaults(func=_command_web)
 
     intake = sub.add_parser("ingest")
     intake.add_argument("source", type=Path)

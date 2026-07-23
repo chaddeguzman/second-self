@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Preview</span>
+</nav>
+<article class="preview-shell">
+  <header class="preview-header">
+    <div>
+      <p class="eyebrow">Read-only private preview</p>
+      <h1>{{ title }}</h1>
+    </div>
+    <a class="button button-secondary" href="{{ url_for('capture') }}">Capture another</a>
+  </header>
+  <dl class="metadata">
+    <div><dt>Type</dt><dd>{{ metadata.type or 'Unstructured' }}</dd></div>
+    <div><dt>Status</dt><dd>{{ metadata.status or 'Unavailable' }}</dd></div>
+    <div><dt>Created</dt><dd>{{ metadata.created or 'Unavailable' }}</dd></div>
+  </dl>
+  <div class="path-row">
+    <code>{{ relative_path }}</code>
+    <button class="copy-button" type="button" data-copy="{{ relative_path }}">Copy path</button>
+  </div>
+  <div class="markdown-body">{{ content }}</div>
+</article>
+{% endblock %}
