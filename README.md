@@ -71,6 +71,10 @@ and is never intentionally committed.
 
 ### Private local Home
 
+On Windows, double-click `Start-Second-Self.cmd` in the repository root for
+one-click startup. It performs first-time bootstrap when needed, starts the
+local server, and opens the browser automatically.
+
 Launch the local dashboard after bootstrap:
 
 ```powershell
