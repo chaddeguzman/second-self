@@ -16,6 +16,26 @@
    needed.
 6. Retrieve historical notes only when relevant.
 
+## Golden Rule: Main Must Stay Aligned
+
+- Use only the active repository's `main` branch for Second Self changes. Do
+  not work from a stale parent checkout or a feature branch.
+- Before changing tracked files, fetch `origin` and verify:
+  - the current branch is `main`;
+  - the working tree contains no unexplained changes; and
+  - `git rev-list --left-right --count main...origin/main` returns `0 0`.
+- If local `main` and `origin/main` differ, stop normal work and align them
+  safely before making additional changes. Preserve a recovery branch before
+  rewriting any existing local history.
+- Completed tracked changes must not be left uncommitted. Validate privacy and
+  tests, commit on local `main`, and let the post-commit hook publish to the
+  workflow-only `automation/main` branch.
+- After required checks pass, merge the automated pull request with **Create a
+  merge commit**, pull in VS Code, and verify that the working tree is clean and
+  `main...origin/main` is again `0 0` before starting another change.
+- Do not use **Rebase and merge**, **Squash and merge**, direct pushes to
+  protected `main`, or VS Code **Sync Changes** in this workflow.
+
 ## Evidence
 
 - Treat stored sources as equally valid evidence.

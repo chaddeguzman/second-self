@@ -37,6 +37,16 @@ jobs:
             const { owner, repo } = context.repo;
             const head = "automation/main";
             const base = "main";
+            const comparison = await github.rest.repos.compareCommits({
+              owner,
+              repo,
+              base,
+              head,
+            });
+            if (comparison.data.ahead_by === 0) {
+              core.notice(`${head} is already aligned with ${base}; no pull request is needed.`);
+              return;
+            }
             const existing = await github.rest.pulls.list({
               owner,
               repo,

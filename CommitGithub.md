@@ -15,7 +15,9 @@ Use this sequence whenever you change Second Self in VS Code.
 6. Open the pull request from `automation/main` into `main`.
 7. Wait for the required `test` check to pass. Do not merge while a required
    check is pending or failing.
-8. Select **Rebase and merge**, then confirm the merge.
+8. Select **Create a merge commit**, then confirm the merge. This preserves the
+   commit already present on local `main`, allowing the next pull to
+   fast-forward without creating duplicate history.
 9. Return to VS Code.
 10. In **Source Control**, select **...** and then **Pull** to update local
     `main`. It is normal for VS Code to report that the branch is already up to
@@ -24,9 +26,10 @@ Use this sequence whenever you change Second Self in VS Code.
 ## Important choices
 
 - Use **Commit**, not **Commit & Push** or **Sync Changes**.
-- Use **Rebase and merge** for the automated pull request.
-- Do not use **Create a merge commit** or **Squash and merge** for this
-  workflow.
+- Use **Create a merge commit** for the automated pull request.
+- Do not use **Rebase and merge** or **Squash and merge** for this workflow.
+  Both replace the local commit with a different commit ID and make an ordinary
+  VS Code pull diverge.
 - You do not need to manually create a pull request.
 - Additional commits made while the automated pull request is open update that
   same pull request.
@@ -39,6 +42,8 @@ Use this sequence whenever you change Second Self in VS Code.
   **Validate and open pull request**.
 - If VS Code tries to push directly to `main`, cancel it. Protected `main`
   accepts changes only through a pull request.
+- If Pull reports divergent history instead of fast-forwarding, stop instead
+  of letting VS Code create another local merge and inspect the branch state.
 - Before every commit, run:
 
   ```powershell

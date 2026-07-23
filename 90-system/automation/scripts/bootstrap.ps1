@@ -124,6 +124,7 @@ if (-not $encryptionVerified) {
 }
 
 git -C $RepoRoot config core.hooksPath 90-system/automation/git-hooks
+git -C $RepoRoot config pull.ff only
 Write-Host "Second Self assembled at $RepoRoot"
 Write-Host "Private data: $DataRoot"
 Write-Host "Open $RepoRoot as the Obsidian vault."
