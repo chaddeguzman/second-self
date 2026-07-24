@@ -10,6 +10,57 @@ The repository is designed to be reusable. Its public code, documentation, and
 workflows can be cloned or forked, while your personal context remains local
 and excluded from Git.
 
+## Before You Clone
+
+Second Self currently targets Windows. Install or confirm the following tools
+before cloning the repository:
+
+| Prerequisite | Status | Why it is needed |
+| --- | --- | --- |
+| Windows 10 or 11 with Windows PowerShell 5.1 | Required | The bootstrap, launcher, validation, backup, and restore scripts use PowerShell and Windows directory junctions. Windows PowerShell is included with supported Windows installations. |
+| [Git for Windows](https://git-scm.com/download/win) | Required | Clones the repository and manages its protected update workflow. |
+| [Python 3.12 or newer](https://www.python.org/downloads/windows/) | Required | Runs the local application, creates the project virtual environment, and installs the locked Python dependencies. Select **Add Python to PATH** if the installer offers that option. |
+| Internet connection | Required for initial setup | Downloads the repository and installs the locked Python packages during bootstrap. |
+| [Visual Studio Code](https://code.visualstudio.com/) | Recommended | Provides the documented editing, terminal, Source Control, and nested-project workflow. Another Git-aware editor can be used instead. |
+| [Obsidian](https://obsidian.md/download) | Recommended | Provides the intended Markdown knowledge-base interface. The repository root becomes the Obsidian vault after bootstrap. |
+| BitLocker or Windows device encryption | Strongly recommended | Protects the private, plaintext Second Self data stored on the local system drive. Bootstrap checks for encryption and requires a risk acknowledgement if it cannot verify protection. |
+| [`age`](https://github.com/FiloSottile/age) | Required for backup and restore | Encrypts manual Second Self snapshots. It is not needed to launch and use the local system without encrypted backups. |
+| GitHub account | Optional | Needed to fork the repository, publish changes, use the automated pull-request workflow, or clone GitHub-hosted project repositories. It is not required for local-only use after obtaining the files. |
+| Codex or Claude | Optional | A trusted local AI agent can retrieve context and run Second Self workflows, but the local dashboard and Obsidian vault can be used without one. |
+
+### Install with Windows Package Manager
+
+On a current Windows installation with `winget`, open PowerShell and run:
+
+```powershell
+winget install --id Git.Git --exact
+winget install --id Python.Python.3.12 --exact
+winget install --id Microsoft.VisualStudioCode --exact
+winget install --id Obsidian.Obsidian --exact
+winget install --id FiloSottile.age --exact
+```
+
+Restart PowerShell after installation so newly installed commands are available
+on `PATH`, then verify the required command-line tools:
+
+```powershell
+git --version
+python --version
+```
+
+If `python --version` reports a version older than 3.12 or opens the Microsoft
+Store, fix the Python installation or its `PATH` entry before continuing. To
+use encrypted backup and restore, also verify:
+
+```powershell
+age --version
+```
+
+`winget` is only an installation convenience; it is not required by Second
+Self. You can use the linked official installers instead. During bootstrap, the
+setup script checks for Git, Python, Obsidian, and `age` and can offer the same
+`winget` installation commands when a tool is missing.
+
 ## Folder Guide
 
 | Folder | Purpose | Maintained by |
@@ -171,7 +222,8 @@ Second Self repository window: Second Self uses its protected
 
 ## Quick Start
 
-Requirements: Windows, Git, Python 3.12+, Obsidian, and `age`.
+Complete the [prerequisites](#before-you-clone), then clone or fork the
+repository and open PowerShell in its root folder.
 
 ```powershell
 .\90-system\automation\scripts\bootstrap.ps1
