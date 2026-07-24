@@ -5,6 +5,7 @@
 !02-skills-projects/projects/.gitkeep
 03-wiki/*
 !03-wiki/.gitkeep
+!03-wiki/README.md
 
 # Track only the empty user-facing Layer 1 folder scaffold. All private
 # contents and system-managed Layer 1 folders remain ignored.

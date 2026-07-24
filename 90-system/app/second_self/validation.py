@@ -38,6 +38,7 @@ ALLOWED_PRIVATE_SCAFFOLD_FILES = {
     "01-strategy-storage/05 Reviews/.gitkeep",
     "02-skills-projects/projects/.gitkeep",
     "03-wiki/.gitkeep",
+    "03-wiki/README.md",
 }
 
 
