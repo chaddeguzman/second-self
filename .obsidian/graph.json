@@ -9,7 +9,7 @@
   "colorGroups": [
     { "query": "path:\"01-strategy-storage/00 Memory/00 Raw\"", "color": { "a": 1, "rgb": 16113825 } },
     { "query": "path:\"01-strategy-storage/00 Memory/99 Processed\"", "color": { "a": 1, "rgb": 16113825 } },
-    { "query": "path:\"01-strategy-storage/00 Memory\"", "color": { "a": 1, "rgb": 13938231 } },
+    { "query": "path:\"01-strategy-storage/00 Memory/\"", "color": { "a": 1, "rgb": 16766720 } },
     { "query": "path:\"01-strategy-storage/01 Notes\"", "color": { "a": 1, "rgb": 15259622 } },
     { "query": "path:\"01-strategy-storage/02 Journal\"", "color": { "a": 1, "rgb": 3106736 } },
     { "query": "path:\"01-strategy-storage/03 Strategy\"", "color": { "a": 1, "rgb": 4161371 } },
