@@ -23,8 +23,8 @@ from Git.
 
 Second Self supports five connected functions:
 
-1. **Capture** — Add thoughts, notes, documents, links, and corrections to an
-   inbox or the appropriate personal folder.
+1. **Capture** — Add thoughts, notes, documents, links, web clippings, and
+   corrections to an inbox or the appropriate personal folder.
 2. **Organize** — Keep memories, notes, journals, strategy, references, reviews,
    and projects in a predictable structure.
 3. **Recall** — Retrieve task-relevant evidence instead of relying on an AI
@@ -154,6 +154,7 @@ Second Self currently targets Windows.
 | Internet connection | Required for initial setup | Downloads the repository and Python packages. |
 | [Visual Studio Code](https://code.visualstudio.com/) | Recommended | Provides the documented editing, terminal, Source Control, and project workflow. Another Git-aware editor can be used. |
 | [Obsidian](https://obsidian.md/download) | Recommended | Provides the intended Markdown knowledge-base interface. |
+| [Obsidian Web Clipper](https://obsidian.md/clipper) | Optional | Adds one-click browser capture for web pages, highlights, links, and metadata. |
 | BitLocker or Windows device encryption | Strongly recommended | Protects the private plaintext data on the local system drive. |
 | [`age`](https://github.com/FiloSottile/age) | Required for backup and restore | Encrypts manual Second Self snapshots; it is not required for basic local use. |
 | GitHub account | Optional | Needed to fork, publish changes, use the automated pull-request workflow, or clone GitHub-hosted projects. |
@@ -230,7 +231,31 @@ Read the [Operating Model](90-system/docs/OPERATING-MODEL.md) and
 [Security Model](90-system/docs/SECURITY.md) before granting an agent write
 access.
 
-### 4. Start the Local Home
+### 4. Optional: Add Obsidian Web Clipper
+
+Install the [Obsidian Web Clipper](https://obsidian.md/clipper) browser
+extension to quickly capture articles, YouTube links, highlighted passages,
+short snippets, and other useful material from the internet.
+
+Web Clipper saves pages and metadata as durable Markdown files in your vault so
+you can keep, search, and read them offline. Its templates let you customize
+the note location, filename, content, and properties for different websites.
+For example, a template can preserve the page title, source URL, author,
+published date, capture date, and tags.
+
+For the Second Self workflow, configure your general web-capture template to
+save new clips to:
+
+```text
+01-strategy-storage/01 Notes/00 Raw
+```
+
+This keeps incoming web material in the review queue. A trusted agent can later
+process it into the LLM Wiki, preserve the original under `99 Processed`, and
+create traceable topic or source pages. Use additional Web Clipper templates
+when a site or content type needs a different format.
+
+### 5. Start the Local Home
 
 Double-click `Start-Second-Self.cmd` for one-click startup. On the first run it
 performs bootstrap if needed, starts the private local server, and opens the
