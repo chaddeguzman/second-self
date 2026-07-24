@@ -124,3 +124,26 @@ def test_wiki_placeholder_is_public_but_generated_pages_are_rejected(
     )
 
     assert errors == ["private/runtime path is tracked: 03-wiki/topics/private.md"]
+
+
+def test_private_schema_marker_is_rejected_if_tracked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    data = tmp_path / "data"
+    repo.mkdir()
+    data.mkdir()
+    marker = repo / ".second-self-schema"
+    marker.write_text("2\n", encoding="ascii")
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "add", "--", str(marker)],
+        check=True,
+        capture_output=True,
+    )
+
+    errors = validate(
+        SecondSelfPaths(repo_root=repo, data_root=data),
+        privacy=True,
+        check_private=False,
+    )
+
+    assert errors == ["private/runtime path is tracked: .second-self-schema"]

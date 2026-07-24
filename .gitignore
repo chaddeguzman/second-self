@@ -1,5 +1,6 @@
 # Local configuration and assembled private data.
 .second-self.local.json
+.second-self-schema
 02-skills-projects/projects/*
 !02-skills-projects/projects/.gitkeep
 03-wiki/*

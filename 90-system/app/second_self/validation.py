@@ -20,6 +20,7 @@ IGNORED_TRACKED_PREFIXES = (
     "02-skills-projects/projects/",
     "03-wiki/",
     ".second-self.local.json",
+    ".second-self-schema",
     ".second-self-cache/",
 )
 ALLOWED_PRIVATE_SCAFFOLD_FILES = {
