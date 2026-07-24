@@ -57,6 +57,28 @@ def test_single_rejection_leaves_content_unchanged(
         approve(second_self, proposal["id"], "yes")
 
 
+@pytest.mark.parametrize("legacy_status", ["intent-pending", "exact-pending"])
+def test_legacy_pending_proposal_accepts_one_simple_decision(
+    second_self: SecondSelfPaths, legacy_status: str
+) -> None:
+    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# Legacy updated"}],
+        },
+    )
+    proposal["status"] = legacy_status
+    proposal_path = second_self.audit / "proposals" / f"{proposal['id']}.json"
+    proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+
+    applied = approve(second_self, proposal["id"], "Y")
+
+    assert applied["status"] == "applied"
+    assert target.read_text(encoding="utf-8") == "# Legacy updated"
+
+
 def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
     target = second_self.layer1 / "10-current" / "Current Strategy.md"
     proposal = propose(

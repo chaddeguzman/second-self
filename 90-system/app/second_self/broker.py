@@ -31,6 +31,11 @@ LAYER1_SCAFFOLD_FILES = (
     "04 References/.gitkeep",
     "05 Reviews/.gitkeep",
 )
+APPROVAL_PENDING_STATUSES = {
+    "approval-pending",
+    "intent-pending",
+    "exact-pending",
+}
 
 
 def _hash(path: Path) -> str | None:
@@ -461,7 +466,7 @@ def approve(
     paths: SecondSelfPaths, proposal_id: str, confirmation: str, agent: str = "unknown"
 ) -> dict[str, Any]:
     proposal = load_proposal(paths, proposal_id)
-    if proposal["status"] != "approval-pending":
+    if proposal["status"] not in APPROVAL_PENDING_STATUSES:
         raise ValueError(f"Proposal status is {proposal['status']}")
     if not _approval_decision(confirmation):
         proposal["status"] = "rejected"
