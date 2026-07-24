@@ -285,7 +285,9 @@ def lint_wiki(paths: SecondSelfPaths) -> list[str]:
     errors: list[str] = []
     if not paths.wiki.exists():
         return ["03-wiki is not initialized"]
-    pages = sorted(paths.wiki.rglob("*.md"))
+    pages = sorted(
+        page for page in paths.wiki.rglob("*.md") if page.name.casefold() != "readme.md"
+    )
     for name in REQUIRED_WIKI_FILES:
         if not (paths.wiki / name).exists():
             errors.append(f"missing wiki file: {name}")
