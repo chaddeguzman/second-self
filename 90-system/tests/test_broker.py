@@ -47,6 +47,33 @@ def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
         approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}")
 
 
+def test_proposal_and_result_never_expose_absolute_private_root(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [
+                {
+                    "path": target.relative_to(second_self.data_root).as_posix(),
+                    "content": target.read_text(encoding="utf-8") + "\nSafe.\n",
+                }
+            ],
+        },
+    )
+    serialized = json.dumps(proposal)
+    assert str(second_self.data_root) not in serialized
+    assert "01-strategy-storage/10-current/Current Strategy.md" in serialized
+
+    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
+    applied = approve_exact(
+        second_self, proposal["id"], f"APPLY {proposal['id']}", agent="pytest"
+    )
+    assert str(second_self.data_root) not in json.dumps(applied)
+
+
 def test_delete_moves_to_private_trash(second_self: SecondSelfPaths) -> None:
     target = second_self.layer1 / "20-notes" / "Disposable.md"
     target.write_text("temporary", encoding="utf-8")
