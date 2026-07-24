@@ -1,5 +1,7 @@
 # Second Self
 
+[Quick Start](Quick%20Start.md) · [FAQ](FAQ.md) · [License](LICENSE)
+
 ## What Is Second Self?
 
 Second Self is a private personal-context and knowledge system for you and your
