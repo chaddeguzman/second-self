@@ -21,8 +21,8 @@
    relevant.
 6. Retrieve historical notes only when relevant.
 7. Use `01-strategy-storage/README.md` and
-   `02-skills-projects/README.md` as the folder-purpose guides. Use the main
-   `README.md` for the independent nested-project Git workflow.
+   `02-skills-projects/README.md` as the folder-purpose guides. Use
+   `Quick Start.md` for the independent nested-project Git workflow.
 
 ## Core Function: Second Brain
 

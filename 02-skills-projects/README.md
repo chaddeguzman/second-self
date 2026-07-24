@@ -58,8 +58,8 @@ projects folder without publishing private project information.
 
 Complete Terminal and VS Code instructions for cloning and managing independent
 project repositories are maintained in
-[Working with Project Repositories](../README.md#working-with-project-repositories)
-in the main system README.
+[Working with Project Repositories](<../Quick Start.md#working-with-project-repositories>)
+in the Quick Start guide.
 
 ## How Layer 1 and Layer 2 Work Together
 
