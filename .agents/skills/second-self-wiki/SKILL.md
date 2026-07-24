@@ -16,7 +16,7 @@ Read `references/schema.md` before proposing wiki changes.
 5. Distinguish direct evidence, derived interpretation, conflicts, and missing information. Never use a generated page as the sole basis for a consequential personal claim.
 6. Prepare complete page contents, index changes, one append-only log entry, open-question changes, and Raw-to-Processed moves. Use stable source IDs and final Processed paths.
 7. Submit one `wiki_process` broker proposal. Do not write wiki pages or move sources directly.
-8. Show intent and affected paths. After intent approval, show the exact diff and move manifest. Apply only after exact approval.
+8. Show intent, affected paths, the exact diff, and the move manifest together. Apply after one `Y` or `Yes`; reject after one `N` or `No`. Never request an approval phrase, proposal ID, timestamp, or second approval.
 9. Run `python -m second_self wiki lint` and report the archived paths, pages changed, conflicts, and warnings.
 10. After successful processing, ask whether each archived source should remain in `01 Notes/99 Processed` or be relocated to a specific subfolder under `04 References`. Never move a source directly from Raw into References.
 11. If relocation is requested, prepare a separate protected `move` proposal with the exact current Processed path and requested References destination. After that move is approved and applied, update the wiki source page's `source_path` in a follow-up reviewed `wiki_process` proposal so links remain accurate.

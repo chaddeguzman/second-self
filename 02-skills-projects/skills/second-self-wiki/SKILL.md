@@ -16,7 +16,7 @@ Read `references/schema.md` before proposing wiki changes.
 5. Distinguish direct evidence, derived interpretation, conflicts, and missing information. Never use a generated page as the sole basis for a consequential personal claim.
 6. Prepare complete page contents, index changes, one append-only log entry, open-question changes, and Raw-to-Processed moves. Use stable source IDs and final Processed paths.
 7. Submit one `wiki_process` broker proposal. Do not write wiki pages or move sources directly.
-8. Show intent and affected paths. After intent approval, show the exact diff and move manifest. Apply only after exact approval.
+8. Show intent, affected paths, the exact diff, and the move manifest together. Apply after one `Y` or `Yes`; reject after one `N` or `No`. Never request an approval phrase, proposal ID, timestamp, or second approval.
 9. Run `python -m second_self wiki lint` and report the archived paths, pages changed, conflicts, and warnings.
 
 Archive successfully reviewed duplicates with a duplicate log entry but no redundant synthesis. Keep failed, unsupported, incomplete, or unapproved units in Raw.

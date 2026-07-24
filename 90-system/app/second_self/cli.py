@@ -6,8 +6,7 @@ import sys
 from pathlib import Path
 
 from .broker import (
-    approve_exact,
-    approve_intent,
+    approve,
     load_proposal,
     propose,
     recover_wiki_transactions,
@@ -78,14 +77,11 @@ def _command_broker(args: argparse.Namespace) -> int:
         _print(propose(paths, specification))
     elif args.broker_command == "show":
         _print(load_proposal(paths, args.id))
-    elif args.broker_command == "approve-intent":
-        confirmation = args.confirm or input(f"Type APPROVE INTENT {args.id}: ")
-        _print(approve_intent(paths, args.id, confirmation))
-    elif args.broker_command == "approve-exact":
+    elif args.broker_command == "approve":
         proposal = load_proposal(paths, args.id)
         print(proposal["exact_preview"])
-        confirmation = args.confirm or input(f"Type APPLY {args.id}: ")
-        _print(approve_exact(paths, args.id, confirmation, args.agent))
+        confirmation = args.confirm or input("Apply this proposal? [y/N]: ")
+        _print(approve(paths, args.id, confirmation, args.agent))
     return 0
 
 
@@ -164,13 +160,10 @@ def build_parser() -> argparse.ArgumentParser:
     proposal.add_argument("specification")
     show = broker_sub.add_parser("show")
     show.add_argument("id")
-    intent = broker_sub.add_parser("approve-intent")
-    intent.add_argument("id")
-    intent.add_argument("--confirm")
-    exact = broker_sub.add_parser("approve-exact")
-    exact.add_argument("id")
-    exact.add_argument("--confirm")
-    exact.add_argument("--agent", default="unknown")
+    approval = broker_sub.add_parser("approve")
+    approval.add_argument("id")
+    approval.add_argument("--confirm")
+    approval.add_argument("--agent", default="unknown")
     broker.set_defaults(func=_command_broker)
 
     wiki = sub.add_parser("wiki")

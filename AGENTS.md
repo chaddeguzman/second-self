@@ -101,9 +101,11 @@
   `00 Memory`, `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and
   `05 Reviews`.
 - Creating any other top-level folder under `01-strategy-storage` is protected
-  and requires intent approval followed by approval of the exact change.
-- Protected changes require proposal approval followed by approval of the exact
-  diff. Changed inputs invalidate approval.
+  and requires one approval of the proposal's exact change.
+- Protected changes require one Yes/No decision after reviewing the exact diff
+  or payload. Accept `Y` or `Yes` to apply and `N` or `No` to reject. Never
+  require an approval phrase, proposal ID, timestamp, or second approval.
+  Changed inputs invalidate approval and require a new proposal.
 - Deletion means moving to private trash. Permanent purge is separately
   protected.
 - Project agents may update their own project record directly. Put broader

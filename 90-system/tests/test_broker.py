@@ -4,11 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from second_self.broker import approve_exact, approve_intent, propose
+from second_self.broker import approve, propose
+from second_self.cli import main
 from second_self.paths import SecondSelfPaths
 
 
-def test_two_stage_edit_and_audit(second_self: SecondSelfPaths) -> None:
+@pytest.mark.parametrize("confirmation", ["Y", "y", "Yes", "YES", " yes "])
+def test_single_approval_edit_and_audit(
+    second_self: SecondSelfPaths, confirmation: str
+) -> None:
     target = second_self.layer1 / "10-current" / "Current Identity.md"
     updated = target.read_text(encoding="utf-8") + "\nApproved value.\n"
     proposal = propose(
@@ -24,12 +28,33 @@ def test_two_stage_edit_and_audit(second_self: SecondSelfPaths) -> None:
         },
     )
     with pytest.raises(PermissionError):
-        approve_intent(second_self, proposal["id"], "yes")
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-    approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}", agent="pytest")
+        approve(second_self, proposal["id"], "approve")
+    approve(second_self, proposal["id"], confirmation, agent="pytest")
     assert "Approved value." in target.read_text(encoding="utf-8")
     audit = (second_self.audit / "agent-edits.jsonl").read_text(encoding="utf-8")
     assert '"agent": "pytest"' in audit
+
+
+@pytest.mark.parametrize("confirmation", ["N", "n", "No", "NO", " no "])
+def test_single_rejection_leaves_content_unchanged(
+    second_self: SecondSelfPaths, confirmation: str
+) -> None:
+    target = second_self.layer1 / "10-current" / "Current Identity.md"
+    original = target.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+
+    rejected = approve(second_self, proposal["id"], confirmation)
+
+    assert rejected["status"] == "rejected"
+    assert target.read_text(encoding="utf-8") == original
+    with pytest.raises(ValueError, match="rejected"):
+        approve(second_self, proposal["id"], "yes")
 
 
 def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
@@ -41,10 +66,9 @@ def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
             "changes": [{"path": str(target), "content": "# replacement"}],
         },
     )
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
     target.write_text(target.read_text(encoding="utf-8") + "\nConcurrent edit.\n", encoding="utf-8")
     with pytest.raises(RuntimeError, match="Stale approval"):
-        approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}")
+        approve(second_self, proposal["id"], "y")
 
 
 def test_proposal_and_result_never_expose_absolute_private_root(
@@ -67,10 +91,7 @@ def test_proposal_and_result_never_expose_absolute_private_root(
     assert str(second_self.data_root) not in serialized
     assert "01-strategy-storage/10-current/Current Strategy.md" in serialized
 
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-    applied = approve_exact(
-        second_self, proposal["id"], f"APPLY {proposal['id']}", agent="pytest"
-    )
+    applied = approve(second_self, proposal["id"], "yes", agent="pytest")
     assert str(second_self.data_root) not in json.dumps(applied)
 
 
@@ -81,14 +102,39 @@ def test_delete_moves_to_private_trash(second_self: SecondSelfPaths) -> None:
         second_self,
         {"operation": "delete", "paths": [str(target.relative_to(second_self.data_root))]},
     )
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-    approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}")
+    approve(second_self, proposal["id"], "y")
     assert not target.exists()
     assert list(second_self.trash.rglob("Disposable.md"))
 
 
+def test_cli_broker_uses_one_simple_confirmation(
+    second_self: SecondSelfPaths,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# Updated"}],
+        },
+    )
+    monkeypatch.setattr("second_self.cli.load_paths", lambda require_config=True: second_self)
+
+    result = main(
+        ["broker", "approve", proposal["id"], "--confirm", "Y", "--agent", "pytest"]
+    )
+
+    assert result == 0
+    assert target.read_text(encoding="utf-8") == "# Updated"
+    output = capsys.readouterr().out
+    assert "APPROVE" not in output
+    assert "APPLY " not in output
+
+
 @pytest.mark.skipif(os.name != "nt", reason="Windows junction behavior")
-def test_two_stage_layer1_assembly(second_self: SecondSelfPaths) -> None:
+def test_single_approval_layer1_assembly(second_self: SecondSelfPaths) -> None:
     scaffold = second_self.repo_root / "01-strategy-storage"
     memory = scaffold / "00 Memory"
     memory.mkdir(parents=True)
@@ -98,8 +144,7 @@ def test_two_stage_layer1_assembly(second_self: SecondSelfPaths) -> None:
     (private_memory / "Private.md").write_text("private", encoding="utf-8")
 
     proposal = propose(second_self, {"operation": "assemble_layer1"})
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-    approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}", agent="pytest")
+    approve(second_self, proposal["id"], "yes", agent="pytest")
 
     assert os.path.isjunction(scaffold)
     assert (scaffold / "00 Memory" / "Private.md").read_text(encoding="utf-8") == "private"

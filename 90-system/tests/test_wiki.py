@@ -7,8 +7,7 @@ from pathlib import Path
 import pytest
 
 from second_self.broker import (
-    approve_exact,
-    approve_intent,
+    approve,
     propose,
     recover_wiki_transactions,
 )
@@ -100,10 +99,7 @@ def test_wiki_process_moves_source_and_updates_pages(
             "moves": [move],
         },
     )
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-    approve_exact(
-        second_self, proposal["id"], f"APPLY {proposal['id']}", agent="pytest"
-    )
+    approve(second_self, proposal["id"], "y", agent="pytest")
 
     destination = second_self.data_root / move["to"]
     assert not source.exists()
@@ -139,11 +135,10 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
             "moves": [move],
         },
     )
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
     source.write_text("changed", encoding="utf-8")
 
     with pytest.raises(RuntimeError, match="Stale approval"):
-        approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}")
+        approve(second_self, proposal["id"], "yes")
 
 
 def test_wiki_process_rolls_back_page_when_archive_move_fails(
@@ -175,14 +170,12 @@ def test_wiki_process_rolls_back_page_when_archive_move_fails(
             "moves": [move],
         },
     )
-    approve_intent(second_self, proposal["id"], f"APPROVE INTENT {proposal['id']}")
-
     def fail_move(source_path: str, destination_path: Path) -> None:
         raise OSError("simulated archive failure")
 
     monkeypatch.setattr(broker_module.shutil, "move", fail_move)
     with pytest.raises(OSError, match="simulated archive"):
-        approve_exact(second_self, proposal["id"], f"APPLY {proposal['id']}")
+        approve(second_self, proposal["id"], "y")
 
     assert source.read_text(encoding="utf-8") == "safe"
     assert not target.exists()

@@ -42,20 +42,17 @@ filesystem access.
 
 ## Protected Operations
 
-Require two separate approvals for identity or strategy edits, private-context
-exports, deletion, move or rename operations, changes to five or more existing
-files, and schema migrations.
+Require one approval for identity or strategy edits, private-context exports,
+deletion, move or rename operations, changes to five or more existing files,
+and schema migrations.
 
-First approve intent and paths. Then approve the exact diff or payload. Input
-hash changes invalidate the approval. Default deletion moves data to dated
-private trash.
+Show the intent, affected paths, and exact diff or payload in one proposal.
+Accept `Y` or `Yes` to apply and `N` or `No` to reject, case-insensitively.
+Never require an approval phrase, proposal ID, timestamp, or second approval.
+Input hash changes invalidate the approval. Default deletion moves data to
+dated private trash.
 
-Raw-to-Processed moves use the same two approvals as other protected changes.
-Transaction journals store private-relative paths and hashes, not source
-contents or reusable absolute user paths. A failed or interrupted transaction
-must roll back or be recovered before new processing begins.
-
-Raw-to-Processed moves use the same two approvals as other protected changes.
+Raw-to-Processed moves use the same single approval as other protected changes.
 Transaction journals store private-relative paths and hashes, not source
 contents or reusable absolute user paths. A failed or interrupted transaction
 must roll back or be recovered before new processing begins.

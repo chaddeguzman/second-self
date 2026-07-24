@@ -209,7 +209,7 @@ def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, 
     proposal = {
         "id": proposal_id,
         "created": datetime.now().astimezone().isoformat(),
-        "status": "intent-pending",
+        "status": "approval-pending",
         "specification": specification,
         "input_hashes": {
             _path_label(paths, path): _hash(path)
@@ -227,21 +227,13 @@ def load_proposal(paths: SecondSelfPaths, proposal_id: str) -> dict[str, Any]:
     return json.loads(_proposal_path(paths, proposal_id).read_text(encoding="utf-8"))
 
 
-def approve_intent(
-    paths: SecondSelfPaths, proposal_id: str, confirmation: str
-) -> dict[str, Any]:
-    proposal = load_proposal(paths, proposal_id)
-    expected = f"APPROVE INTENT {proposal_id}"
-    if confirmation != expected:
-        raise PermissionError(f"Confirmation must exactly match: {expected}")
-    if proposal["status"] != "intent-pending":
-        raise ValueError(f"Proposal status is {proposal['status']}")
-    proposal["status"] = "exact-pending"
-    proposal["intent_approved"] = datetime.now().astimezone().isoformat()
-    _proposal_path(paths, proposal_id).write_text(
-        json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
-    )
-    return proposal
+def _approval_decision(confirmation: str) -> bool:
+    decision = confirmation.strip().casefold()
+    if decision in {"y", "yes"}:
+        return True
+    if decision in {"n", "no"}:
+        return False
+    raise PermissionError("Answer Yes or No (Y/N).")
 
 
 def _check_stale(paths: SecondSelfPaths, proposal: dict[str, Any]) -> None:
@@ -465,15 +457,19 @@ def _apply(
     return changed
 
 
-def approve_exact(
+def approve(
     paths: SecondSelfPaths, proposal_id: str, confirmation: str, agent: str = "unknown"
 ) -> dict[str, Any]:
     proposal = load_proposal(paths, proposal_id)
-    expected = f"APPLY {proposal_id}"
-    if confirmation != expected:
-        raise PermissionError(f"Confirmation must exactly match: {expected}")
-    if proposal["status"] != "exact-pending":
+    if proposal["status"] != "approval-pending":
         raise ValueError(f"Proposal status is {proposal['status']}")
+    if not _approval_decision(confirmation):
+        proposal["status"] = "rejected"
+        proposal["rejected"] = datetime.now().astimezone().isoformat()
+        _proposal_path(paths, proposal_id).write_text(
+            json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
+        )
+        return proposal
     _check_stale(paths, proposal)
     operation = proposal["specification"]["operation"]
     lock: Path | None = None
