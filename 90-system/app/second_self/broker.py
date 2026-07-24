@@ -58,6 +58,20 @@ def _proposal_path(paths: SecondSelfPaths, proposal_id: str) -> Path:
     return paths.audit / "proposals" / f"{proposal_id}.json"
 
 
+def _path_label(paths: SecondSelfPaths, path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(paths.data_root.resolve()).as_posix()
+    except ValueError:
+        pass
+    try:
+        relative = resolved.relative_to(paths.repo_root.resolve()).as_posix()
+        return f"@repo/{relative}"
+    except ValueError:
+        pass
+    return path.name
+
+
 def _affected(paths: SecondSelfPaths, specification: dict[str, Any]) -> list[Path]:
     operation = specification["operation"]
     if operation in {"edit", "migration", "wiki_process"}:
@@ -97,8 +111,8 @@ def _exact_preview(paths: SecondSelfPaths, specification: dict[str, Any]) -> str
                 difflib.unified_diff(
                     old.splitlines(),
                     new.splitlines(),
-                    fromfile=str(path),
-                    tofile=str(path),
+                    fromfile=_path_label(paths, path),
+                    tofile=_path_label(paths, path),
                     lineterm="",
                 )
             )
@@ -197,7 +211,10 @@ def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, 
         "created": datetime.now().astimezone().isoformat(),
         "status": "intent-pending",
         "specification": specification,
-        "input_hashes": {str(path): _hash(path) for path in affected},
+        "input_hashes": {
+            _path_label(paths, path): _hash(path)
+            for path in affected
+        },
         "exact_preview": _exact_preview(paths, specification),
     }
     path = _proposal_path(paths, proposal_id)
@@ -227,9 +244,15 @@ def approve_intent(
     return proposal
 
 
-def _check_stale(proposal: dict[str, Any]) -> None:
+def _check_stale(paths: SecondSelfPaths, proposal: dict[str, Any]) -> None:
     for value, expected in proposal["input_hashes"].items():
-        actual = _hash(Path(value))
+        if value.startswith("@repo/"):
+            candidate = paths.repo_root / value.removeprefix("@repo/")
+        else:
+            candidate = Path(value)
+        if not candidate.is_absolute():
+            candidate = paths.data_root / candidate
+        actual = _hash(candidate)
         if actual != expected:
             raise RuntimeError(
                 f"Stale approval: {value} changed after proposal. Create a new proposal."
@@ -451,7 +474,7 @@ def approve_exact(
         raise PermissionError(f"Confirmation must exactly match: {expected}")
     if proposal["status"] != "exact-pending":
         raise ValueError(f"Proposal status is {proposal['status']}")
-    _check_stale(proposal)
+    _check_stale(paths, proposal)
     operation = proposal["specification"]["operation"]
     lock: Path | None = None
     lock_handle: int | None = None
@@ -471,7 +494,9 @@ def approve_exact(
             lock.unlink()
     proposal["status"] = "applied"
     proposal["applied"] = datetime.now().astimezone().isoformat()
-    proposal["changed_paths"] = changed
+    proposal["changed_paths"] = [
+        _path_label(paths, Path(value)) for value in changed
+    ]
     _proposal_path(paths, proposal_id).write_text(
         json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
     )
@@ -480,14 +505,7 @@ def approve_exact(
         "time": proposal["applied"],
         "agent": agent,
         "action": proposal["specification"]["operation"],
-        "paths": [
-            (
-                Path(value).resolve().relative_to(paths.data_root.resolve()).as_posix()
-                if Path(value).resolve().is_relative_to(paths.data_root.resolve())
-                else Path(value).name
-            )
-            for value in changed
-        ],
+        "paths": proposal["changed_paths"],
         "approval": proposal_id,
     }
     with (paths.audit / "agent-edits.jsonl").open("a", encoding="utf-8") as stream:
