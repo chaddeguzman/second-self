@@ -59,6 +59,9 @@
 
 # Private or generated runtime state.
 .second-self-cache/
+90-system/memory/*
+!90-system/memory/README.md
+!90-system/memory/.gitignore
 .venv/
 __pycache__/
 *.py[cod]
