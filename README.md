@@ -88,6 +88,7 @@ provenance link follows the source.
 - `app` — the local Python application;
 - `automation` — launchers, scripts, agent hooks, and Git hooks;
 - `docs` — operating, security, schema, and template documentation;
+- `memory` — private LLM Wiki context and derived knowledge used by trusted agents;
 - `migrations` — controlled structure changes; and
 - `tests` — automated verification.
 
@@ -109,7 +110,8 @@ second-self/
 |   |-- skills/
 |   `-- projects/
 |-- 03-wiki/                   Private derived knowledge links
-|-- 90-system/                 Application, automation, docs, and tests
+|-- 90-system/                 Application, automation, docs, memory, and tests
+|   |-- memory/                Private LLM Wiki context and derived knowledge
 |-- AGENTS.md                  Agent operating rules
 `-- Start-Second-Self.cmd      One-click local launcher
 ```
