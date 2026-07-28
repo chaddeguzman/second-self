@@ -37,7 +37,7 @@ def generate_indexes(paths: SecondSelfPaths) -> dict[str, int]:
         if metadata:
             notes.append((path, metadata))
 
-    content_index = paths.layer1 / "90-indexes" / "Content Index.md"
+    content_index = paths.layer1 / "99-audit/indexes" / "Content Index.md"
     grouped: dict[str, list[Path]] = defaultdict(list)
     for path, metadata in notes:
         grouped[str(metadata.get("type", "unknown"))].append(path)
@@ -62,7 +62,7 @@ def generate_indexes(paths: SecondSelfPaths) -> dict[str, int]:
     ]
     _replace_generated(projects_index, project_lines)
 
-    conflicts_index = paths.layer1 / "55-conflicts" / "Conflicts Index.md"
+    conflicts_index = paths.layer1 / "03 Strategy/01 Conflicts" / "Conflicts Index.md"
     conflicts = [
         path
         for path, meta in notes

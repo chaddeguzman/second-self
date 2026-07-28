@@ -161,9 +161,9 @@ def _scan_layer1(paths: SecondSelfPaths, result: _ScanResult) -> None:
                 directories[:] = [
                     name for name in directories if name.casefold() != "99 processed"
                 ]
-            elif (
-                len(relative.parts) == 1
-                and relative.parts[0].casefold() == "75-imports"
+            elif tuple(part.casefold() for part in relative.parts) == (
+                "01 notes",
+                "04 imports",
             ):
                 directories[:] = [
                     name for name in directories if name.casefold() != "originals"
@@ -313,13 +313,13 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         )
     )
 
-    import_configured = (paths.layer1 / "75-imports").exists() or any(
+    import_configured = (paths.layer1 / "01 Notes/04 Imports").exists() or any(
         item.record_type == "import" for item in layer1
     )
     memory_configured = any(
         item.record_type in PERSONAL_CONFIRMATION_TYPES for item in layer1
     )
-    conflict_configured = (paths.layer1 / "55-conflicts").exists() or any(
+    conflict_configured = (paths.layer1 / "03 Strategy/01 Conflicts").exists() or any(
         item.record_type == "conflict" for item in layer1
     )
     writeback_configured = any(

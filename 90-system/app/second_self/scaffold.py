@@ -7,27 +7,28 @@ from .paths import SecondSelfPaths
 
 
 DIRECTORIES = [
-    "01-strategy-storage/00-inbox",
-    "01-strategy-storage/10-current",
-    "01-strategy-storage/20-notes",
-    "01-strategy-storage/30-journal",
-    "01-strategy-storage/40-knowledge/books",
-    "01-strategy-storage/40-knowledge/references",
-    "01-strategy-storage/40-knowledge/quotes",
-    "01-strategy-storage/40-knowledge/lessons",
-    "01-strategy-storage/50-reviews/weekly",
-    "01-strategy-storage/50-reviews/quarterly",
-    "01-strategy-storage/55-conflicts",
-    "01-strategy-storage/60-decisions",
-    "01-strategy-storage/70-history",
-    "01-strategy-storage/75-imports/originals",
-    "01-strategy-storage/75-imports/extracted",
-    "01-strategy-storage/80-assets",
-    "01-strategy-storage/90-indexes",
-    "01-strategy-storage/98-trash",
-    "01-strategy-storage/99-audit/proposals",
+    "01-strategy-storage/00 Memory",
     "01-strategy-storage/01 Notes/00 Raw",
+    "01-strategy-storage/01 Notes/01 Current",
+    "01-strategy-storage/01 Notes/02 Notes",
+    "01-strategy-storage/01 Notes/03 History",
+    "01-strategy-storage/01 Notes/04 Imports/extracted",
+    "01-strategy-storage/01 Notes/04 Imports/originals",
+    "01-strategy-storage/01 Notes/05 Assets",
     "01-strategy-storage/01 Notes/99 Processed",
+    "01-strategy-storage/02 Journal",
+    "01-strategy-storage/03 Strategy/01 Conflicts",
+    "01-strategy-storage/03 Strategy/02 Decisions",
+    "01-strategy-storage/04 References/00 books",
+    "01-strategy-storage/04 References/01 quotes",
+    "01-strategy-storage/04 References/02 research",
+    "01-strategy-storage/04 References/03 guides",
+    "01-strategy-storage/04 References/04 docs",
+    "01-strategy-storage/04 References/05 uncategorized",
+    "01-strategy-storage/05 Reviews",
+    "01-strategy-storage/98-trash",
+    "01-strategy-storage/99-audit/indexes",
+    "01-strategy-storage/99-audit/proposals",
     "02-skills-projects/projects",
     "03-wiki/sources",
     "03-wiki/topics",
@@ -37,7 +38,7 @@ DIRECTORIES = [
 
 
 CURRENT_FILES = {
-    "01-strategy-storage/10-current/Current Identity.md": """---
+    "01-strategy-storage/01 Notes/01 Current/Current Identity.md": """---
 type: identity
 created: {today}
 status: proposed
@@ -58,7 +59,7 @@ related: []
 
 ## Preferences
 """,
-    "01-strategy-storage/10-current/Current Strategy.md": """---
+    "01-strategy-storage/01 Notes/01 Current/Current Strategy.md": """---
 type: strategy
 created: {today}
 status: proposed
@@ -77,7 +78,7 @@ related: []
 
 ## Commitments
 """,
-    "01-strategy-storage/55-conflicts/Conflicts Index.md": """---
+    "01-strategy-storage/03 Strategy/01 Conflicts/Conflicts Index.md": """---
 type: conflict
 created: {today}
 status: active
@@ -92,7 +93,7 @@ related: []
 No unresolved conflicts indexed.
 <!-- END GENERATED -->
 """,
-    "01-strategy-storage/90-indexes/Content Index.md": """---
+    "01-strategy-storage/99-audit/indexes/Content Index.md": """---
 type: note
 created: {today}
 status: active
@@ -197,6 +198,7 @@ def scaffold(paths: SecondSelfPaths) -> list[Path]:
     for relative, template in CURRENT_FILES.items():
         path = paths.data_root / relative
         if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(template.format(today=today), encoding="utf-8")
             created.append(path)
     schema = paths.data_root / ".second-self-schema"
@@ -219,11 +221,5 @@ def scaffold_wiki(paths: SecondSelfPaths) -> list[Path]:
     for path in directories:
         if not path.exists():
             path.mkdir(parents=True)
-            created.append(path)
-    today = date.today().isoformat()
-    for relative in ("03-wiki/index.md", "03-wiki/log.md", "03-wiki/open-questions.md"):
-        path = paths.data_root / relative
-        if not path.exists():
-            path.write_text(CURRENT_FILES[relative].format(today=today), encoding="utf-8")
             created.append(path)
     return created

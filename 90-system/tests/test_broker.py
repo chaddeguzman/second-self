@@ -13,7 +13,7 @@ from second_self.paths import SecondSelfPaths
 def test_single_approval_edit_and_audit(
     second_self: SecondSelfPaths, confirmation: str
 ) -> None:
-    target = second_self.layer1 / "10-current" / "Current Identity.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Identity.md"
     updated = target.read_text(encoding="utf-8") + "\nApproved value.\n"
     proposal = propose(
         second_self,
@@ -39,7 +39,7 @@ def test_single_approval_edit_and_audit(
 def test_single_rejection_leaves_content_unchanged(
     second_self: SecondSelfPaths, confirmation: str
 ) -> None:
-    target = second_self.layer1 / "10-current" / "Current Identity.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Identity.md"
     original = target.read_text(encoding="utf-8")
     proposal = propose(
         second_self,
@@ -61,7 +61,7 @@ def test_single_rejection_leaves_content_unchanged(
 def test_legacy_pending_proposal_accepts_one_simple_decision(
     second_self: SecondSelfPaths, legacy_status: str
 ) -> None:
-    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
     proposal = propose(
         second_self,
         {
@@ -80,7 +80,7 @@ def test_legacy_pending_proposal_accepts_one_simple_decision(
 
 
 def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
-    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
     proposal = propose(
         second_self,
         {
@@ -96,7 +96,7 @@ def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
 def test_proposal_and_result_never_expose_absolute_private_root(
     second_self: SecondSelfPaths,
 ) -> None:
-    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
     proposal = propose(
         second_self,
         {
@@ -111,14 +111,14 @@ def test_proposal_and_result_never_expose_absolute_private_root(
     )
     serialized = json.dumps(proposal)
     assert str(second_self.data_root) not in serialized
-    assert "01-strategy-storage/10-current/Current Strategy.md" in serialized
+    assert "01-strategy-storage/01 Notes/01 Current/Current Strategy.md" in serialized
 
     applied = approve(second_self, proposal["id"], "yes", agent="pytest")
     assert str(second_self.data_root) not in json.dumps(applied)
 
 
 def test_delete_moves_to_private_trash(second_self: SecondSelfPaths) -> None:
-    target = second_self.layer1 / "20-notes" / "Disposable.md"
+    target = second_self.layer1 / "01 Notes/02 Notes" / "Disposable.md"
     target.write_text("temporary", encoding="utf-8")
     proposal = propose(
         second_self,
@@ -134,7 +134,7 @@ def test_cli_broker_uses_one_simple_confirmation(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    target = second_self.layer1 / "10-current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
     proposal = propose(
         second_self,
         {
@@ -155,14 +155,13 @@ def test_cli_broker_uses_one_simple_confirmation(
     assert "APPLY " not in output
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Windows junction behavior")
 def test_single_approval_layer1_assembly(second_self: SecondSelfPaths) -> None:
     scaffold = second_self.repo_root / "01-strategy-storage"
     memory = scaffold / "00 Memory"
     memory.mkdir(parents=True)
     (memory / ".gitkeep").write_text("", encoding="utf-8")
     private_memory = second_self.layer1 / "00 Memory"
-    private_memory.mkdir(parents=True)
+    private_memory.mkdir(parents=True, exist_ok=True)
     (private_memory / "Private.md").write_text("private", encoding="utf-8")
 
     proposal = propose(second_self, {"operation": "assemble_layer1"})
