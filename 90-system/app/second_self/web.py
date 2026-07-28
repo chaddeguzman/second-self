@@ -152,7 +152,7 @@ def _resolve_preview(
     folded_parts = tuple(part.casefold() for part in pure.parts)
     if scope == "layer1" and folded_parts[0] in DISALLOWED_LAYER1_PARTS:
         return None
-    if scope == "layer1" and folded_parts[:2] == ("75-imports", "originals"):
+    if scope == "layer1" and folded_parts[:3] == ("01 notes", "04 imports", "originals"):
         return None
     if scope == "projects" and len(pure.parts) != 1:
         return None

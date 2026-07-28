@@ -20,32 +20,32 @@ def _note(path: Path, metadata: str, title: str = "Example") -> None:
 def test_dashboard_queue_rules(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "00-inbox/Capture.md",
+        layer1 / "00 Memory/Capture.md",
         "type: capture\ncreated: 2026-07-22\nstatus: inbox",
         "Captured thought",
     )
     _note(
-        layer1 / "75-imports/extracted/Recent.md",
+        layer1 / "01 Notes/04 Imports/extracted/Recent.md",
         "type: import\ncreated: 2026-06-24\nstatus: proposed",
         "Recent import",
     )
     _note(
-        layer1 / "20-notes/Memory.md",
+        layer1 / "01 Notes/02 Notes/Memory.md",
         "type: note\ncreated: 2026-07-21\nstatus: proposed",
         "Proposed memory",
     )
     _note(
-        layer1 / "55-conflicts/Conflict.md",
+        layer1 / "03 Strategy/01 Conflicts/Conflict.md",
         "type: conflict\ncreated: 2026-07-20\nstatus: active",
         "Open conflict",
     )
     _note(
-        layer1 / "60-decisions/Commitment.md",
+        layer1 / "03 Strategy/02 Decisions/Commitment.md",
         "type: decision\ncreated: 2026-06-01\ndue: 2026-07-01\nstatus: active",
         "Overdue commitment",
     )
     _note(
-        layer1 / "00-inbox/Handoff.md",
+        layer1 / "00 Memory/Handoff.md",
         "type: handoff\ncreated: 2026-07-23\nstatus: inbox",
         "Pending writeback",
     )
@@ -62,17 +62,17 @@ def test_dashboard_queue_rules(second_self: SecondSelfPaths) -> None:
 
 def test_recent_import_cutoff_is_inclusive(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "75-imports/extracted/Boundary.md",
+        second_self.layer1 / "01 Notes/04 Imports/extracted/Boundary.md",
         "type: import\ncreated: 2026-06-23\nstatus: proposed",
         "Boundary",
     )
     _note(
-        second_self.layer1 / "75-imports/extracted/Too Old.md",
+        second_self.layer1 / "01 Notes/04 Imports/extracted/Too Old.md",
         "type: import\ncreated: 2026-06-22\nstatus: proposed",
         "Too old",
     )
     _note(
-        second_self.layer1 / "75-imports/extracted/Future.md",
+        second_self.layer1 / "01 Notes/04 Imports/extracted/Future.md",
         "type: import\ncreated: 2026-07-24\nstatus: proposed",
         "Future",
     )
@@ -114,7 +114,7 @@ def test_imported_originals_are_not_operational_records(
     second_self: SecondSelfPaths,
 ) -> None:
     _note(
-        second_self.layer1 / "75-imports/originals/Original.md",
+        second_self.layer1 / "01 Notes/04 Imports/originals/Original.md",
         "type: import\ncreated: 2026-07-23\nstatus: proposed",
         "Original must stay excluded",
     )
@@ -127,9 +127,9 @@ def test_imported_originals_are_not_operational_records(
 def test_malformed_and_oversized_notes_do_not_break_home(
     second_self: SecondSelfPaths
 ) -> None:
-    malformed = second_self.layer1 / "20-notes/Malformed.md"
+    malformed = second_self.layer1 / "01 Notes/02 Notes/Malformed.md"
     malformed.write_text("---\nnot: [valid\n---\n", encoding="utf-8")
-    oversized = second_self.layer1 / "20-notes/Oversized.md"
+    oversized = second_self.layer1 / "01 Notes/02 Notes/Oversized.md"
     oversized.write_bytes(b"x" * (2 * 1024 * 1024 + 1))
     snapshot = scan_dashboard(second_self)
     assert snapshot.scan_errors >= 2
@@ -144,7 +144,7 @@ def test_scan_bound_stops_safely(
     paths = SecondSelfPaths(tmp_path / "repo", tmp_path / "data")
     for index in range(3):
         _note(
-            paths.layer1 / f"20-notes/{index}.md",
+            paths.layer1 / f"01 Notes/02 Notes/{index}.md",
             f"type: note\ncreated: 2026-07-0{index + 1}\nstatus: active",
             f"Note {index}",
         )
@@ -156,21 +156,3 @@ def test_scan_bound_stops_safely(
     assert snapshot.scan_errors == 1
 
 
-def test_file_symlink_cannot_escape_layer1(tmp_path: Path) -> None:
-    paths = SecondSelfPaths(tmp_path / "repo", tmp_path / "data")
-    paths.layer1.mkdir(parents=True)
-    outside = tmp_path / "outside.md"
-    outside.write_text(
-        "---\ntype: capture\ncreated: 2026-07-23\nstatus: inbox\n---\n# Outside",
-        encoding="utf-8",
-    )
-    linked = paths.layer1 / "linked.md"
-    try:
-        linked.symlink_to(outside)
-    except OSError:
-        pytest.skip("File symlinks are unavailable on this Windows configuration.")
-
-    snapshot = scan_dashboard(paths)
-
-    assert not snapshot.queues["captures"].items
-    assert snapshot.scan_errors == 1

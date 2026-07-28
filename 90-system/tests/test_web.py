@@ -118,13 +118,13 @@ def test_read_only_mode_has_no_write_route(tmp_path: Path):
 
     assert response.status_code == 403
     assert posted.status_code == 403
-    assert not (paths.layer1 / "00-inbox").exists()
+    assert not (paths.layer1 / "00 Memory").exists()
 
 
 def test_preview_escapes_html_and_rewrites_only_safe_links(tmp_path: Path):
     app, paths = _app(tmp_path)
-    note = paths.layer1 / "00-inbox" / "note.md"
-    target = paths.layer1 / "00-inbox" / "target.md"
+    note = paths.layer1 / "00 Memory" / "note.md"
+    target = paths.layer1 / "00 Memory" / "target.md"
     note.parent.mkdir()
     note.write_text(
         "\n".join(
@@ -145,7 +145,7 @@ def test_preview_escapes_html_and_rewrites_only_safe_links(tmp_path: Path):
         encoding="utf-8",
     )
     target.write_text("# Target", encoding="utf-8")
-    token = _token(app, "layer1", "00-inbox/note.md")
+    token = _token(app, "layer1", "00 Memory/note.md")
 
     response = app.test_client().get(f"/view/{token}")
 
@@ -165,8 +165,8 @@ def test_preview_escapes_html_and_rewrites_only_safe_links(tmp_path: Path):
         ("layer1", "../outside.md"),
         ("layer1", "99-audit/entry.md"),
         ("layer1", r"99-audit\entry.md"),
-        ("layer1", "75-imports/originals/source.md"),
-        ("layer1", r"75-imports\originals\source.md"),
+        ("layer1", "01 Notes/04 Imports/originals/source.md"),
+        ("layer1", r"01 Notes\04 Imports\originals\source.md"),
         ("projects", "nested/repository/note.md"),
         ("unknown", "note.md"),
     ],
@@ -188,11 +188,11 @@ def test_signed_but_ineligible_preview_paths_fail_safely(
 
 def test_tampered_and_oversized_previews_fail_safely(tmp_path: Path):
     app, paths = _app(tmp_path)
-    large = paths.layer1 / "00-inbox" / "large.md"
+    large = paths.layer1 / "00 Memory" / "large.md"
     large.parent.mkdir()
     large.write_bytes(b"x" * (MAX_NOTE_BYTES + 1))
-    oversized_token = _token(app, "layer1", "00-inbox/large.md")
-    valid = _token(app, "layer1", "00-inbox/missing.md")
+    oversized_token = _token(app, "layer1", "00 Memory/large.md")
+    valid = _token(app, "layer1", "00 Memory/missing.md")
 
     client = app.test_client()
     oversized = client.get(f"/view/{oversized_token}")
