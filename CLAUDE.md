@@ -1,43 +1,40 @@
-# Second Self
+# Second Self — Agent Instructions
 
-At the beginning of every session, read
-`01-strategy-storage/00 Memory/Second Self Context.md` for the system's purpose,
-architecture, privacy model, and shared human-agent context.
-Treat `01-strategy-storage/00 Memory` as the primary durable context and the
-first place to retrieve personal information.
-Also read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
-user's immediate task permits, use one incomplete memory topic for a short,
-focused interview and save only a user-confirmed summary.
+First read [AGENTS.md](AGENTS.md) — it is the canonical startup guide for any
+agent. The sections below add Claude/Cline-specific notes.
 
-Second Self is the user's external memory or second brain. Its main function is
-to help the user recall details that human memory may not retain reliably,
-including experiences, facts, decisions, commitments, investigations, project
-context, thoughts, and ideas.
+## Startup
 
-For personal recall:
+AGENTS.md already covers the full startup sequence. After completing it:
 
-1. Use the versioned `second-self-recall` workflow rather than relying on model
-   memory or assumptions.
-2. Search relevant material in `00 Memory` first.
-3. Treat Memory as the foundation, not the limit. Assemble additional relevant
-   context from `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and
-   `05 Reviews`, plus historical sources and project records when useful.
-   Note that `04 References` actively receives processed source files (books,
-   quotes, research, guides, docs, or uncategorized) through the wiki
-   processing pipeline.
-4. Use the available context window to combine complementary sources when a
-   broader view improves recall, reasoning, investigation, or project work.
-5. Cite the stored source and date, distinguish evidence from inference, and
-   surface contradictions instead of silently resolving them.
-6. State what was searched when evidence is missing; do not invent personal
-   context.
+- If this is a Claude Code session, the `pre_tool_use hook` in
+  `90-system/automation/hooks/pre_tool_use.py` may block accidental protected
+  changes. Other agents (Cline, Deepseek, Cursor, Windsurf) do not use this
+  hook.
+- Resolve private paths through `.second-self.local.json`; never hard-code them.
 
-Use relevant Layer 1 context to support the user's projects, investigations,
-and idea development. Codex or Claude acts as a digital employee by applying
-Layer 2 skills and commands to project work, iterating on feedback until the
-goal is met, and returning consequential outcomes through controlled project
-writeback and review.
+## Skills
 
-Then follow [AGENTS.md](AGENTS.md) as the canonical operating policy. Use the
-versioned workflows under `02-skills-projects/skills` when their descriptions
-match the task. Protected private-data changes must go through the edit broker.
+Browse `02-skills-projects/skills/` to discover available skills. Each skill
+has a `SKILL.md` with instructions. Use `use_skill` when a task matches a
+skill's description. If `use_skill` is unavailable, read the SKILL.md directly
+and follow the instructions manually.
+
+## Personal Recall
+
+Follow the recall workflow in AGENTS.md. Key points:
+
+1. Start in `01-strategy-storage/00 Memory`, then assemble broader context.
+2. Use the `second-self-recall` skill.
+3. Cite stored sources and dates. Do not invent personal context.
+
+## Verification
+
+Run before committing tracked changes:
+
+```powershell
+.\90-system\automation\scripts\second-self.ps1 validate --privacy --tracked-only
+python -m pytest
+```
+
+For wiki or template changes also run `second-self-wiki lint`.
