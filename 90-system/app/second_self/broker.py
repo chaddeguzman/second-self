@@ -278,6 +278,22 @@ def _prune_empty_processed_parents(paths: SecondSelfPaths, start: Path) -> None:
         current = current.parent
 
 
+def _prune_empty_references_parents(paths: SecondSelfPaths, start: Path) -> None:
+    """Prune empty parent directories under 04 References after a move-out."""
+    references = (paths.layer1 / "04 References").resolve()
+    current = start.resolve()
+    try:
+        current.relative_to(references)
+    except ValueError:
+        return
+    while current != references:
+        try:
+            current.rmdir()
+        except OSError:
+            return
+        current = current.parent
+
+
 def _rollback_wiki_transaction(
     paths: SecondSelfPaths, stage: Path, journal: dict[str, Any]
 ) -> None:
@@ -372,20 +388,39 @@ def _apply_wiki_process(
         destination = resolve_private_path(paths, item["to"])
         raw_to_processed = False
         processed_to_flat = False
+        raw_to_references = False
         try:
             source.relative_to(paths.raw.resolve())
             raw_to_processed = destination.parent == paths.processed.resolve()
         except ValueError:
             pass
+        if not raw_to_processed:
+            try:
+                source.relative_to(paths.raw.resolve())
+                raw_to_references = (
+                    destination.parent.parent == paths.layer1 / "04 References"
+                    and destination.parent.name
+                    in {
+                        "00 books",
+                        "01 quotes",
+                        "02 research",
+                        "03 guides",
+                        "04 docs",
+                        "05 Uncategorized",
+                    }
+                )
+            except ValueError:
+                pass
         try:
             source.relative_to(paths.processed.resolve())
             processed_to_flat = destination.parent == paths.processed.resolve()
         except ValueError:
             pass
-        if not (raw_to_processed or processed_to_flat):
+        if not (raw_to_processed or processed_to_flat or raw_to_references):
             raise ValueError(
-                "wiki_process moves must be Raw -> flat Processed or "
-                "nested Processed -> flat Processed"
+                "wiki_process moves must be Raw -> flat Processed, "
+                "nested Processed -> flat Processed, or "
+                "Raw -> 04 References/{subfolder}"
             )
         if not source.exists():
             raise FileNotFoundError(source)
@@ -417,6 +452,27 @@ def _apply_wiki_process(
         for item in journal["moves"]:
             source = resolve_private_path(paths, item["from"])
             _prune_empty_processed_parents(paths, source.parent)
+            _prune_empty_references_parents(paths, source.parent)
+        # Verify source_path consistency for wiki pages pointing to References.
+        for record in journal["changes"]:
+            target = resolve_private_path(paths, record["path"])
+            if (
+                target.parent.name == "sources"
+                and target.exists()
+            ):
+                from .frontmatter import read_note
+                try:
+                    metadata, _ = read_note(target)
+                except (OSError, UnicodeError, ValueError):
+                    continue
+                source_path = str(metadata.get("source_path", ""))
+                if source_path.startswith("04 References"):
+                    referenced = resolve_private_path(paths, source_path)
+                    if not referenced.exists():
+                        raise RuntimeError(
+                            f"Wiki source page {record['path']} references "
+                            f"{source_path} but that path does not exist"
+                        )
         journal["status"] = "committed"
         _write_journal(journal_path, journal)
         return changed

@@ -324,6 +324,38 @@ def lint_wiki(paths: SecondSelfPaths) -> list[str]:
     return errors
 
 
+REFERENCES_SUBFOLDERS = {
+    "00 books",
+    "01 quotes",
+    "02 research",
+    "03 guides",
+    "04 docs",
+    "05 Uncategorized",
+}
+
+
+def is_references_subfolder(path: Path) -> bool:
+    """Return True if *path* is a valid 04 References subfolder name."""
+    return path.name in REFERENCES_SUBFOLDERS
+
+
+def references_destination(
+    paths: SecondSelfPaths, source: Path, subfolder: str
+) -> Path:
+    """Build a collision-safe destination under 04 References/{subfolder}.
+
+    Preserves the original filename (no timestamp prefix). If a file with
+    the same name already exists, *-2*, *-3*, … is inserted before the
+    extension, matching the ``_collision_safe`` strategy.
+    """
+    if subfolder not in REFERENCES_SUBFOLDERS:
+        raise ValueError(
+            f"References subfolder must be one of {sorted(REFERENCES_SUBFOLDERS)}, got {subfolder!r}"
+        )
+    destination = paths.layer1 / "04 References" / subfolder / source.name
+    return _collision_safe(destination)
+
+
 def archive_destination(
     paths: SecondSelfPaths,
     source: Path,
