@@ -70,16 +70,25 @@ Reusable skills may be versioned in Git. The contents of `projects` stay local.
 connects topics, entities, sources, analyses, and open questions without
 replacing the underlying evidence.
 
-New source material enters `01-strategy-storage/01 Notes/00 Raw`. After a
-reviewed processing transaction, the original source moves to the immutable
-`01-strategy-storage/01 Notes/99 Processed` archive and the wiki receives
-traceable derived pages. Processed remains a flat folder; archived sources use
-`YYYYMMDD_HHMMSS+OriginalName.ext` filenames instead of date subfolders.
+New source material enters `01-strategy-storage/01 Notes/00 Raw`. When you say
+"process these files", the agent prepares wiki pages and asks you where each
+source should live. You can choose between two destination types in a single
+response:
 
-After processing, the user may choose to keep a source in `99 Processed` or
-relocate it to a specific subfolder under `04 References`. Relocation is a
-separate reviewed move, and the wiki source page is updated afterward so its
-provenance link follows the source.
+- **`04 References/{subfolder}`** (recommended) — The source moves directly to
+  `00 books`, `01 quotes`, `02 research`, `03 guides`, `04 docs`, or
+  `05 Uncategorized`. The original filename is preserved and the wiki
+  `source_path` points to the References location.
+- **`01 Notes/99 Processed`** (legacy) — The source is archived with a
+  `YYYYMMDD_HHMMSS+OriginalName.ext` timestamp prefix in the flat processed
+  archive.
+
+Regardless of destination, the wiki receives traceable derived pages. All wiki
+pages, source pages, and file moves are applied together in a single journaled
+transaction, so the entire operation succeeds or rolls back as one unit.
+
+Already-processed sources in `99 Processed` are unchanged. The new workflow
+applies only to sources processed after this change.
 
 ### System Area
 
@@ -102,9 +111,17 @@ second-self/
 |-- 01-strategy-storage/       Private personal context (Layer 1)
 |   |-- 00 Memory/
 |   |-- 01 Notes/
+|   |   |-- 00 Raw/            Pending source queue
+|   |   `-- 99 Processed/      Immutable source archive (legacy)
 |   |-- 02 Journal/
 |   |-- 03 Strategy/
 |   |-- 04 References/
+|   |   |-- 00 books/
+|   |   |-- 01 quotes/
+|   |   |-- 02 research/
+|   |   |-- 03 guides/
+|   |   |-- 04 docs/
+|   |   `-- 05 uncategorized/
 |   `-- 05 Reviews/
 |-- 02-skills-projects/        Skills and private projects (Layer 2)
 |   |-- skills/
@@ -136,7 +153,14 @@ Capture or import
         |
         +--> reviewed wiki processing
                   |
-                  +--> original source archived in 01 Notes/99 Processed
+                  +--> [user chooses destination]
+                  |         |
+                  |         +--> 04 References/{subfolder} (recommended)
+                  |         |      original filename preserved
+                  |         |
+                  |         +--> 01 Notes/99 Processed (legacy)
+                  |                timestamp-prefixed archive
+                  |
                   `--> derived, traceable pages added to 03-wiki
 
 Relevant Layer 1 context

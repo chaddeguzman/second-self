@@ -78,6 +78,8 @@ Organize reference material into these subfolders:
   practical how-to material.
 - `04 docs` — General supporting documents that do not fit one of the more
   specific reference categories.
+- `05 Uncategorized` — Source material that does not clearly fit any other
+  reference subfolder.
 
 ### `05 Reviews`
 

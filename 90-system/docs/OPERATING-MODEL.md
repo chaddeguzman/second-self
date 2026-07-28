@@ -51,8 +51,18 @@ Wiki processing is explicit. The broker binds the exact source hashes, page
 diffs, and archive moves into a journaled transaction. Interrupted transactions
 must be recovered before more sources are processed.
 
-Sources are always archived through `wiki_process` before any optional
-relocation. After processing, the user chooses whether each source remains in
-`01 Notes/99 Processed` or moves to a specific `04 References` subfolder. Such
-relocation uses a separate protected move proposal, followed by a reviewed wiki
-source-page update so provenance paths remain accurate.
+A single `wiki_process` transaction can include two kinds of source moves:
+
+1. **Raw → flat Processed** (legacy) — the source is archived under
+   `01 Notes/99 Processed` with a timestamp prefix and the wiki `source_path`
+   points to that location.
+2. **Raw → 04 References/{subfolder}** (new) — the source moves directly to
+   the chosen References subfolder, preserving the original filename. The wiki
+   `source_path` is set at proposal time to the References path, and the broker
+   verifies the file exists there after applying.
+
+For the References route, the agent asks the user in a single prompt which
+subfolder each source should go to (`00 books`, `01 quotes`, `02 research`,
+`03 guides`, `04 docs`, or `05 Uncategorized`). The entire operation — wiki
+pages plus source moves — is submitted as one `wiki_process` proposal and
+applied together.
