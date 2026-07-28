@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string]$Destination
+    [string]$Destination,
+    [Parameter(Mandatory = $false)]
+    [string]$SyncTo
 )
 
 $ErrorActionPreference = "Stop"
@@ -10,6 +12,50 @@ $ConfigPath = Join-Path $RepoRoot ".second-self.local.json"
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
     throw "Run 90-system/automation/scripts/bootstrap.ps1 first."
 }
+
+$Config = Get-Content -Raw -LiteralPath $ConfigPath | ConvertFrom-Json
+$DataRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($Config.data_root))
+if (-not (Test-Path -LiteralPath $DataRoot)) {
+    throw "Private data root does not exist: $DataRoot"
+}
+
+if ($SyncTo) {
+    $Parent = [IO.Path]::GetFullPath($SyncTo)
+    if (-not (Test-Path -LiteralPath $Parent)) {
+        throw "Sync parent folder does not exist: $Parent"
+    }
+    $Target = Join-Path $Parent "second-self"
+    New-Item -ItemType Directory -Force -Path $Target | Out-Null
+
+    $Excludes = @(".git", ".second-self-cache", "node_modules", "__pycache__", ".pytest_cache", ".next", ".turbo", ".cache")
+    $ExcludeFilter = $Excludes -join "|"
+
+    $SourceItems = Get-ChildItem -LiteralPath $DataRoot -Force -File
+    $SourceDirs = Get-ChildItem -LiteralPath $DataRoot -Force -Directory | Where-Object { $_.Name -notmatch "^($ExcludeFilter)$" }
+
+    foreach ($file in $SourceItems) {
+        $dest = Join-Path $Target $file.Name
+        Copy-Item -LiteralPath $file.FullName -Destination $dest -Force
+    }
+    foreach ($dir in $SourceDirs) {
+        $dest = Join-Path $Target $dir.Name
+        if (Test-Path -LiteralPath $dest) {
+            Remove-Item -LiteralPath $dest -Recurse -Force
+        }
+        Copy-Item -LiteralPath $dir.FullName -Destination $dest -Recurse -Force
+    }
+
+    $Existing = Get-ChildItem -LiteralPath $Parent -Directory -Filter "second-self-*" | Sort-Object LastWriteTime -Descending
+    if ($Existing.Count -gt 5) {
+        foreach ($old in $Existing | Select-Object -Skip 5) {
+            Remove-Item -LiteralPath $old.FullName -Recurse -Force
+        }
+    }
+
+    Write-Host "Obsidian-readable sync backup created: $Target"
+    exit 0
+}
+
 $Age = Get-Command age -ErrorAction SilentlyContinue
 if (-not $Age) {
     $Age = Get-ChildItem (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages") -Filter "age.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -22,11 +68,6 @@ if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
     throw "tar is required."
 }
 
-$Config = Get-Content -Raw -LiteralPath $ConfigPath | ConvertFrom-Json
-$DataRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($Config.data_root))
-if (-not (Test-Path -LiteralPath $DataRoot)) {
-    throw "Private data root does not exist: $DataRoot"
-}
 $Destination = [IO.Path]::GetFullPath($Destination)
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 

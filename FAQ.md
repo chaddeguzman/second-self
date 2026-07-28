@@ -30,7 +30,30 @@ cryptographic keys. Use a credential manager instead.
 
 ## How do I back up my Second Self?
 
-Install `age`, connect a removable backup drive, and run the backup command
-shown under [Everyday Commands](<Quick Start.md#everyday-commands>). Keep the
-backup and its encryption passphrase in appropriately protected, separate
-locations.
+Second Self supports two backup modes:
+
+- **Encrypted backup** — creates an `age`-encrypted `.tar.age` archive for
+  disaster recovery. Requires `age`. Use `backup.ps1 -Destination "<path>"`.
+- **Obsidian-readable sync backup** — creates a plain `second-self\` folder you
+  can open directly in Obsidian, copy to another machine, or push to GitHub.
+  Use `backup.ps1 -SyncTo "<parent-folder>"`.
+
+For the plain sync, the new folder keeps the last 5 backups and excludes caches
+(`node_modules`, `__pycache__`, `.second-self-cache`, etc.) while including
+`.git` for full GitHub history.
+
+## How do I restore or move to a new machine?
+
+For **encrypted backups**, run `restore.ps1` with the archive and an empty
+destination.
+
+For **plain sync backups**, copy the `second-self\` backup folder to the new
+machine, then update `.second-self.local.json` so `data_root` points to that
+location. No decryption is needed.
+
+## What is the difference between encrypted and sync backups?
+
+Encrypted backups are `.tar.age` archives meant for offline storage and disaster
+recovery. Sync backups are plain unencrypted folders meant for portability,
+Obsidian access, and Git operations. Choose encrypted for security; choose sync
+when you need to open the backup directly or move it between machines quickly.
