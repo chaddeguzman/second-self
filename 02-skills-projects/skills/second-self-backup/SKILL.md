@@ -22,7 +22,7 @@ Use this when you want a plain folder you can open in Obsidian, copy to another
 machine, or push to GitHub.
 
 1. Run `90-system/automation/scripts/backup.ps1 -SyncTo "<parent-folder>"`.
-   Example: `-SyncTo "C:\Users\<you>\Downloads\<your-folder>"`
+   Example: `-SyncTo "%USERPROFILE%\Downloads\<your-folder>"`
 2. The script creates `"<parent-folder>\second-self\"` with a full mirror of
    your private data root.
 3. `.git` is included; caches like `node_modules`, `__pycache__`,

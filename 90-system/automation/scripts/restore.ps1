@@ -59,6 +59,6 @@ For plain sync backups, no decryption is needed. Copy the `second-self` folder
 to the target machine and update `.second-self.local.json` to point `data_root`
 to that location.
 .EXAMPLE
- Copy-Item -Recurse -Force "D:\Backups\second-self" "C:\Users\<you>\SecondSelfData"
- Update-Content "C:\Users\<you>\SecondSelfData\.second-self.local.json" data_root
+ Copy-Item -Recurse -Force "D:\Backups\second-self" "%USERPROFILE%\SecondSelfData"
+ Update-Content "%USERPROFILE%\SecondSelfData\.second-self.local.json" data_root
 #>
