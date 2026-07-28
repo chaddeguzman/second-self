@@ -22,6 +22,9 @@ For personal recall:
 3. Treat Memory as the foundation, not the limit. Assemble additional relevant
    context from `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and
    `05 Reviews`, plus historical sources and project records when useful.
+   Note that `04 References` actively receives processed source files (books,
+   quotes, research, guides, docs, or uncategorized) through the wiki
+   processing pipeline.
 4. Use the available context window to combine complementary sources when a
    broader view improves recall, reasoning, investigation, or project work.
 5. Cite the stored source and date, distinguish evidence from inference, and
