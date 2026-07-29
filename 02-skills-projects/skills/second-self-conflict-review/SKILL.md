@@ -2,7 +2,6 @@
 name: second-self-conflict-review
 description: Review contradictory Second Self claims and prepare a user decision without silently choosing a winner. Use when notes disagree or a live correction conflicts with stored context.
 ---
-
 # Second Self Conflict Review
 
 Version: `1.0.0`
