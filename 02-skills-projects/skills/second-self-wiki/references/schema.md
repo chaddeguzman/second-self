@@ -59,8 +59,8 @@ instead of flattening disagreement.
 
 ## Special files
 
-- `index.md`: retain generated markers; catalog every page with a one-line description and source count.
-- `log.md`: append `## [YYYY-MM-DD] ingest|query|lint|refresh|duplicate | Title`.
+- `index.md`: retain generated markers; catalog every page in a unified table with columns `| Type | Page | Description | Sources |`. Type is `Topic` or `Source`; Page is a relative Markdown link; Sources is a count for topics or `—` for source pages.
+- `log.md`: maintain a table with columns `| Date | Operation | Title | Details |`. Operation is one of `ingest`, `query`, `lint`, `refresh`, or `duplicate`. Details joins multiple bullet points with `<br>` tags. New rows are prepended bottom-to-top (latest entry is the first data row).
 - `open-questions.md`: record contradictory claims, ambiguous identities, stale material, and missing evidence.
 
 ## Broker specification
