@@ -14,7 +14,7 @@ Read `references/schema.md` before proposing wiki changes.
 3. Hash and read each source. Inspect PNG, JPG, or WebP sources visually. Never invent missing extraction or OCR.
 4. Read `03-wiki/index.md`, then only relevant source, topic, entity, analysis, and primary Second Self pages.
 5. Distinguish direct evidence, derived interpretation, conflicts, and missing information. Never use a generated page as the sole basis for a consequential personal claim.
-6. Prepare complete page contents, index changes, one append-only log entry, and open-question changes.
+6. Prepare complete page contents, index changes, one log entry, and open-question changes. The index uses a unified table (`| Type | Page | Description | Sources |`). The log uses a table (`| Date | Operation | Title | Details |`) with new rows prepended bottom-to-top (latest entry first). Join multiple detail bullets with `<br>` tags in the Details cell.
 7. **Ask the user where each source should live.** Present the list of files and ask which `04 References` subfolder each belongs to. Accept the user's answer for all files in a single response. Valid subfolders: `00 books`, `01 quotes`, `02 research`, `03 guides`, `04 docs`, `05 Uncategorized`. Use `05 Uncategorized` when no other subfolder fits.
 8. **Build the destination paths.** For each source, use `references_destination(paths, source_path, subfolder_name)` from `wiki.py` to get the collision-safe target. This preserves the original filename (no timestamp prefix). Set `source_path` in the wiki source page front-matter to this exact References-relative path.
 9. **Prepare the move manifest.** Each move entry must use:

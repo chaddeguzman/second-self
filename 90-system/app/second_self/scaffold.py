@@ -155,7 +155,10 @@ related: []
 # Wiki Index
 
 <!-- BEGIN GENERATED -->
-No wiki pages have been processed.
+
+| Type | Page | Description | Sources |
+|------|------|-------------|---------|
+
 <!-- END GENERATED -->
 """,
     "03-wiki/log.md": """---
@@ -169,6 +172,9 @@ related: []
 ---
 
 # Wiki Log
+
+| Date | Operation | Title | Details |
+|------|-----------|-------|---------|
 """,
     "03-wiki/open-questions.md": """---
 type: wiki-open-questions

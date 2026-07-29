@@ -27,7 +27,8 @@ SUPPORTED = {
 }
 REQUIRED_WIKI_FILES = ("index.md", "log.md", "open-questions.md")
 LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)")
-LOG_HEADING = re.compile(r"^## \[\d{4}-\d{2}-\d{2}\] (?:ingest|query|lint|refresh|duplicate) \| .+$")
+LOG_TABLE_HEADER = re.compile(r"^\| Date \| Operation \| Title \| Details \|$")
+LOG_TABLE_ROW = re.compile(r"^\| \d{4}-\d{2}-\d{2} \| (?:ingest|query|lint|refresh|duplicate) \|")
 
 
 @dataclass(frozen=True)
@@ -314,9 +315,13 @@ def lint_wiki(paths: SecondSelfPaths) -> list[str]:
             if target in incoming:
                 incoming[target] += 1
         if page.name == "log.md":
-            for line in body.splitlines():
-                if line.startswith("## ") and not LOG_HEADING.match(line):
-                    errors.append(f"log.md: malformed entry heading: {line}")
+            lines = body.splitlines()
+            if not any(LOG_TABLE_HEADER.match(line) for line in lines):
+                errors.append("log.md: missing table header")
+            for line in lines:
+                if line.startswith("| ") and not line.startswith("| Date") and not line.startswith("|---"):
+                    if not LOG_TABLE_ROW.match(line):
+                        errors.append(f"log.md: malformed table row: {line}")
     special = {str((paths.wiki / name).resolve()) for name in REQUIRED_WIKI_FILES}
     for page, count in incoming.items():
         if count == 0 and str(page) not in special:
