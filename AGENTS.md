@@ -6,7 +6,7 @@ This file is the canonical startup guide for **any coding agent** (Claude Code,
 Cline, Cursor, Deepseek, Windsurf, or any other LLM-powered agent). If you are
 an agent reading this for the first time:
 
-1. Read `01-strategy-storage/00 Memory/Second Self Context.md` for the system's
+1. Read `01-strategy-storage/00 Memory/00 Second Self Context.md` for the system's
    purpose, architecture, privacy model, and shared human-agent context.
 2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
    immediate task permits, ask one focused question from an incomplete memory
@@ -28,7 +28,7 @@ an agent reading this for the first time:
 ## Startup
 
 1. Always read
-   `01-strategy-storage/00 Memory/Second Self Context.md`.
+   `01-strategy-storage/00 Memory/00 Second Self Context.md`.
    Treat `00 Memory` as the primary durable context and the first retrieval
    location for personal recall.
 2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
