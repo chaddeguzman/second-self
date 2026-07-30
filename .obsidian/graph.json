@@ -8,20 +8,6 @@
   "collapse-color-groups": false,
   "colorGroups": [
     {
-      "query": "path:\"01-strategy-storage/00 Memory/00 Raw\"",
-      "color": {
-        "a": 1,
-        "rgb": 16113825
-      }
-    },
-    {
-      "query": "path:\"01-strategy-storage/00 Memory/99 Processed\"",
-      "color": {
-        "a": 1,
-        "rgb": 16113825
-      }
-    },
-    {
       "query": "path:\"01-strategy-storage/00 Memory/\"",
       "color": {
         "a": 1,
@@ -132,11 +118,11 @@
   "textFadeMultiplier": 0,
   "nodeSizeMultiplier": 1,
   "lineSizeMultiplier": 1,
-  "collapse-forces": false,
+  "collapse-forces": true,
   "centerStrength": 0,
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.11660891579457254,
-  "close": false
+  "scale": 0.08317427835927522,
+  "close": true
 }
