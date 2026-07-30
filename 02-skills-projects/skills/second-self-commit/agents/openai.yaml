@@ -1,0 +1,4 @@
+interface:
+  display_name: "Second Self Commit"
+  short_description: "Commit and merge changes through the protected main workflow."
+  default_prompt: "Use $second-self-commit to commit and merge my changes."
