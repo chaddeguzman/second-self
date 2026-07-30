@@ -3,7 +3,7 @@
   "search": "",
   "showTags": true,
   "showAttachments": false,
-  "hideUnresolved": false,
+  "hideUnresolved": true,
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
@@ -29,13 +29,6 @@
       }
     },
     {
-      "query": "path:\"01-strategy-storage/01 Notes\"",
-      "color": {
-        "a": 1,
-        "rgb": 15259622
-      }
-    },
-    {
       "query": "path:\"01-strategy-storage/02 Journal\"",
       "color": {
         "a": 1,
@@ -53,112 +46,70 @@
       "query": "path:\"01-strategy-storage/04 References/00 books\"",
       "color": {
         "a": 1,
-        "rgb": 15773946
+        "rgb": 16671330
       }
     },
     {
       "query": "path:\"01-strategy-storage/04 References/01 quotes\"",
       "color": {
         "a": 1,
-        "rgb": 15773946
+        "rgb": 65531
       }
     },
     {
       "query": "path:\"01-strategy-storage/04 References/02 research\"",
       "color": {
         "a": 1,
-        "rgb": 15773946
+        "rgb": 65369
       }
     },
     {
       "query": "path:\"01-strategy-storage/04 References/03 guides\"",
       "color": {
         "a": 1,
-        "rgb": 15773946
+        "rgb": 16753152
       }
     },
     {
       "query": "path:\"01-strategy-storage/04 References/04 docs\"",
       "color": {
         "a": 1,
-        "rgb": 15773946
-      }
-    },
-    {
-      "query": "path:\"01-strategy-storage/04 References\"",
-      "color": {
-        "a": 1,
-        "rgb": 14252074
+        "rgb": 12999935
       }
     },
     {
       "query": "path:\"01-strategy-storage/05 Reviews\"",
       "color": {
         "a": 1,
-        "rgb": 13150862
+        "rgb": 16777215
       }
     },
     {
       "query": "path:\"02-skills-projects/skills\"",
       "color": {
         "a": 1,
-        "rgb": 12229093
+        "rgb": 11403519
       }
     },
     {
       "query": "path:\"02-skills-projects/projects\"",
       "color": {
         "a": 1,
-        "rgb": 12229093
-      }
-    },
-    {
-      "query": "path:\"02-skills-projects\"",
-      "color": {
-        "a": 1,
-        "rgb": 8075960
+        "rgb": 12752127
       }
     },
     {
       "query": "path:\"03-wiki/sources\"",
       "color": {
         "a": 1,
-        "rgb": 9362915
+        "rgb": 16740521
       }
     },
     {
       "query": "path:\"03-wiki/topics\"",
       "color": {
         "a": 1,
-        "rgb": 9362915
-      }
-    },
-    {
-      "query": "path:\"03-wiki/entities\"",
-      "color": {
-        "a": 1,
-        "rgb": 9362915
-      }
-    },
-    {
-      "query": "path:\"03-wiki/analyses\"",
-      "color": {
-        "a": 1,
-        "rgb": 9362915
-      }
-    },
-    {
-      "query": "path:\"03-wiki/open-questions\"",
-      "color": {
-        "a": 1,
-        "rgb": 9362915
-      }
-    },
-    {
-      "query": "path:\"03-wiki\"",
-      "color": {
-        "a": 1,
-        "rgb": 1416877
+        "rgb": 16479348
       }
     },
     {
@@ -166,6 +117,13 @@
       "color": {
         "a": 1,
         "rgb": 6710886
+      }
+    },
+    {
+      "query": "path:03-wiki  ",
+      "color": {
+        "a": 1,
+        "rgb": 16723502
       }
     }
   ],
@@ -179,6 +137,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.11660891579457221,
-  "close": true
+  "scale": 0.11660891579457254,
+  "close": false
 }
