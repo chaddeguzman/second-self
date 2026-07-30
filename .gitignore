@@ -76,6 +76,7 @@ build/
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/plugins/
+.obsidian/graph.json
 
 # Backups, archives, credentials, and temporary files.
 backups/
