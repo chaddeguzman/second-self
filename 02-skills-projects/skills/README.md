@@ -11,6 +11,7 @@ description.
 |-------|---------|---------|
 | [second-self-backup](second-self-backup/SKILL.md) | 1.0.0 | Create encrypted or sync backups on removable storage. |
 | [second-self-capture](second-self-capture/SKILL.md) | 1.0.0 | Capture thoughts, notes, quotes, links, and corrections into the inbox. |
+| [second-self-commit](second-self-commit/SKILL.md) | 1.0.0 | Commit and merge changes through the protected main workflow. |
 | [second-self-conflict-review](second-self-conflict-review/SKILL.md) | 1.0.0 | Review contradictory claims and prepare a user decision. |
 | [second-self-intake](second-self-intake/SKILL.md) | 1.0.0 | Import and extract PDF, DOCX, XLSX, or TXT material with provenance. |
 | [second-self-project-handoff](second-self-project-handoff/SKILL.md) | 1.1.0 | Prepare an auditable private project context brief. |
@@ -50,6 +51,21 @@ Second Self inbox. The user's original wording is preserved and distinguished
 from agent interpretation. Captures are left as `inbox` classification;
 weekly review determines durable placement. The skill returns the created
 private path without exposing contents publicly.
+
+### second-self-commit
+
+**When to use:** The user asks to commit, push, merge, or sync changes to the
+Second Self repository.
+
+Guides any trusted local AI agent through the full protected `main` workflow:
+pre-checks (fetch, verify `0 0`), stage, validate (privacy + tests), commit on
+`main` (pre-commit hook runs privacy validation, post-commit hook auto-publishes
+to `automation/main`), wait for CI, merge the pull request via `gh` with a merge
+commit, pull, and verify `main...origin/main` is `0 0` with a clean working
+tree. The merge subject uses the prefix `Merge Pull Request #<PR-number>`.
+Private paths (`00 Memory`, `04 References`, `03-wiki`, projects, local config)
+are never staged. Failure recovery covers hook failures, push retries, CI
+failures, missing PRs, and merge conflicts.
 
 ### second-self-conflict-review
 
