@@ -62,7 +62,7 @@ A single `wiki_process` transaction can include two kinds of source moves:
    verifies the file exists there after applying.
 
 For the References route, the agent asks the user in a single prompt which
-subfolder each source should go to (`00 books`, `01 quotes`, `02 research`,
-`03 guides`, `04 docs`, or `05 Uncategorized`). The entire operation — wiki
+subfolder each source should go to (`01 books`, `02 quotes`, `03 research`,
+`04 guides`, `05 docs`, or `06 Uncategorized`). The entire operation — wiki
 pages plus source moves — is submitted as one `wiki_process` proposal and
 applied together.

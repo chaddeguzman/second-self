@@ -401,12 +401,12 @@ def _apply_wiki_process(
                     destination.parent.parent == paths.layer1 / "04 References"
                     and destination.parent.name
                     in {
-                        "00 books",
-                        "01 quotes",
-                        "02 research",
-                        "03 guides",
-                        "04 docs",
-                        "05 Uncategorized",
+                        "01 books",
+                        "02 quotes",
+                        "03 research",
+                        "04 guides",
+                        "05 docs",
+                        "06 Uncategorized",
                     }
                 )
             except ValueError:
