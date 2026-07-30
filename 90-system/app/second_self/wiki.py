@@ -330,12 +330,12 @@ def lint_wiki(paths: SecondSelfPaths) -> list[str]:
 
 
 REFERENCES_SUBFOLDERS = {
-    "00 books",
-    "01 quotes",
-    "02 research",
-    "03 guides",
-    "04 docs",
-    "05 Uncategorized",
+    "01 books",
+    "02 quotes",
+    "03 research",
+    "04 guides",
+    "05 docs",
+    "06 Uncategorized",
 }
 
 

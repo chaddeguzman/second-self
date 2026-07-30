@@ -76,8 +76,8 @@ source should live. You can choose between two destination types in a single
 response:
 
 - **`04 References/{subfolder}`** (recommended) — The source moves directly to
-  `00 books`, `01 quotes`, `02 research`, `03 guides`, `04 docs`, or
-  `05 Uncategorized`. The original filename is preserved and the wiki
+  `01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
+  `06 Uncategorized`. The original filename is preserved and the wiki
   `source_path` points to the References location.
 - **`01 Notes/99 Processed`** (legacy) — The source is archived with a
   `YYYYMMDD_HHMMSS+OriginalName.ext` timestamp prefix in the flat processed
@@ -116,12 +116,12 @@ second-self/
 |   |-- 02 Journal/
 |   |-- 03 Strategy/
 |   |-- 04 References/
-|   |   |-- 00 books/
-|   |   |-- 01 quotes/
-|   |   |-- 02 research/
-|   |   |-- 03 guides/
-|   |   |-- 04 docs/
-|   |   `-- 05 uncategorized/
+|   |   |-- 01 books/
+|   |   |-- 02 quotes/
+|   |   |-- 03 research/
+|   |   |-- 04 guides/
+|   |   |-- 05 docs/
+|   |   `-- 06 uncategorized/
 |   `-- 05 Reviews/
 |-- 02-skills-projects/        Skills and private projects (Layer 2)
 |   |-- skills/

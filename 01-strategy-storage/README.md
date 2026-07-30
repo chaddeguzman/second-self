@@ -68,17 +68,17 @@ confirmed beliefs, decisions, or memories.
 
 Organize reference material into these subfolders:
 
-- `00 books` — Book notes, summaries, excerpts, reading highlights, and related
+- `01 books` — Book notes, summaries, excerpts, reading highlights, and related
   source information.
-- `01 quotes` — Quotations with enough attribution and context to identify
+- `02 quotes` — Quotations with enough attribution and context to identify
   their original source.
-- `02 research` — Research notes, studies, findings, evidence, and analytical
+- `03 research` — Research notes, studies, findings, evidence, and analytical
   source material.
-- `03 guides` — Instructions, playbooks, tutorials, checklists, and other
+- `04 guides` — Instructions, playbooks, tutorials, checklists, and other
   practical how-to material.
-- `04 docs` — General supporting documents that do not fit one of the more
+- `05 docs` — General supporting documents that do not fit one of the more
   specific reference categories.
-- `05 Uncategorized` — Source material that does not clearly fit any other
+- `06 Uncategorized` — Source material that does not clearly fit any other
   reference subfolder.
 
 ### `05 Reviews`

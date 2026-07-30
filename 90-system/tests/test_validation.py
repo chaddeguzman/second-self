@@ -20,7 +20,7 @@ def test_layer1_readme_is_public_but_personal_notes_are_rejected(
     readme.write_text("# Strategy Storage\n", encoding="utf-8")
     reference_scaffolds = [
         repo / "01-strategy-storage" / "04 References" / name / ".gitkeep"
-        for name in ("00 books", "01 quotes", "02 research", "03 guides", "04 docs")
+        for name in ("01 books", "02 quotes", "03 research", "04 guides", "05 docs")
     ]
     for scaffold in reference_scaffolds:
         scaffold.parent.mkdir(parents=True, exist_ok=True)
