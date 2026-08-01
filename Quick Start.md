@@ -109,8 +109,8 @@ save new clips to:
 ```
 
 This keeps incoming web material in the review queue. A trusted agent can later
-process it into the LLM Wiki, preserve the original under `99 Processed`, and
-create traceable topic or source pages. Use additional Web Clipper templates
+process it into the LLM Wiki, move the source into `04 References/{subfolder}`,
+and create traceable topic or source pages. Use additional Web Clipper templates
 when a site or content type needs a different format.
 
 ### 5. Start the Local Home

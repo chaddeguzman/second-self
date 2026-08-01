@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 import shutil
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -200,7 +198,7 @@ def wiki_status(paths: SecondSelfPaths) -> dict[str, Any]:
     if paths.projects.exists():
         candidates.extend(paths.projects.glob("*.md"))
     for path in sorted(set(candidates), key=lambda item: item.as_posix().casefold())[:10_000]:
-        if _inside(path, paths.raw) or _inside(path, paths.processed):
+        if _inside(path, paths.raw):
             continue
         relative = path.relative_to(paths.data_root).as_posix()
         digest = source_hash(path)
@@ -229,13 +227,13 @@ def wiki_status(paths: SecondSelfPaths) -> dict[str, Any]:
 def initialize_wiki(paths: SecondSelfPaths) -> dict[str, Any]:
     before = {
         path.resolve()
-        for root in (paths.raw, paths.processed, paths.wiki)
+        for root in (paths.raw, paths.wiki)
         if root.exists()
         for path in [root, *root.rglob("*")]
     }
     scaffold_wiki(paths)
     created = []
-    for root in (paths.raw, paths.processed, paths.wiki):
+    for root in (paths.raw, paths.wiki):
         for path in [root, *root.rglob("*")]:
             if path.resolve() not in before:
                 created.append(path.relative_to(paths.data_root).as_posix())
@@ -361,39 +359,3 @@ def references_destination(
     return _collision_safe(destination)
 
 
-def archive_destination(
-    paths: SecondSelfPaths,
-    source: Path,
-    processed_at: datetime | None = None,
-) -> Path:
-    processed_at = processed_at or datetime.now().astimezone()
-    prefix = processed_at.strftime("%Y%m%d_%H%M%S")
-    destination = paths.processed / f"{prefix}+{source.name}"
-    if not destination.exists():
-        return destination
-    counter = 2
-    while True:
-        if source.is_dir():
-            candidate = destination.with_name(f"{destination.name}+{counter}")
-        else:
-            candidate = destination.with_name(
-                f"{prefix}+{source.stem}+{counter}{source.suffix}"
-            )
-        if not candidate.exists():
-            return candidate
-        counter += 1
-
-
-def processing_move(
-    paths: SecondSelfPaths, source: Path, processed_at: datetime | None = None
-) -> dict[str, str]:
-    source = source.resolve()
-    if not _inside(source, paths.raw):
-        raise ValueError("Processing source must be inside 00 Raw")
-    digest = source_hash(source)
-    destination = archive_destination(paths, source, processed_at)
-    return {
-        "from": source.relative_to(paths.data_root).as_posix(),
-        "to": destination.relative_to(paths.data_root).as_posix(),
-        "source_id": digest,
-    }

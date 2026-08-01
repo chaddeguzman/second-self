@@ -2,7 +2,7 @@
 
 ## Invariants
 
-- Raw is pending; Processed is immutable.
+- Raw is pending; References is the single source of truth.
 - Existing curated notes stay in place.
 - Every generated page has valid frontmatter and `verification: derived`.
 - Topic, entity, and analysis claims trace to source pages.
@@ -59,8 +59,8 @@ instead of flattening disagreement.
 
 ## Special files
 
-- `index.md`: retain generated markers; catalog every page with a one-line description and source count.
-- `log.md`: append `## [YYYY-MM-DD] ingest|query|lint|refresh|duplicate | Title`.
+- `index.md`: retain generated markers; catalog every page in a unified table with columns `| Type | Page | Description | Sources |`. Type is `Topic` or `Source`; Page is a relative Markdown link; Sources is a count for topics or `—` for source pages.
+- `log.md`: maintain a table with columns `| Date | Operation | Title | Details |`. Operation is one of `ingest`, `query`, `lint`, `refresh`, or `duplicate`. Details joins multiple bullet points with `<br>` tags. New rows are prepended bottom-to-top (latest entry is the first data row).
 - `open-questions.md`: record contradictory claims, ambiguous identities, stale material, and missing evidence.
 
 ## Broker specification
@@ -73,7 +73,7 @@ Use:
   "changes": [{"path": "03-wiki/...", "content": "..."}],
   "moves": [{
     "from": "01-strategy-storage/01 Notes/00 Raw/...",
-    "to": "01-strategy-storage/01 Notes/99 Processed/YYYYMMDD_HHMMSS+OriginalName.ext"
+    "to": "01-strategy-storage/04 References/{subfolder}/OriginalName.ext"
   }]
 }
 ```
@@ -82,18 +82,6 @@ The broker limits a proposal to ten moved source units, verifies input hashes,
 validates generated pages, journals the transaction, and rolls back synchronous
 failures.
 
-Keep `99 Processed` flat. Preserve the original source name and extension after
-the processing timestamp. Add a minimal numeric suffix only when names collide.
-For legacy nested archives, use one `wiki_process` transaction containing the
-Processed-to-Processed move and the matching source-page path update. The broker
-removes emptied legacy date folders after the transaction succeeds.
-
-## Post-archive reference relocation
-
-`wiki_process` always moves sources from Raw to `01 Notes/99 Processed` first.
-If the user wants a finished source retained as a reference, ask whether it
-should remain in Processed or move to a specific `04 References` subfolder.
-Use a separate protected `move` proposal for that relocation; do not bypass the
-Raw-to-Processed archive step. After the move is applied, update the affected
-wiki source page's `source_path` through a follow-up reviewed `wiki_process`
-proposal. Keep the source ID and hash unchanged.
+Preserve the original source name and extension. Add a minimal numeric suffix
+only when names collide. The broker removes emptied Raw parent folders after
+the transaction succeeds.

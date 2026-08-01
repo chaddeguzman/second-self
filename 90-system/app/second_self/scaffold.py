@@ -15,7 +15,6 @@ DIRECTORIES = [
     "01-strategy-storage/01 Notes/04 Imports/extracted",
     "01-strategy-storage/01 Notes/04 Imports/originals",
     "01-strategy-storage/01 Notes/05 Assets",
-    "01-strategy-storage/01 Notes/99 Processed",
     "01-strategy-storage/02 Journal",
     "01-strategy-storage/03 Strategy/01 Conflicts",
     "01-strategy-storage/03 Strategy/02 Decisions",
@@ -218,7 +217,6 @@ def scaffold_wiki(paths: SecondSelfPaths) -> list[Path]:
     created: list[Path] = []
     directories = [
         paths.raw,
-        paths.processed,
         paths.wiki / "sources",
         paths.wiki / "topics",
         paths.wiki / "entities",

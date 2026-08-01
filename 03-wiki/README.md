@@ -6,8 +6,8 @@ entities, source pages, and analyses that make relevant context easier to
 retrieve.
 
 The wiki is a navigation and synthesis layer, not a replacement for primary
-evidence. Material claims must trace back to a source in `01 Notes/00 Raw`, the
-immutable `01 Notes/99 Processed` archive, or an existing Second Self note.
+evidence. Material claims must trace back to a source in `01 Notes/00 Raw`,
+`04 References/{subfolder}`, or an existing Second Self note.
 
 ## Folder Guide
 
@@ -76,10 +76,10 @@ there is sufficient evidence or an explicit user decision.
 5. Record conflicts and uncertainty in `open-questions.md`.
 6. Submit the complete change as one reviewed `wiki_process` broker
    transaction.
-7. Archive successfully processed inputs in `01 Notes/99 Processed` and update
-   the index and log as part of the same reviewed transaction.
+7. Move successfully processed sources into `04 References/{subfolder}` and
+   update the index and log as part of the same reviewed transaction.
 
-Wiki changes and Raw-to-Processed moves must not be performed by editing files
+Wiki changes and Raw-to-References moves must not be performed by editing files
 directly outside the broker workflow. Interrupted transactions must be
 recovered before another source is processed.
 
@@ -99,6 +99,5 @@ recovered before another source is processed.
 - Do not store passwords, API keys, recovery codes, or private cryptographic
   keys here.
 - Keep generated pages and transaction records inside `03-wiki`.
-- Do not edit files under `01 Notes/99 Processed`.
-- Do not merge entities, rename archived sources, or erase historical evidence
+- Do not merge entities, rename reviewed sources, or erase historical evidence
   without the protected review workflow.

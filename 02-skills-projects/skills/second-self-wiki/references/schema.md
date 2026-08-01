@@ -2,7 +2,7 @@
 
 ## Invariants
 
-- Raw is pending; Processed is immutable.
+- Raw is pending; References is the single source of truth.
 - Existing curated notes stay in place.
 - Every generated page has valid frontmatter and `verification: derived`.
 - Topic, entity, and analysis claims trace to source pages.
@@ -73,7 +73,7 @@ Use:
   "changes": [{"path": "03-wiki/...", "content": "..."}],
   "moves": [{
     "from": "01-strategy-storage/01 Notes/00 Raw/...",
-    "to": "01-strategy-storage/01 Notes/99 Processed/YYYYMMDD_HHMMSS+OriginalName.ext"
+    "to": "01-strategy-storage/04 References/{subfolder}/OriginalName.ext"
   }]
 }
 ```
@@ -82,8 +82,6 @@ The broker limits a proposal to ten moved source units, verifies input hashes,
 validates generated pages, journals the transaction, and rolls back synchronous
 failures.
 
-Keep `99 Processed` flat. Preserve the original source name and extension after
-the processing timestamp. Add a minimal numeric suffix only when names collide.
-For legacy nested archives, use one `wiki_process` transaction containing the
-Processed-to-Processed move and the matching source-page path update. The broker
-removes emptied legacy date folders after the transaction succeeds.
+Preserve the original source name and extension. Add a minimal numeric suffix
+only when names collide. The broker removes emptied Raw parent folders after
+the transaction succeeds.
