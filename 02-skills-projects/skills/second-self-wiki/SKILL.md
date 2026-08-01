@@ -23,15 +23,13 @@ Read `references/schema.md` before proposing wiki changes.
    - `source_id`: the SHA-256 hash of the source
 10. Submit one `wiki_process` broker proposal containing wiki page changes plus the move manifest. Do not write wiki pages or move sources directly.
 11. Show intent, affected paths, the exact diff, and the move manifest together. Apply after one `Y` or `Yes`; reject after one `N` or `No`. Never request an approval phrase, proposal ID, timestamp, or second approval.
-12. Run `python -m second_self wiki lint` and report the archived paths, pages changed, conflicts, and warnings.
+12. Run `python -m second_self wiki lint` and report the moved paths, pages changed, conflicts, and warnings.
 
 Archive successfully reviewed duplicates with a duplicate log entry but no redundant synthesis. Keep failed, unsupported, incomplete, or unapproved units in Raw.
 
-**Note on Processed-only sources:** This workflow (steps 7-9) applies to new sources that you want categorized into References. If a source should remain in `99 Processed` instead, use the legacy flow (step 6 of the old workflow). Already-processed sources in `99 Processed` are unchanged and their existing `source_path` values remain valid.
-
 ## Query
 
-Read Memory first for personal recall, then the wiki index and relevant pages. Trace claims through source pages to Raw, Processed, or in-place evidence. Cite private relative paths and dates. Surface conflicting sources without choosing silently.
+Read Memory first for personal recall, then the wiki index and relevant pages. Trace claims through source pages to Raw, References, or in-place evidence. Cite private relative paths and dates. Surface conflicting sources without choosing silently.
 
 ## Save an analysis
 
@@ -41,6 +39,3 @@ Only file a conversational result when the user explicitly asks. Create or updat
 
 Run structural lint before semantic review. Check contradictions, stale synthesis, candidate entity duplicates, missing source coverage, and meaningful orphans. Put uncertain merges and renames in `open-questions.md`; never merge entities or rename archived sources automatically.
 
-Flatten legacy year/date archive paths through one reviewed `wiki_process`
-transaction that moves each source directly into `99 Processed` and updates its
-wiki `source_path` together.

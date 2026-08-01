@@ -33,11 +33,9 @@ Two ordered support folders implement the LLM Wiki source lifecycle:
 
 - `00 Raw` is the pending queue for quick captures, documents, Markdown,
   screenshots, images, and attachment bundles.
-- `99 Processed` is the immutable archive for sources that completed a
-  reviewed wiki transaction. Keep it flat: archive sources directly in this
-  folder as `YYYYMMDD_HHMMSS+OriginalName.ext`, without year or date
-  subfolders. Corrections enter Raw as a new revision rather than changing an
-  archived source.
+- Successfully reviewed sources are categorized into `04 References/{subfolder}`
+  as the single source of truth. Corrections enter Raw as a new revision
+  rather than changing a reviewed source.
 
 ### `02 Journal`
 
@@ -133,7 +131,6 @@ or the entire vault by default.
 - Do not place secrets, credentials, or private exports in tracked files.
 - Do not add another top-level folder here without the protected approval
   workflow.
-- Do not edit or reorganize files under `01 Notes/99 Processed`.
 - Deletions should go through the recoverable private-trash process.
 - Project execution details belong in the project layer, while reusable
   personal lessons may return here through review or writeback.

@@ -40,29 +40,23 @@ prompt. Consequential responses cite the relevant private note and date.
 
 The wiki is a persistent derived navigation layer between questions and primary
 sources. Raw items wait under `01 Notes/00 Raw`; a reviewed transaction creates
-or updates interlinked Markdown and archives successful sources under
-`01 Notes/99 Processed`. Existing curated evidence stays in place.
+or updates interlinked Markdown and moves successful sources into
+`04 References/{subfolder}`. Existing curated evidence stays in place.
 
 Generated pages always remain derived. They must trace material claims to
 archived or in-place evidence, preserve disagreement, and never silently
 promote an interpretation into confirmed personal memory.
 
 Wiki processing is explicit. The broker binds the exact source hashes, page
-diffs, and archive moves into a journaled transaction. Interrupted transactions
+diffs, and source moves into a journaled transaction. Interrupted transactions
 must be recovered before more sources are processed.
 
-A single `wiki_process` transaction can include two kinds of source moves:
+A `wiki_process` transaction moves sources from Raw to
+`04 References/{subfolder}`, preserving the original filename. The wiki
+`source_path` is set at proposal time to the References path, and the broker
+verifies the file exists there after applying.
 
-1. **Raw → flat Processed** (legacy) — the source is archived under
-   `01 Notes/99 Processed` with a timestamp prefix and the wiki `source_path`
-   points to that location.
-2. **Raw → 04 References/{subfolder}** (new) — the source moves directly to
-   the chosen References subfolder, preserving the original filename. The wiki
-   `source_path` is set at proposal time to the References path, and the broker
-   verifies the file exists there after applying.
-
-For the References route, the agent asks the user in a single prompt which
-subfolder each source should go to (`01 books`, `02 quotes`, `03 research`,
-`04 guides`, `05 docs`, or `06 Uncategorized`). The entire operation — wiki
-pages plus source moves — is submitted as one `wiki_process` proposal and
-applied together.
+The agent asks the user in a single prompt which subfolder each source should
+go to (`01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
+`06 Uncategorized`). The entire operation — wiki pages plus source moves — is
+submitted as one `wiki_process` proposal and applied together.

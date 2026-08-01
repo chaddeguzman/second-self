@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -15,9 +14,8 @@ from second_self.cli import main
 from second_self.paths import SecondSelfPaths
 from second_self.wiki import (
     add_source,
-    archive_destination,
     lint_wiki,
-    processing_move,
+    references_destination,
     source_hash,
     wiki_status,
 )
@@ -68,16 +66,18 @@ def test_bundle_hash_changes_with_relative_path(second_self: SecondSelfPaths) ->
     assert source_hash(bundle) != first
 
 
-def test_wiki_process_moves_source_and_updates_pages(
+def test_wiki_process_moves_source_to_references_and_updates_pages(
     second_self: SecondSelfPaths,
 ) -> None:
     source = second_self.raw / "idea.md"
     source.write_text("# Idea\nEvidence.", encoding="utf-8")
     digest = source_hash(source)
-    move = processing_move(second_self, source, datetime(2026, 7, 24, 12, 0, 0))
-    assert move["to"].endswith(
-        "01 Notes/99 Processed/20260724_120000+idea.md"
-    )
+    destination = references_destination(second_self, source, "04 guides")
+    move = {
+        "from": source.relative_to(second_self.data_root).as_posix(),
+        "to": destination.relative_to(second_self.data_root).as_posix(),
+        "source_id": digest,
+    }
     source_page = _page(
         "wiki-source",
         extra=(
@@ -104,7 +104,6 @@ def test_wiki_process_moves_source_and_updates_pages(
     )
     approve(second_self, proposal["id"], "y", agent="pytest")
 
-    destination = second_self.data_root / move["to"]
     assert not source.exists()
     assert destination.read_text(encoding="utf-8") == "# Idea\nEvidence."
     assert (second_self.wiki / "sources" / f"{digest[:12]}-idea.md").exists()
@@ -118,7 +117,12 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
     source = second_self.raw / "changing.txt"
     source.write_text("first", encoding="utf-8")
     digest = source_hash(source)
-    move = processing_move(second_self, source)
+    destination = references_destination(second_self, source, "05 docs")
+    move = {
+        "from": source.relative_to(second_self.data_root).as_posix(),
+        "to": destination.relative_to(second_self.data_root).as_posix(),
+        "source_id": digest,
+    }
     proposal = propose(
         second_self,
         {
@@ -144,7 +148,7 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
         approve(second_self, proposal["id"], "yes")
 
 
-def test_wiki_process_rolls_back_page_when_archive_move_fails(
+def test_wiki_process_rolls_back_page_when_move_fails(
     second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import second_self.broker as broker_module
@@ -152,7 +156,12 @@ def test_wiki_process_rolls_back_page_when_archive_move_fails(
     source = second_self.raw / "rollback.txt"
     source.write_text("safe", encoding="utf-8")
     digest = source_hash(source)
-    move = processing_move(second_self, source)
+    destination = references_destination(second_self, source, "05 docs")
+    move = {
+        "from": source.relative_to(second_self.data_root).as_posix(),
+        "to": destination.relative_to(second_self.data_root).as_posix(),
+        "source_id": digest,
+    }
     target = second_self.wiki / "sources" / "rollback.md"
     proposal = propose(
         second_self,
@@ -174,10 +183,10 @@ def test_wiki_process_rolls_back_page_when_archive_move_fails(
         },
     )
     def fail_move(source_path: str, destination_path: Path) -> None:
-        raise OSError("simulated archive failure")
+        raise OSError("simulated move failure")
 
     monkeypatch.setattr(broker_module.shutil, "move", fail_move)
-    with pytest.raises(OSError, match="simulated archive"):
+    with pytest.raises(OSError, match="simulated move"):
         approve(second_self, proposal["id"], "y")
 
     assert source.read_text(encoding="utf-8") == "safe"
@@ -190,7 +199,8 @@ def test_recover_interrupted_transaction_restores_source(
     second_self: SecondSelfPaths,
 ) -> None:
     original = second_self.raw / "recover.txt"
-    destination = second_self.processed / "20260724_120000+recover.txt"
+    destination = references_destination(second_self, original, "05 docs")
+    destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text("recover me", encoding="utf-8")
     stage = second_self.wiki_transactions / "interrupted"
     stage.mkdir(parents=True)
@@ -210,59 +220,6 @@ def test_recover_interrupted_transaction_restores_source(
     assert recover_wiki_transactions(second_self) == ["interrupted"]
     assert original.read_text(encoding="utf-8") == "recover me"
     assert not destination.exists()
-
-
-def test_wiki_process_flattens_existing_archive_and_prunes_empty_date_folders(
-    second_self: SecondSelfPaths,
-) -> None:
-    nested = second_self.processed / "2026" / "2026-07-24"
-    nested.mkdir(parents=True)
-    source = nested / "hash-Source.md"
-    source.write_text("# Source", encoding="utf-8")
-    digest = source_hash(source)
-    destination = second_self.processed / "20260724_120000+Source.md"
-    page = second_self.wiki / "sources" / "source.md"
-    page.write_text(
-        _page(
-            "wiki-source",
-            extra=(
-                f"source_id: {digest}\n"
-                f"source_path: \"{source.relative_to(second_self.data_root).as_posix()}\"\n"
-                f"source_sha256: {digest}\n"
-            ),
-        ),
-        encoding="utf-8",
-    )
-    updated_page = page.read_text(encoding="utf-8").replace(
-        source.relative_to(second_self.data_root).as_posix(),
-        destination.relative_to(second_self.data_root).as_posix(),
-    )
-    proposal = propose(
-        second_self,
-        {
-            "operation": "wiki_process",
-            "changes": [
-                {
-                    "path": page.relative_to(second_self.data_root).as_posix(),
-                    "content": updated_page,
-                }
-            ],
-            "moves": [
-                {
-                    "from": source.relative_to(second_self.data_root).as_posix(),
-                    "to": destination.relative_to(second_self.data_root).as_posix(),
-                }
-            ],
-        },
-    )
-
-    approve(second_self, proposal["id"], "y")
-
-    assert destination.read_text(encoding="utf-8") == "# Source"
-    assert not (second_self.processed / "2026").exists()
-    assert str(destination.relative_to(second_self.data_root).as_posix()) in (
-        page.read_text(encoding="utf-8")
-    )
 
 
 def test_lint_reports_broken_link_and_orphan(second_self: SecondSelfPaths) -> None:
@@ -324,28 +281,37 @@ def test_status_detects_new_and_changed_curated_notes(
     }
 
 
-def test_archive_destination_is_flat_and_timestamped(
+def test_references_destination_preserves_filename(
     second_self: SecondSelfPaths,
 ) -> None:
     source = second_self.raw / "Screenshot.png"
     source.write_bytes(b"image")
-    destination = archive_destination(
-        second_self, source, datetime(2026, 7, 24, 13, 14, 15)
+    destination = references_destination(
+        second_self, source, "03 research"
     )
-    assert destination.parent == second_self.processed
-    assert destination.name == "20260724_131415+Screenshot.png"
+    assert destination.parent == (second_self.layer1 / "04 References" / "03 research")
+    assert destination.name == "Screenshot.png"
 
 
-def test_archive_destination_adds_minimal_collision_suffix(
+def test_references_destination_adds_minimal_collision_suffix(
     second_self: SecondSelfPaths,
 ) -> None:
     source = second_self.raw / "Screenshot.png"
     source.write_bytes(b"image")
-    processed_at = datetime(2026, 7, 24, 13, 14, 15)
-    first = archive_destination(second_self, source, processed_at)
+    first = references_destination(second_self, source, "03 research")
+    first.parent.mkdir(parents=True, exist_ok=True)
     first.write_bytes(b"first")
 
-    second = archive_destination(second_self, source, processed_at)
+    second = references_destination(second_self, source, "03 research")
 
-    assert second.parent == second_self.processed
-    assert second.name == "20260724_131415+Screenshot+2.png"
+    assert second.parent == (second_self.layer1 / "04 References" / "03 research")
+    assert second.name == "Screenshot-2.png"
+
+
+def test_references_destination_rejects_invalid_subfolder(
+    second_self: SecondSelfPaths,
+) -> None:
+    source = second_self.raw / "doc.md"
+    source.write_text("doc", encoding="utf-8")
+    with pytest.raises(ValueError, match="References subfolder"):
+        references_destination(second_self, source, "invalid")

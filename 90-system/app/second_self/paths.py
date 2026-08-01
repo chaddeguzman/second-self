@@ -28,10 +28,6 @@ class SecondSelfPaths:
         return self.layer1 / "01 Notes" / "00 Raw"
 
     @property
-    def processed(self) -> Path:
-        return self.layer1 / "01 Notes" / "99 Processed"
-
-    @property
     def wiki(self) -> Path:
         return self.data_root / "03-wiki"
 

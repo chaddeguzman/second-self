@@ -157,12 +157,6 @@ def _scan_layer1(paths: SecondSelfPaths, result: _ScanResult) -> None:
                 ]
             elif tuple(part.casefold() for part in relative.parts) == (
                 "01 notes",
-            ):
-                directories[:] = [
-                    name for name in directories if name.casefold() != "99 processed"
-                ]
-            elif tuple(part.casefold() for part in relative.parts) == (
-                "01 notes",
                 "04 imports",
             ):
                 directories[:] = [

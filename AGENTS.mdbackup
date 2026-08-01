@@ -51,8 +51,8 @@
 ## LLM Wiki
 
 - `01-strategy-storage/01 Notes/00 Raw` is the pending source queue.
-- `01-strategy-storage/01 Notes/99 Processed` is the immutable processed-source
-  archive. Corrections enter Raw as new revisions; never edit archived sources.
+- `01-strategy-storage/04 References/{subfolder}` is the single source of truth
+  for successfully reviewed sources. Corrections enter Raw as new revisions.
 - `03-wiki` is private, derived, and agent-maintained. Use the
   `second-self-wiki` skill for processing, querying, saving analyses, or linting.
 - Wiki pages guide navigation but do not replace primary evidence. Consequential

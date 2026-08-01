@@ -71,24 +71,15 @@ connects topics, entities, sources, analyses, and open questions without
 replacing the underlying evidence.
 
 New source material enters `01-strategy-storage/01 Notes/00 Raw`. When you say
-"process these files", the agent prepares wiki pages and asks you where each
-source should live. You can choose between two destination types in a single
-response:
+"process these files", the agent prepares wiki pages and asks you which
+`04 References` subfolder each source should live in. Valid subfolders are
+`01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
+`06 Uncategorized`. The original filename is preserved and the wiki
+`source_path` points to the References location.
 
-- **`04 References/{subfolder}`** (recommended) — The source moves directly to
-  `01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
-  `06 Uncategorized`. The original filename is preserved and the wiki
-  `source_path` points to the References location.
-- **`01 Notes/99 Processed`** (legacy) — The source is archived with a
-  `YYYYMMDD_HHMMSS+OriginalName.ext` timestamp prefix in the flat processed
-  archive.
-
-Regardless of destination, the wiki receives traceable derived pages. All wiki
-pages, source pages, and file moves are applied together in a single journaled
-transaction, so the entire operation succeeds or rolls back as one unit.
-
-Already-processed sources in `99 Processed` are unchanged. The new workflow
-applies only to sources processed after this change.
+The wiki receives traceable derived pages. All wiki pages, source pages, and
+file moves are applied together in a single journaled transaction, so the
+entire operation succeeds or rolls back as one unit.
 
 ### System Area
 
@@ -111,8 +102,7 @@ second-self/
 |-- 01-strategy-storage/       Private personal context (Layer 1)
 |   |-- 00 Memory/
 |   |-- 01 Notes/
-|   |   |-- 00 Raw/            Pending source queue
-|   |   `-- 99 Processed/      Immutable source archive (legacy)
+|   |   `-- 00 Raw/            Pending source queue
 |   |-- 02 Journal/
 |   |-- 03 Strategy/
 |   |-- 04 References/
@@ -151,15 +141,12 @@ Capture or import
         |         +--> confirmed Memory or Strategy updates
         |         +--> priorities, commitments, and resolved conflicts
         |
-        +--> reviewed wiki processing
+          +--> reviewed wiki processing
                   |
-                  +--> [user chooses destination]
+                  +--> [user chooses References subfolder]
                   |         |
-                  |         +--> 04 References/{subfolder} (recommended)
-                  |         |      original filename preserved
-                  |         |
-                  |         +--> 01 Notes/99 Processed (legacy)
-                  |                timestamp-prefixed archive
+                  |         +--> 04 References/{subfolder}
+                  |                original filename preserved
                   |
                   `--> derived, traceable pages added to 03-wiki
 
@@ -173,8 +160,8 @@ Decisions, progress, and reusable lessons return through review/writeback
 ```
 
 Primary evidence remains in Memory, Notes, Journal, Strategy, References,
-Reviews, processed sources, and project records. Wiki pages help navigate and
-synthesize that evidence but do not silently replace it.
+Reviews, and project records. Wiki pages help navigate and synthesize that
+evidence but do not silently replace it.
 
 ## Guides
 

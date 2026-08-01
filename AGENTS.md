@@ -83,16 +83,16 @@ an agent reading this for the first time:
 ## LLM Wiki
 
 - `01-strategy-storage/01 Notes/00 Raw` is the pending source queue.
-- `01-strategy-storage/01 Notes/99 Processed` is the immutable processed-source
-  archive. Corrections enter Raw as new revisions; never edit archived sources.
+- `01-strategy-storage/04 References/{subfolder}` is the single source of truth
+  for successfully reviewed sources. Corrections enter Raw as new revisions.
 - `03-wiki` is private, derived, and agent-maintained. Use the
   `second-self-wiki` skill for processing, querying, saving analyses, or
   linting. `second-self-wiki` covers four distinct operations — ingest,
   query, maintain, lint — invoke the one matching the task rather than
   re-deriving the workflow from prose each time.
 - Wiki pages guide navigation but do not replace primary evidence. Consequential
-  personal claims must trace to Raw, Processed, or existing Second Self sources.
-- Semantic wiki changes and Raw-to-Processed moves require one reviewed
+  personal claims must trace to Raw, References, or existing Second Self sources.
+- Semantic wiki changes and Raw-to-References moves require one reviewed
   `wiki_process` broker transaction, whether the run is user-triggered or
   scheduled/automated. Existing curated notes remain in place.
 - Every wiki, Notes, Journal, and Reviews page carries the shared front-matter
