@@ -171,6 +171,17 @@ an agent reading this for the first time:
 - Never expose private paths or personal content in Git, logs, hook output, or
   public issue/PR text.
 
+## Temporary Artifact Cleanup
+
+- Any one-time file created solely to execute a task or plan — scratch JSON,
+  temporary Python scripts, intermediate configs, or similar execution
+  artifacts — must be deleted completely after the task or plan finishes
+  successfully. Never leave these files behind.
+- Files that a task explicitly produced as intentional deliverables are not
+  execution artifacts and are kept.
+- Treat this as a standing rule for every future task and plan, not a
+  per-task request.
+
 ## Verification
 
 Run:
