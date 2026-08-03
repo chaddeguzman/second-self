@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import dataclasses
 import os
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -14,18 +15,6 @@ from .wiki import wiki_status
 MAX_SCAN_FILES = 10_000
 MAX_NOTE_BYTES = 2 * 1024 * 1024
 SKIPPED_LAYER1_DIRECTORIES = {"98-trash", "99-audit"}
-PERSONAL_CONFIRMATION_TYPES = {
-    "identity",
-    "strategy",
-    "note",
-    "lesson",
-    "reference",
-    "quote",
-    "book",
-    "journal",
-    "decision",
-}
-OPEN_STATUSES = {"inbox", "proposed", "active"}
 QueueState = Literal["populated", "configured-empty", "unavailable", "scan-error"]
 
 
@@ -42,6 +31,9 @@ class DashboardItem:
     tags: tuple[str, ...] = ()
     project_state: str = ""
     writeback_status: str = ""
+    age_days: int | None = None
+    age_label: str = ""
+    size_bytes: int | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +55,8 @@ class DashboardSnapshot:
     scan_errors: int
     scanned_files: int
     wiki: dict[str, Any]
+    layer1: tuple[DashboardItem, ...] = ()
+    projects: tuple[DashboardItem, ...] = ()
 
 
 @dataclass
@@ -155,6 +149,76 @@ def _item(path: Path, root: Path, scope: Literal["layer1", "projects"]) -> tuple
     )
 
 
+def _raw_file_items(root: Path, layer1_root: Path) -> tuple[list[DashboardItem], int]:
+    """List every direct entry in 01 Notes/00 Raw (files and bundles).
+
+    Mirrors the wiki's raw_units enumeration (top-level files plus
+    top-level directories treated as bundles, dotfiles excluded) but uses
+    lightweight stat/schema reads only, so the dashboard never hashes the
+    full content of large sources.
+    """
+    if not root.is_dir():
+        return [], 0
+    items: list[DashboardItem] = []
+    errors = 0
+    try:
+        entries = sorted(root.iterdir(), key=lambda value: value.name.casefold())
+    except OSError:
+        return [], 1
+    for entry in entries:
+        if entry.name.startswith("."):
+            continue
+        if not entry.is_file() and not entry.is_dir():
+            continue
+        try:
+            relative = entry.relative_to(layer1_root).as_posix()
+            if entry.is_dir():
+                items.append(
+                    DashboardItem(
+                        scope="layer1",
+                        relative_path=relative,
+                        title=entry.name,
+                        record_type="bundle",
+                        status="pending",
+                        created=None,
+                        due=None,
+                        preview_eligible=False,
+                        size_bytes=None,
+                    )
+                )
+                continue
+            size = entry.stat().st_size
+            metadata: dict[str, Any] | None = None
+            body = ""
+            preview_eligible = entry.suffix.casefold() == ".md"
+            if preview_eligible and size <= MAX_NOTE_BYTES:
+                try:
+                    metadata, body = read_note(entry)
+                except (OSError, UnicodeError, ValueError):
+                    metadata, body = None, ""
+                    preview_eligible = False
+            items.append(
+                DashboardItem(
+                    scope="layer1",
+                    relative_path=relative,
+                    title=_title(body, entry) if body else entry.name,
+                    record_type=entry.suffix.casefold().lstrip(".") or "file",
+                    status=str(metadata.get("status", "pending"))
+                    if metadata
+                    else "pending",
+                    created=_parse_date(metadata.get("created"))
+                    if metadata
+                    else None,
+                    due=None,
+                    preview_eligible=preview_eligible,
+                    size_bytes=size,
+                )
+            )
+        except OSError:
+            errors += 1
+    return items, errors
+
+
 def _scan_layer1(paths: SecondSelfPaths, result: _ScanResult) -> None:
     root = paths.layer1
     if not root.is_dir():
@@ -221,6 +285,20 @@ def _scan_projects(paths: SecondSelfPaths, result: _ScanResult) -> None:
             result.projects.append(item)
 
 
+def _humanize_age(days: int) -> str:
+    if days <= 0:
+        return "today"
+    if days == 1:
+        return "1d"
+    if days < 7:
+        return f"{days}d"
+    if days < 30:
+        return f"{round(days / 7)}w"
+    if days < 365:
+        return f"{round(days / 30)}mo"
+    return f"{round(days / 365)}y"
+
+
 def _newest(items: list[DashboardItem]) -> tuple[DashboardItem, ...]:
     return tuple(
         sorted(
@@ -265,154 +343,30 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
     _scan_layer1(paths, result)
     _scan_projects(paths, result)
     layer1 = result.layer1
-
-    captures = _newest(
-        [item for item in layer1 if item.record_type == "capture" and item.status == "inbox"]
-    )
-    imports = _newest(
-        [
-            item
-            for item in layer1
-            if item.record_type == "import"
-            and item.created is not None
-            and item.created >= today - timedelta(days=30)
-            and item.created <= today
-        ]
-    )
-    memories = _newest(
-        [
-            item
-            for item in layer1
-            if item.status == "proposed"
-            and item.record_type in PERSONAL_CONFIRMATION_TYPES
-        ]
-    )
-    conflicts = _newest(
-        [
-            item
-            for item in layer1
-            if item.record_type == "conflict" and item.status in OPEN_STATUSES
-        ]
-    )
-    overdue = tuple(
-        sorted(
-            [
-                item
-                for item in layer1
-                if item.due is not None
-                and item.due < today
-                and item.status in OPEN_STATUSES
-            ],
-            key=lambda item: (item.due or date.max, item.title.casefold()),
+    raw_items, raw_scan_errors = _raw_file_items(paths.raw, paths.layer1)
+    raw_items = tuple(
+        dataclasses.replace(
+            item,
+            age_days=(today - item.created).days
+            if item.created is not None
+            else None,
+            age_label=_humanize_age((today - item.created).days)
+            if item.created is not None
+            else "",
         )
-    )
-    due_soon = tuple(
-        sorted(
-            [
-                item
-                for item in layer1
-                if item.due is not None
-                and item.due >= today
-                and item.due <= today + timedelta(days=7)
-                and item.status in OPEN_STATUSES
-            ],
-            key=lambda item: (item.due or date.max, item.title.casefold()),
-        )
-    )
-    writebacks = tuple(
-        sorted(
-            [
-            item
-            for item in [*layer1, *result.projects]
-            if (
-                item.record_type == "handoff" and item.status in {"inbox", "proposed"}
-            )
-            or (
-                item.record_type == "project"
-                and item.writeback_status.casefold() == "pending"
-            )
-            ],
-            key=lambda item: item.title.casefold(),
-        )
+        for item in _newest(raw_items)
     )
 
-    import_configured = (paths.layer1 / "01 Notes/04 Imports").exists() or any(
-        item.record_type == "import" for item in layer1
-    )
-    memory_configured = any(
-        item.record_type in PERSONAL_CONFIRMATION_TYPES for item in layer1
-    )
-    conflict_configured = (paths.layer1 / "03 Strategy/01 Conflicts").exists() or any(
-        item.record_type == "conflict" for item in layer1
-    )
-    writeback_configured = any(
-        item.record_type in {"project", "handoff"}
-        for item in [*layer1, *result.projects]
-    )
     root_error = result.root_error
-    scan_problem = root_error or result.errors > 0
+    scan_problem = root_error or result.errors > 0 or raw_scan_errors > 0
     queues = {
         "captures": _queue(
             "captures",
             "Unprocessed captures",
-            "Structured capture records with status inbox.",
-            list(captures),
-            True,
-            "",
-            scan_problem,
-        ),
-        "imports": _queue(
-            "imports",
-            "Recently imported documents",
-            "Structured import records created within the previous 30 calendar days.",
-            list(imports),
-            import_configured,
-            "No structured import folder or records exist yet.",
-            scan_problem,
-        ),
-        "memories": _queue(
-            "memories",
-            "Memories awaiting confirmation",
-            "Proposed personal records; imports, conflicts, projects, and handoffs are excluded.",
-            list(memories),
-            memory_configured,
-            "No structured personal records exist yet.",
-            scan_problem,
-        ),
-        "conflicts": _queue(
-            "conflicts",
-            "Detected conflicts",
-            "Structured conflict records with inbox, proposed, or active status.",
-            list(conflicts),
-            conflict_configured,
-            "No structured conflict folder or records exist yet.",
-            scan_problem,
-        ),
-        "overdue": _queue(
-            "overdue",
-            "Overdue commitments",
-            "Open structured records with a valid due date before today.",
-            list(overdue),
-            result.saw_due_field,
-            "No structured due-date metadata exists yet.",
-            scan_problem,
-        ),
-        "due_soon": _queue(
-            "due_soon",
-            "Due within 7 days",
-            "Open structured records with a valid due date from today through the next 7 calendar days.",
-            list(due_soon),
-            result.saw_due_field,
-            "No structured due-date metadata exists yet.",
-            scan_problem,
-        ),
-        "writebacks": _queue(
-            "writebacks",
-            "Project updates awaiting writeback",
-            "Pending handoff records or projects explicitly marked writeback pending.",
-            list(writebacks),
-            writeback_configured,
-            "No structured project or handoff records exist yet.",
+            "Every file and bundle waiting in 01 Notes/00 Raw.",
+            list(raw_items),
+            paths.raw.is_dir(),
+            "The 01 Notes/00 Raw inbox does not exist yet.",
             scan_problem,
         ),
     }
@@ -444,7 +398,9 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         active_projects=active_projects,
         tag_index=tag_index,
         legacy_excluded=result.legacy_excluded,
-        scan_errors=result.errors + int(root_error),
+        scan_errors=result.errors + int(root_error) + raw_scan_errors,
         scanned_files=result.scanned,
         wiki=wiki_status(paths),
+        layer1=tuple(layer1),
+        projects=tuple(result.projects),
     )

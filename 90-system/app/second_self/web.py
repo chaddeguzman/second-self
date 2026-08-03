@@ -256,15 +256,7 @@ def create_app(
         return render_template(
             "home.html",
             snapshot=snapshot,
-            queue_order=(
-                "captures",
-                "imports",
-                "memories",
-                "conflicts",
-                "overdue",
-                "due_soon",
-                "writebacks",
-            ),
+            queue_order=("captures",),
             read_only=read_only,
         )
 
