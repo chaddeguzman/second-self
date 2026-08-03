@@ -88,6 +88,12 @@ button, input, textarea { font: inherit; }
 
 .breadcrumbs { display: flex; align-items: center; gap: .55rem; color: var(--muted); font-size: .88rem; margin-bottom: 2rem; }
 .breadcrumbs a { text-decoration: none; }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: .7rem; }
+.tag-chip { display: inline-flex; align-items: baseline; gap: .6rem; padding: .65rem .9rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; }
+.tag-chip strong { color: var(--accent-dark); }
+.tag-chip span { color: var(--muted); font-size: .8rem; }
+.tag-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
 .page-header { margin-bottom: 2rem; }
 .page-header.narrow { max-width: 760px; }
 .page-header h1 { font-size: clamp(2rem, 4vw, 3.5rem); }

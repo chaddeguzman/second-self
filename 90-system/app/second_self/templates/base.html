@@ -24,6 +24,7 @@
     <nav class="shell navigation" aria-label="Primary navigation">
       <a class="{{ 'active' if request.endpoint == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
       <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
+      <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" href="{{ url_for('tag_list') }}">Tags</a>
       <span aria-disabled="true" title="Coming next">Search <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Reviews <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Conflicts <small>Coming next</small></span>

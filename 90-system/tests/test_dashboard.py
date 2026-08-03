@@ -58,6 +58,84 @@ def test_dashboard_queue_rules(second_self: SecondSelfPaths) -> None:
     assert [item.title for item in snapshot.queues["conflicts"].items] == ["Open conflict"]
     assert [item.title for item in snapshot.queues["overdue"].items] == ["Overdue commitment"]
     assert [item.title for item in snapshot.queues["writebacks"].items] == ["Pending writeback"]
+    assert not snapshot.queues["due_soon"].items
+
+
+def test_due_soon_includes_open_records_within_seven_days(second_self: SecondSelfPaths) -> None:
+    _note(
+        second_self.layer1 / "03 Strategy/02 Decisions/Upcoming.md",
+        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-27\nstatus: active",
+        "Upcoming commitment",
+    )
+    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
+    assert [item.title for item in snapshot.queues["due_soon"].items] == ["Upcoming commitment"]
+    assert not snapshot.queues["overdue"].items
+
+
+def test_due_soon_boundary_is_inclusive(second_self: SecondSelfPaths) -> None:
+    _note(
+        second_self.layer1 / "03 Strategy/02 Decisions/Today.md",
+        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-23\nstatus: active",
+        "Due today",
+    )
+    _note(
+        second_self.layer1 / "03 Strategy/02 Decisions/Last Day.md",
+        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-30\nstatus: active",
+        "Due on last day",
+    )
+    _note(
+        second_self.layer1 / "03 Strategy/02 Decisions/Outside.md",
+        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-31\nstatus: active",
+        "Due outside window",
+    )
+    _note(
+        second_self.layer1 / "03 Strategy/02 Decisions/Closed.md",
+        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-24\nstatus: archived",
+        "Closed commitment",
+    )
+    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
+    assert [item.title for item in snapshot.queues["due_soon"].items] == [
+        "Due today",
+        "Due on last day",
+    ]
+    assert not snapshot.queues["overdue"].items
+
+
+def test_tag_index_normalizes_and_aggregates(second_self: SecondSelfPaths) -> None:
+    _note(
+        second_self.layer1 / "01 Notes/02 Notes/Alpha.md",
+        "type: note\ncreated: 2026-07-01\nstatus: active\ntags: [health, work, health]",
+        "Alpha",
+    )
+    _note(
+        second_self.layer1 / "01 Notes/02 Notes/Beta.md",
+        "type: note\ncreated: 2026-07-02\nstatus: active\ntags: [health]",
+        "Beta",
+    )
+    _note(
+        second_self.layer1 / "01 Notes/02 Notes/Gamma.md",
+        "type: note\ncreated: 2026-07-03\nstatus: active",
+        "Gamma",
+    )
+    _note(
+        second_self.projects / "Project.md",
+        "type: project\ncreated: 2026-07-01\nstatus: active\ntags: [work]",
+        "Tagged project",
+    )
+    snapshot = scan_dashboard(second_self)
+    assert set(snapshot.tag_index) == {"health", "work"}
+    assert {item.title for item in snapshot.tag_index["health"]} == {"Alpha", "Beta"}
+    assert {item.title for item in snapshot.tag_index["work"]} == {"Alpha", "Tagged project"}
+
+
+def test_tag_index_ignores_non_list_and_untagged(second_self: SecondSelfPaths) -> None:
+    _note(
+        second_self.layer1 / "01 Notes/02 Notes/Weird.md",
+        "type: note\ncreated: 2026-07-01\nstatus: active\ntags: not-a-list",
+        "Weird tags",
+    )
+    snapshot = scan_dashboard(second_self)
+    assert snapshot.tag_index == {}
 
 
 def test_recent_import_cutoff_is_inclusive(second_self: SecondSelfPaths) -> None:

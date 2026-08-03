@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from .frontmatter import read_note
 from .paths import SecondSelfPaths
@@ -39,6 +39,7 @@ class DashboardItem:
     created: date | None
     due: date | None
     preview_eligible: bool
+    tags: tuple[str, ...] = ()
     project_state: str = ""
     writeback_status: str = ""
 
@@ -57,6 +58,7 @@ class QueueResult:
 class DashboardSnapshot:
     queues: dict[str, QueueResult]
     active_projects: tuple[DashboardItem, ...]
+    tag_index: dict[str, tuple[DashboardItem, ...]]
     legacy_excluded: int
     scan_errors: int
     scanned_files: int
@@ -100,6 +102,19 @@ def _title(body: str, path: Path) -> str:
     return path.stem
 
 
+def _tags(value: Any) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    source = cast(list[object], value)
+    normalized: list[str] = []
+    for entry in source:
+        if isinstance(entry, str):
+            tag = entry.strip()
+            if tag and tag not in normalized:
+                normalized.append(tag)
+    return tuple(sorted(normalized))
+
+
 def _inside(path: Path, root: Path) -> bool:
     try:
         path.resolve().relative_to(root.resolve())
@@ -131,6 +146,7 @@ def _item(path: Path, root: Path, scope: Literal["layer1", "projects"]) -> tuple
             created=_parse_date(metadata.get("created")),
             due=_parse_date(metadata.get("due")),
             preview_eligible=True,
+            tags=_tags(metadata.get("tags")),
             project_state=str(metadata.get("project_state", "")),
             writeback_status=str(metadata.get("writeback_status", "")),
         ),
@@ -290,6 +306,19 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
             key=lambda item: (item.due or date.max, item.title.casefold()),
         )
     )
+    due_soon = tuple(
+        sorted(
+            [
+                item
+                for item in layer1
+                if item.due is not None
+                and item.due >= today
+                and item.due <= today + timedelta(days=7)
+                and item.status in OPEN_STATUSES
+            ],
+            key=lambda item: (item.due or date.max, item.title.casefold()),
+        )
+    )
     writebacks = tuple(
         sorted(
             [
@@ -368,6 +397,15 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
             "No structured due-date metadata exists yet.",
             scan_problem,
         ),
+        "due_soon": _queue(
+            "due_soon",
+            "Due within 7 days",
+            "Open structured records with a valid due date from today through the next 7 calendar days.",
+            list(due_soon),
+            result.saw_due_field,
+            "No structured due-date metadata exists yet.",
+            scan_problem,
+        ),
         "writebacks": _queue(
             "writebacks",
             "Project updates awaiting writeback",
@@ -389,9 +427,22 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
             key=lambda item: item.title.casefold(),
         )
     )
+    tag_entries: dict[str, list[DashboardItem]] = {}
+    for item in [*layer1, *result.projects]:
+        for tag in item.tags:
+            tag_entries.setdefault(tag, []).append(item)
+    tag_index = {
+        tag: tuple(
+            sorted(items, key=lambda value: value.title.casefold())
+        )
+        for tag, items in sorted(
+            tag_entries.items(), key=lambda pair: pair[0].casefold()
+        )
+    }
     return DashboardSnapshot(
         queues=queues,
         active_projects=active_projects,
+        tag_index=tag_index,
         legacy_excluded=result.legacy_excluded,
         scan_errors=result.errors + int(root_error),
         scanned_files=result.scanned,

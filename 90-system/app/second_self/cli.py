@@ -12,6 +12,7 @@ from .broker import (
     recover_wiki_transactions,
 )
 from .capture import capture_note
+from .dashboard import scan_dashboard
 from .indexes import generate_indexes
 from .ingest import ingest
 from .paths import CONFIG_PATH, load_paths, write_config
@@ -85,6 +86,29 @@ def _command_broker(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_tags(args: argparse.Namespace) -> int:
+    snapshot = scan_dashboard(load_paths(require_config=True))
+    tags: list[dict[str, object]] = [
+        {"tag": tag, "count": len(items)}
+        for tag, items in sorted(
+            snapshot.tag_index.items(),
+            key=lambda pair: (-len(pair[1]), pair[0].casefold()),
+        )
+    ]
+    _print({"tags": tags})
+    return 0
+
+
+def _command_intake(args: argparse.Namespace) -> int:
+    _print(ingest(load_paths(True), args.source))
+    return 0
+
+
+def _command_indexes(args: argparse.Namespace) -> int:
+    _print(generate_indexes(load_paths(True)))
+    return 0
+
+
 def _command_wiki(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     if args.wiki_command == "init":
@@ -132,10 +156,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     intake = sub.add_parser("ingest")
     intake.add_argument("source", type=Path)
-    intake.set_defaults(func=lambda args: (_print(ingest(load_paths(True), args.source)) or 0))
+    intake.set_defaults(func=_command_intake)
 
     indexes = sub.add_parser("indexes")
-    indexes.set_defaults(func=lambda args: (_print(generate_indexes(load_paths(True))) or 0))
+    indexes.set_defaults(func=_command_indexes)
+
+    tags = sub.add_parser("tags")
+    tags.set_defaults(func=_command_tags)
 
     project = sub.add_parser("register-project")
     project.add_argument("path", type=Path)
