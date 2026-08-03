@@ -57,3 +57,14 @@ Encrypted backups are `.tar.age` archives meant for offline storage and disaster
 recovery. Sync backups are plain unencrypted folders meant for portability,
 Obsidian access, and Git operations. Choose encrypted for security; choose sync
 when you need to open the backup directly or move it between machines quickly.
+
+## Why do I sometimes see "missing required parameter" errors in Cline?
+
+That error comes from Cline rejecting a tool call (for example `write_to_file`,
+`replace_in_file`, or `execute_command`) where a required field was absent,
+empty, or cut off mid-transmission. It is an adapter-side truncation or parsing
+issue, not a Second Self defect, and Second Self does not register any Cline
+hooks or MCP servers. Retry the same call and verify the file on disk. You can
+reduce how often this happens by splitting very large writes into smaller
+calls and reading big audit, JSONL, or log files selectively instead of
+wholesale — see the Agent Tool Hygiene section of `AGENTS.md`.

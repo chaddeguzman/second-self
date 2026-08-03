@@ -10,7 +10,9 @@ AGENTS.md already covers the full startup sequence. After completing it:
 - If this is a Claude Code session, the `pre_tool_use hook` in
   `90-system/automation/hooks/pre_tool_use.py` may block accidental protected
   changes. Other agents (Cline, Deepseek, Cursor, Windsurf) do not use this
-  hook.
+  hook. Do not manually register this hook with Cline or other agents — it
+  reads Claude Code's PreToolUse event schema (JSON on stdin, block decision
+  on stdout) and other adapters do not understand that schema.
 - Resolve private paths through `.second-self.local.json`; never hard-code them.
 
 ## Skills

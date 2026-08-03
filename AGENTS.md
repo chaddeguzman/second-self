@@ -182,6 +182,28 @@ an agent reading this for the first time:
 - Treat this as a standing rule for every future task and plan, not a
   per-task request.
 
+## Agent Tool Hygiene
+
+These rules reduce tool-call failures across agent adapters (Cline, Claude
+Code, Cursor, Codex, Windsurf). A tool call that errors with *"missing required
+parameter"* is almost always an adapter-side truncation or malformed payload,
+not a Second Self defect. Apply the following habits:
+
+- Prefer several smaller `write_to_file` calls or sequential `replace_in_file`
+  edits over one mega-write. Large single payloads are the most likely to be
+  truncated in transit and rejected by the adapter.
+- When a write or patch is rejected with "missing required parameter", re-issue
+  the identical call before assuming failure. After it succeeds, verify the file
+  on disk rather than trusting the confirmation alone.
+- Read large audit, JSONL, log, or trash files selectively — tail, line ranges,
+  or targeted search plus summary — instead of loading them wholesale. Keeping
+  context lean preserves headroom for large tool calls and reduces the
+  probability of truncation.
+- Do not register `90-system/automation/hooks/pre_tool_use.py` with Cline or
+  other agents. It is a Claude Code PreToolUse hook that reads JSON on stdin and
+  writes a block decision to stdout; other adapters do not understand its event
+  schema.
+
 ## Verification
 
 Run:
