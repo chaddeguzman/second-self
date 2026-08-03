@@ -7,20 +7,20 @@ description.
 
 ## Skill Catalog
 
-| Skill | Version | Purpose |
-|-------|---------|---------|
-| [second-self-backup](second-self-backup/SKILL.md) | 1.0.0 | Create encrypted or sync backups on removable storage. |
-| [second-self-capture](second-self-capture/SKILL.md) | 1.0.0 | Capture thoughts, notes, quotes, links, and corrections into the inbox. |
-| [second-self-commit](second-self-commit/SKILL.md) | 1.0.0 | Commit and merge changes through the protected main workflow. |
-| [second-self-conflict-review](second-self-conflict-review/SKILL.md) | 1.0.0 | Review contradictory claims and prepare a user decision. |
-| [second-self-intake](second-self-intake/SKILL.md) | 1.0.0 | Import and extract PDF, DOCX, XLSX, or TXT material with provenance. |
-| [second-self-project-handoff](second-self-project-handoff/SKILL.md) | 1.1.0 | Prepare an auditable private project context brief. |
-| [second-self-project-writeback](second-self-project-writeback/SKILL.md) | 1.0.0 | Return project status, decisions, and lessons to Second Self. |
-| [second-self-quarterly-review](second-self-quarterly-review/SKILL.md) | 1.1.0 | Run the guided quarterly review. |
-| [second-self-recall](second-self-recall/SKILL.md) | 1.0.0 | Retrieve personal facts, preferences, decisions, and history. |
-| [second-self-restore](second-self-restore/SKILL.md) | 1.0.0 | Verify and restore an encrypted snapshot into a new directory. |
-| [second-self-weekly-review](second-self-weekly-review/SKILL.md) | 1.0.0 | Run the guided weekly review. |
-| [second-self-wiki](second-self-wiki/SKILL.md) | — | Process sources, maintain, query, and lint the private LLM Wiki. |
+| Skill                                                                   | Version | Purpose                                                                 |
+| ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------- |
+| [second-self-backup](second-self-backup/SKILL.md)                       | 1.0.0   | Create encrypted or sync backups on removable storage.                  |
+| [second-self-capture](second-self-capture/SKILL.md)                     | 1.0.0   | Capture thoughts, notes, quotes, links, and corrections into the inbox. |
+| [second-self-commit](second-self-commit/SKILL.md)                       | 1.0.0   | Commit and merge changes through the protected main workflow.           |
+| [second-self-conflict-review](second-self-conflict-review/SKILL.md)     | 1.0.0   | Review contradictory claims and prepare a user decision.                |
+| [second-self-intake](second-self-intake/SKILL.md)                       | 1.0.0   | Import and extract PDF, DOCX, XLSX, or TXT material with provenance.    |
+| [second-self-project-handoff](second-self-project-handoff/SKILL.md)     | 1.1.0   | Prepare an auditable private project context brief.                     |
+| [second-self-project-writeback](second-self-project-writeback/SKILL.md) | 1.0.0   | Return project status, decisions, and lessons to Second Self.           |
+| [second-self-quarterly-review](second-self-quarterly-review/SKILL.md)   | 1.1.0   | Run the guided quarterly review.                                        |
+| [second-self-recall](second-self-recall/SKILL.md)                       | 1.0.0   | Retrieve personal facts, preferences, decisions, and history.           |
+| [second-self-restore](second-self-restore/SKILL.md)                     | 1.0.0   | Verify and restore an encrypted snapshot into a new directory.          |
+| [second-self-weekly-review](second-self-weekly-review/SKILL.md)         | 1.0.0   | Run the guided weekly review.                                           |
+| [second-self-wiki](second-self-wiki/SKILL.md)                           | —       | Process sources, maintain, query, and lint the private LLM Wiki.        |
 
 ## Detailed Descriptions
 

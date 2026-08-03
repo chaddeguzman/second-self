@@ -2,7 +2,6 @@
 name: second-self-project-writeback
 description: Return project status, decisions, and lessons to Second Self. Use after project work changes priorities, produces a consequential decision, or reveals a reusable personal lesson.
 ---
-
 # Second Self Project Writeback
 
 Version: `1.0.0`

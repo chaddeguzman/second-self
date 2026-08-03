@@ -2,7 +2,6 @@
 name: second-self-restore
 description: Verify and restore an encrypted Second Self snapshot into a new empty directory. Use for a new workstation, recovery test, or explicit disaster recovery request.
 ---
-
 # Second Self Restore
 
 Version: `1.0.0`

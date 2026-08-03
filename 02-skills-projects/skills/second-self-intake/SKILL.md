@@ -2,7 +2,6 @@
 name: second-self-intake
 description: Import and extract PDF, DOCX, XLSX, or TXT material into Second Self with immutable provenance. Use when files are dropped for journals, notes, references, quotes, books, or lessons.
 ---
-
 # Second Self Intake
 
 Version: `1.0.0`

@@ -2,7 +2,6 @@
 name: second-self-backup
 description: Create a manual dated encrypted Second Self backup on removable storage. Use when the user connects a backup drive or requests a verified private-data snapshot.
 ---
-
 # Second Self Backup
 
 Version: `1.0.0`

@@ -2,7 +2,6 @@
 name: second-self-recall
 description: Retrieve personal facts, preferences, decisions, commitments, lessons, or history from Second Self. Use when an answer should rely on stored personal context or when the user asks what was previously recorded.
 ---
-
 # Second Self Recall
 
 Version: `1.0.0`
