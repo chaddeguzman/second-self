@@ -2,7 +2,6 @@
 name: second-self-commit
 description: Commit and merge Second Self changes to GitHub through the protected main workflow. Use when the user asks to commit, push, merge, or sync changes to the Second Self repository.
 ---
-
 # Second Self Commit
 
 Version: `1.0.0`

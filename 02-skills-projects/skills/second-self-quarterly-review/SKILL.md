@@ -2,7 +2,6 @@
 name: second-self-quarterly-review
 description: Run the guided Second Self quarterly review. Use to reassess purpose, values, identity, strategy, goals, commitments, project portfolio, and accumulated lessons.
 ---
-
 # Second Self Quarterly Review
 
 Version: `1.1.0`

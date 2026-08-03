@@ -2,7 +2,6 @@
 name: second-self-project-handoff
 description: Prepare an auditable private project context brief from Second Self. Use before focused work in a registered project or when the user asks what personal context should guide that project.
 ---
-
 # Second Self Project Handoff
 
 Version: `1.1.0`

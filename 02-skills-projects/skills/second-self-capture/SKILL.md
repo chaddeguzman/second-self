@@ -2,7 +2,6 @@
 name: second-self-capture
 description: Capture a thought, note, quote, link, or live user correction into the Second Self inbox. Use when the user asks to remember, record, save, capture, or reconcile new personal context.
 ---
-
 # Second Self Capture
 
 Version: `1.0.0`

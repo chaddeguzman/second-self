@@ -2,7 +2,6 @@
 name: second-self-wiki
 description: Process files, screenshots, bundles, quick captures, and changed curated notes into the private Second Self LLM Wiki. Use when the user asks to process Raw sources, maintain or lint the wiki, query connected knowledge, refresh changed notes, resolve wiki contradictions, or explicitly save an analysis.
 ---
-
 # Second Self Wiki
 
 Read `references/schema.md` before proposing wiki changes.
