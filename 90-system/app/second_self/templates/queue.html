@@ -22,13 +22,19 @@
     {% for item in queue.items %}
       <article>
         <div>
-          <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+          {% if item.preview_eligible %}
+            <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+          {% else %}
+            <h2>{{ item.title }}</h2>
+          {% endif %}
           <p class="path">{{ item.relative_path }}</p>
         </div>
         <dl>
           <div><dt>Type</dt><dd>{{ item.record_type }}</dd></div>
           <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
-          <div><dt>Date</dt><dd>{{ item.due or item.created or 'Unavailable' }}</dd></div>
+          <div><dt>Date</dt><dd>{{ item.created or 'Unavailable' }}</dd></div>
+          {% if item.size_bytes is not none %}<div><dt>Size</dt><dd>{{ item.size_bytes }} B</dd></div>{% endif %}
+          {% if item.age_label %}<div><dt>Age</dt><dd>{{ item.age_label }}</dd></div>{% endif %}
         </dl>
       </article>
     {% endfor %}
@@ -36,7 +42,7 @@
 {% else %}
   <div class="empty-panel large">
     <strong>This queue is clear.</strong>
-    <p>No structured records match the rule above.</p>
+    <p>No files are waiting in 01 Notes/00 Raw.</p>
   </div>
 {% endif %}
 {% endblock %}

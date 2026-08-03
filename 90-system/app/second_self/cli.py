@@ -99,6 +99,35 @@ def _command_tags(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_stats(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    snapshot = scan_dashboard(paths)
+    all_items = [*snapshot.layer1, *snapshot.projects]
+    counts_by_type: dict[str, int] = {}
+    counts_by_status: dict[str, int] = {}
+    captures_per_month: dict[str, int] = {}
+    for item in all_items:
+        counts_by_type[item.record_type] = counts_by_type.get(item.record_type, 0) + 1
+        counts_by_status[item.status] = counts_by_status.get(item.status, 0) + 1
+        if item.record_type == "capture" and item.created is not None:
+            month = item.created.strftime("%Y-%m")
+            captures_per_month[month] = captures_per_month.get(month, 0) + 1
+    _print(
+        {
+            "counts_by_type": counts_by_type,
+            "counts_by_status": counts_by_status,
+            "captures_per_month": captures_per_month,
+            "project_counts": {
+                "total": len(snapshot.projects),
+                "active": len(snapshot.active_projects),
+                "raw_files": len(snapshot.queues["captures"].items),
+            },
+            "wiki": snapshot.wiki,
+        }
+    )
+    return 0
+
+
 def _command_intake(args: argparse.Namespace) -> int:
     _print(ingest(load_paths(True), args.source))
     return 0
@@ -163,6 +192,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     tags = sub.add_parser("tags")
     tags.set_defaults(func=_command_tags)
+
+    stats = sub.add_parser("stats")
+    stats.set_defaults(func=_command_stats)
 
     project = sub.add_parser("register-project")
     project.add_argument("path", type=Path)

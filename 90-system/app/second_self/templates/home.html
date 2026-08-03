@@ -35,41 +35,56 @@
   <p>{{ snapshot.scanned_files }} structured or legacy Markdown files checked locally.</p>
 </section>
 
-<div class="card-grid">
-  {% for key in queue_order %}
-    {% set queue = snapshot.queues[key] %}
-    <article class="queue-card state-{{ queue.state }}">
-      <div class="card-topline">
-        <span class="state-label">
-          {% if queue.state == 'unavailable' %}Not configured yet
-          {% elif queue.state == 'scan-error' %}Needs attention
-          {% elif queue.state == 'configured-empty' %}Clear
-          {% else %}{{ queue.items|length }} open{% endif %}
-        </span>
-        {% if queue.state != 'unavailable' and queue.state != 'scan-error' %}
-          <strong class="count">{{ queue.items|length }}</strong>
-        {% endif %}
-      </div>
-      <h3><a href="{{ url_for('queue_view', queue_key=queue.key) }}">{{ queue.label }}</a></h3>
-      {% if queue.state == 'unavailable' %}
-        <p>{{ queue.unavailable_reason }}</p>
-      {% elif queue.state == 'scan-error' %}
-        <p>This queue could not be read safely. No conclusion was inferred.</p>
-      {% elif queue.items %}
-        <ul class="item-list">
-          {% for item in queue.items[:5] %}
-            <li>
-              <a href="{{ preview_url(item) }}">{{ item.title }}</a>
-              <small>{{ item.created or 'Date unavailable' }}</small>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No matching structured records.</p>
-      {% endif %}
-      <a class="card-link" href="{{ url_for('queue_view', queue_key=queue.key) }}">View queue <span aria-hidden="true">→</span></a>
-    </article>
-  {% endfor %}
+{% set queue = snapshot.queues['captures'] %}
+<div class="projects-panel">
+  <div class="section-heading compact">
+    <div>
+      <p class="eyebrow">Unified inbox</p>
+      <h2>{{ queue.label }}</h2>
+    </div>
+    <span class="state-label">
+      {% if queue.state == 'unavailable' %}Not configured yet
+      {% elif queue.state == 'scan-error' %}Needs attention
+      {% elif queue.state == 'configured-empty' %}Clear
+      {% else %}{{ queue.items|length }} file{{ '' if queue.items|length == 1 else 's' }}{% endif %}
+    </span>
+  </div>
+  {% if queue.state == 'unavailable' %}
+    <div class="empty-panel large">
+      <strong>Not configured yet</strong>
+      <p>{{ queue.unavailable_reason }}</p>
+    </div>
+  {% elif queue.state == 'scan-error' %}
+    <div class="notice notice-error">This queue could not be scanned safely. No zero count was assumed.</div>
+  {% elif queue.items %}
+    <ul class="record-list">
+      {% for item in queue.items %}
+        <li>
+          <article>
+            <div>
+              {% if item.preview_eligible %}
+                <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+              {% else %}
+                <h2>{{ item.title }}</h2>
+              {% endif %}
+              <p class="path">{{ item.relative_path }}</p>
+            </div>
+            <dl>
+              <div><dt>Type</dt><dd>{{ item.record_type }}</dd></div>
+              <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+              {% if item.created %}<div><dt>Date</dt><dd>{{ item.created }}</dd></div>{% endif %}
+              {% if item.size_bytes is not none %}<div><dt>Size</dt><dd>{{ item.size_bytes }} B</dd></div>{% endif %}
+            </dl>
+          </article>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-panel large">
+      <strong>This queue is clear.</strong>
+      <p>No files are waiting in 01 Notes/00 Raw.</p>
+    </div>
+  {% endif %}
 </div>
 
 <section class="projects-panel">

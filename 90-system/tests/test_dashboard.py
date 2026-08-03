@@ -17,88 +17,81 @@ def _note(path: Path, metadata: str, title: str = "Example") -> None:
     )
 
 
-def test_dashboard_queue_rules(second_self: SecondSelfPaths) -> None:
+def test_dashboard_has_only_the_captures_queue(second_self: SecondSelfPaths) -> None:
+    snapshot = scan_dashboard(second_self)
+    assert set(snapshot.queues) == {"captures"}
+
+
+def test_dashboard_lists_every_raw_file_and_bundle(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "00 Memory/Capture.md",
+        layer1 / "01 Notes/00 Raw/Capture.md",
         "type: capture\ncreated: 2026-07-22\nstatus: inbox",
         "Captured thought",
     )
+    (layer1 / "01 Notes/00 Raw/Plain.txt").write_text("plain", encoding="utf-8")
+    bundle = layer1 / "01 Notes/00 Raw/Article"
+    bundle.mkdir()
+    (bundle / "article.md").write_text("# Article\n", encoding="utf-8")
+
+    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
+
+    items = snapshot.queues["captures"].items
+    by_title = {item.title: item for item in items}
+    assert set(by_title) == {"Captured thought", "Plain.txt", "Article"}
+    assert by_title["Captured thought"].record_type == "md"
+    assert by_title["Captured thought"].status == "inbox"
+    assert by_title["Captured thought"].preview_eligible is True
+    assert by_title["Plain.txt"].record_type == "txt"
+    assert by_title["Plain.txt"].status == "pending"
+    assert by_title["Plain.txt"].preview_eligible is False
+    assert by_title["Plain.txt"].size_bytes == 5
+    assert by_title["Article"].record_type == "bundle"
+    assert by_title["Article"].preview_eligible is False
+
+
+def test_raw_dotfiles_are_excluded(second_self: SecondSelfPaths) -> None:
+    (second_self.raw / ".gitkeep").write_text("keep", encoding="utf-8")
+    snapshot = scan_dashboard(second_self)
+    assert not snapshot.queues["captures"].items
+    assert snapshot.queues["captures"].state == "configured-empty"
+
+
+def test_raw_markdown_uses_frontmatter_metadata(second_self: SecondSelfPaths) -> None:
     _note(
-        layer1 / "01 Notes/04 Imports/extracted/Recent.md",
-        "type: import\ncreated: 2026-06-24\nstatus: proposed",
-        "Recent import",
-    )
-    _note(
-        layer1 / "01 Notes/02 Notes/Memory.md",
-        "type: note\ncreated: 2026-07-21\nstatus: proposed",
-        "Proposed memory",
-    )
-    _note(
-        layer1 / "03 Strategy/01 Conflicts/Conflict.md",
-        "type: conflict\ncreated: 2026-07-20\nstatus: active",
-        "Open conflict",
-    )
-    _note(
-        layer1 / "03 Strategy/02 Decisions/Commitment.md",
-        "type: decision\ncreated: 2026-06-01\ndue: 2026-07-01\nstatus: active",
-        "Overdue commitment",
-    )
-    _note(
-        layer1 / "00 Memory/Handoff.md",
-        "type: handoff\ncreated: 2026-07-23\nstatus: inbox",
-        "Pending writeback",
+        second_self.layer1 / "01 Notes/00 Raw/Inbox Capture.md",
+        "type: capture\ncreated: 2026-07-22\nstatus: inbox",
+        "Inbox capture",
     )
     snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
-    assert [item.title for item in snapshot.queues["captures"].items] == ["Captured thought"]
-    assert [item.title for item in snapshot.queues["imports"].items] == ["Recent import"]
-    assert "Proposed memory" in {
-        item.title for item in snapshot.queues["memories"].items
-    }
-    assert [item.title for item in snapshot.queues["conflicts"].items] == ["Open conflict"]
-    assert [item.title for item in snapshot.queues["overdue"].items] == ["Overdue commitment"]
-    assert [item.title for item in snapshot.queues["writebacks"].items] == ["Pending writeback"]
-    assert not snapshot.queues["due_soon"].items
+    item = snapshot.queues["captures"].items[0]
+    assert item.title == "Inbox capture"
+    assert item.created == date(2026, 7, 22)
+    assert item.age_days == 1
+    assert item.age_label == "1d"
 
 
-def test_due_soon_includes_open_records_within_seven_days(second_self: SecondSelfPaths) -> None:
-    _note(
-        second_self.layer1 / "03 Strategy/02 Decisions/Upcoming.md",
-        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-27\nstatus: active",
-        "Upcoming commitment",
-    )
-    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
-    assert [item.title for item in snapshot.queues["due_soon"].items] == ["Upcoming commitment"]
-    assert not snapshot.queues["overdue"].items
+def test_raw_markdown_without_frontmatter_is_still_listed(second_self: SecondSelfPaths) -> None:
+    note = second_self.raw / "No Frontmatter.md"
+    note.write_text("# Just a heading\n", encoding="utf-8")
+    snapshot = scan_dashboard(second_self)
+    item = snapshot.queues["captures"].items[0]
+    assert item.title == "Just a heading"
+    assert item.status == "pending"
+    assert item.preview_eligible is True
 
 
-def test_due_soon_boundary_is_inclusive(second_self: SecondSelfPaths) -> None:
-    _note(
-        second_self.layer1 / "03 Strategy/02 Decisions/Today.md",
-        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-23\nstatus: active",
-        "Due today",
-    )
-    _note(
-        second_self.layer1 / "03 Strategy/02 Decisions/Last Day.md",
-        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-30\nstatus: active",
-        "Due on last day",
-    )
-    _note(
-        second_self.layer1 / "03 Strategy/02 Decisions/Outside.md",
-        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-31\nstatus: active",
-        "Due outside window",
-    )
-    _note(
-        second_self.layer1 / "03 Strategy/02 Decisions/Closed.md",
-        "type: decision\ncreated: 2026-07-01\ndue: 2026-07-24\nstatus: archived",
-        "Closed commitment",
-    )
-    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
-    assert [item.title for item in snapshot.queues["due_soon"].items] == [
-        "Due today",
-        "Due on last day",
-    ]
-    assert not snapshot.queues["overdue"].items
+def test_legacy_vault_is_not_silently_classified(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    data = tmp_path / "data"
+    repo.mkdir()
+    memory = data / "01-strategy-storage/00 Memory"
+    memory.mkdir(parents=True)
+    (memory / "Who I Am.md").write_text("# Who I Am\n\nLegacy prose.", encoding="utf-8")
+    snapshot = scan_dashboard(SecondSelfPaths(repo, data), today=date(2026, 7, 23))
+    assert snapshot.legacy_excluded == 1
+    assert snapshot.queues["captures"].state == "unavailable"
+    assert not snapshot.queues["captures"].items
 
 
 def test_tag_index_normalizes_and_aggregates(second_self: SecondSelfPaths) -> None:
@@ -138,41 +131,6 @@ def test_tag_index_ignores_non_list_and_untagged(second_self: SecondSelfPaths) -
     assert snapshot.tag_index == {}
 
 
-def test_recent_import_cutoff_is_inclusive(second_self: SecondSelfPaths) -> None:
-    _note(
-        second_self.layer1 / "01 Notes/04 Imports/extracted/Boundary.md",
-        "type: import\ncreated: 2026-06-23\nstatus: proposed",
-        "Boundary",
-    )
-    _note(
-        second_self.layer1 / "01 Notes/04 Imports/extracted/Too Old.md",
-        "type: import\ncreated: 2026-06-22\nstatus: proposed",
-        "Too old",
-    )
-    _note(
-        second_self.layer1 / "01 Notes/04 Imports/extracted/Future.md",
-        "type: import\ncreated: 2026-07-24\nstatus: proposed",
-        "Future",
-    )
-    items = scan_dashboard(second_self, today=date(2026, 7, 23)).queues["imports"].items
-    assert [item.title for item in items] == ["Boundary"]
-
-
-def test_legacy_vault_is_not_silently_classified(tmp_path: Path) -> None:
-    repo = tmp_path / "repo"
-    data = tmp_path / "data"
-    repo.mkdir()
-    memory = data / "01-strategy-storage/00 Memory"
-    memory.mkdir(parents=True)
-    (memory / "Who I Am.md").write_text("# Who I Am\n\nLegacy prose.", encoding="utf-8")
-    snapshot = scan_dashboard(SecondSelfPaths(repo, data), today=date(2026, 7, 23))
-    assert snapshot.legacy_excluded == 1
-    assert snapshot.queues["captures"].state == "configured-empty"
-    assert snapshot.queues["imports"].state == "unavailable"
-    assert snapshot.queues["memories"].state == "unavailable"
-    assert all(not queue.items for queue in snapshot.queues.values())
-
-
 def test_projects_scan_only_direct_records(second_self: SecondSelfPaths) -> None:
     _note(
         second_self.projects / "active.md",
@@ -188,22 +146,8 @@ def test_projects_scan_only_direct_records(second_self: SecondSelfPaths) -> None
     assert [item.title for item in snapshot.active_projects] == ["Active project"]
 
 
-def test_imported_originals_are_not_operational_records(
-    second_self: SecondSelfPaths,
-) -> None:
-    _note(
-        second_self.layer1 / "01 Notes/04 Imports/originals/Original.md",
-        "type: import\ncreated: 2026-07-23\nstatus: proposed",
-        "Original must stay excluded",
-    )
-
-    snapshot = scan_dashboard(second_self, today=date(2026, 7, 23))
-
-    assert not snapshot.queues["imports"].items
-
-
 def test_malformed_and_oversized_notes_do_not_break_home(
-    second_self: SecondSelfPaths
+    second_self: SecondSelfPaths,
 ) -> None:
     malformed = second_self.layer1 / "01 Notes/02 Notes/Malformed.md"
     malformed.write_text("---\nnot: [valid\n---\n", encoding="utf-8")
@@ -232,5 +176,3 @@ def test_scan_bound_stops_safely(
 
     assert snapshot.scanned_files == 2
     assert snapshot.scan_errors == 1
-
-
