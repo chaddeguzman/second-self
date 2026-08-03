@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Tags · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Tags</span>
+</nav>
+<section class="page-header">
+  <p class="eyebrow">Index</p>
+  <h1>Tags</h1>
+  <p>Every tag found in structured notes, with the number of notes carrying it.</p>
+</section>
+
+{% if tags %}
+  <div class="tag-list">
+    {% for tag, items in tags %}
+      <a class="tag-chip" href="{{ tag_url(tag) }}">
+        <strong>{{ tag }}</strong>
+        <span>{{ items|length }} note{{ '' if items|length == 1 else 's' }}</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-panel large">
+    <strong>No tags found.</strong>
+    <p>Add <code>tags:</code> to note front matter to build this index.</p>
+  </div>
+{% endif %}
+{% endblock %}

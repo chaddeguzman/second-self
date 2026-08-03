@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -37,6 +36,10 @@ def _token(app, scope: str, relative_path: str) -> str:
     return app.extensions["second_self_preview_serializer"].dumps(
         {"scope": scope, "path": relative_path}
     )
+
+
+def _tag_token(app, tag: str) -> str:
+    return app.extensions["second_self_preview_serializer"].dumps({"tag": tag})
 
 
 def test_home_is_local_private_and_honest_about_unavailable_queues(tmp_path: Path):
@@ -119,6 +122,53 @@ def test_read_only_mode_has_no_write_route(tmp_path: Path):
     assert response.status_code == 403
     assert posted.status_code == 403
     assert not (paths.layer1 / "00 Memory").exists()
+
+
+def test_tag_pages_list_tags_and_notes_without_private_content(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    note = paths.layer1 / "01 Notes" / "02 Notes" / "Tagged.md"
+    note.parent.mkdir(parents=True)
+    note.write_text(
+        "\n".join(
+            [
+                "---",
+                "type: note",
+                "created: 2026-07-23",
+                "status: active",
+                "tags: [health]",
+                "---",
+                "# Tagged",
+                "private body text",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    client = app.test_client()
+
+    tags = client.get("/tags")
+    assert tags.status_code == 200
+    assert b"health" in tags.data
+    assert b"private body text" not in tags.data
+    assert str(paths.data_root).encode() not in tags.data
+
+    tag_page = client.get(f"/tags/{_tag_token(app, 'health')}")
+    assert tag_page.status_code == 200
+    assert b"Tagged" in tag_page.data
+    assert b"private body text" not in tag_page.data
+    assert str(paths.data_root).encode() not in tag_page.data
+
+
+def test_tampered_tag_tokens_fail_safely(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    client = app.test_client()
+    valid = _tag_token(app, "health")
+
+    tampered = client.get(f"/tags/{valid}changed")
+    missing = client.get(f"/tags/{_tag_token(app, 'missing')}")
+
+    assert tampered.status_code == 404
+    assert missing.status_code == 404
+    assert str(paths.data_root).encode() not in tampered.data + missing.data
 
 
 def test_preview_escapes_html_and_rewrites_only_safe_links(tmp_path: Path):
@@ -224,6 +274,8 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         "/healthz",
         "/queue/<queue_key>",
         "/static/<path:filename>",
+        "/tags",
+        "/tags/<token>",
         "/view/<token>",
     }
     assert not any(

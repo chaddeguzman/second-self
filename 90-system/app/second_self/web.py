@@ -218,9 +218,16 @@ def create_app(
             token=preview_token(item.scope, item.relative_path),
         )
 
+    def tag_token(tag: str) -> str:
+        return serializer.dumps({"tag": tag})
+
+    def tag_url(tag: str) -> str:
+        return url_for("tag_view", token=tag_token(tag))
+
     app.jinja_env.globals.update(
         csrf_token=csrf_token,
         preview_url=preview_url,
+        tag_url=tag_url,
     )
 
     @app.after_request
@@ -255,6 +262,7 @@ def create_app(
                 "memories",
                 "conflicts",
                 "overdue",
+                "due_soon",
                 "writebacks",
             ),
             read_only=read_only,
@@ -269,6 +277,39 @@ def create_app(
         return render_template(
             "queue.html",
             queue=queue,
+            read_only=read_only,
+        )
+
+    @app.get("/tags")
+    def tag_list():
+        snapshot = scan_dashboard(paths)
+        tags = sorted(
+            snapshot.tag_index.items(),
+            key=lambda pair: (-len(pair[1]), pair[0].casefold()),
+        )
+        return render_template(
+            "tags.html",
+            tags=tags,
+            read_only=read_only,
+        )
+
+    @app.get("/tags/<token>")
+    def tag_view(token: str):
+        try:
+            payload = serializer.loads(token)
+        except BadSignature:
+            abort(404)
+        if not isinstance(payload, dict):
+            abort(404)
+        tag = str(payload.get("tag", ""))
+        snapshot = scan_dashboard(paths)
+        items = snapshot.tag_index.get(tag)
+        if items is None:
+            abort(404)
+        return render_template(
+            "tag.html",
+            tag=tag,
+            items=items,
             read_only=read_only,
         )
 

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ tag }} · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><a href="{{ url_for('tag_list') }}">Tags</a><span aria-hidden="true">/</span><span>{{ tag }}</span>
+</nav>
+<section class="page-header">
+  <p class="eyebrow">Tag</p>
+  <h1>{{ tag }}</h1>
+  <p>{{ items|length }} note{{ '' if items|length == 1 else 's' }} carry this tag.</p>
+</section>
+
+{% if items %}
+  <div class="record-list">
+    {% for item in items %}
+      <article>
+        <div>
+          <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+          <p class="path">{{ item.relative_path }}</p>
+        </div>
+        <dl>
+          <div><dt>Type</dt><dd>{{ item.record_type }}</dd></div>
+          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+          <div><dt>Date</dt><dd>{{ item.due or item.created or 'Unavailable' }}</dd></div>
+        </dl>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-panel large">
+    <strong>No notes carry this tag.</strong>
+    <p>This can happen when a tag disappears from note front matter.</p>
+  </div>
+{% endif %}
+{% endblock %}
