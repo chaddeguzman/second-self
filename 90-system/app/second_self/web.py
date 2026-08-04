@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 import secrets
 import socket
@@ -28,6 +29,7 @@ from markupsafe import Markup
 from werkzeug.serving import WSGIRequestHandler, make_server
 from werkzeug.exceptions import SecurityError
 
+from .broker import approve, load_proposal, propose
 from .capture import capture_note
 from .dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
 from .due import due_items
@@ -36,6 +38,7 @@ from .journal import journal_entry
 from .paths import SecondSelfPaths
 from .recent import recent_items
 from .search import search_layer1
+from .tag_rename import build_tag_rename_proposal
 
 
 DEFAULT_PORT = 8765
@@ -308,6 +311,66 @@ def create_app(
             items=items,
             read_only=read_only,
         )
+
+    @app.post("/tags/rename")
+    def rename_tag():
+        if read_only:
+            abort(403)
+        submitted = request.form.get("csrf_token", "")
+        expected = session.get(CSRF_SESSION_KEY, "")
+        if not expected or not secrets.compare_digest(str(expected), submitted):
+            abort(400)
+        old_tag = (request.form.get("old_tag") or "").strip()
+        new_tag = (request.form.get("new_tag") or "").strip()
+        if not old_tag or not new_tag:
+            flash("Both old and new tags are required.", "error")
+            return redirect(url_for("tag_list"))
+        try:
+            specification = build_tag_rename_proposal(paths, old_tag, new_tag)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return redirect(url_for("tag_list"))
+        proposal = propose(paths, specification)
+        paths.audit.mkdir(parents=True, exist_ok=True)
+        event = {
+            "time": proposal["created"],
+            "agent": "dashboard",
+            "action": "tag-rename-propose",
+            "paths": [item["path"] for item in specification.get("changes", [])],
+            "approval": proposal["id"],
+        }
+        with (paths.audit / "agent-edits.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(event) + "\n")
+        flash(
+            f"Tag rename proposal created: {old_tag} -> {new_tag}. Review and approve it below.",
+            "success",
+        )
+        return redirect(url_for("broker_show", proposal_id=proposal["id"]), code=303)
+
+    @app.get("/broker/<proposal_id>")
+    def broker_show(proposal_id: str):
+        try:
+            proposal = load_proposal(paths, proposal_id)
+        except FileNotFoundError:
+            abort(404)
+        return render_template(
+            "broker.html",
+            proposal=proposal,
+            read_only=read_only,
+        )
+
+    @app.post("/broker/<proposal_id>/approve")
+    def broker_approve(proposal_id: str):
+        if read_only:
+            abort(403)
+        submitted = request.form.get("csrf_token", "")
+        expected = session.get(CSRF_SESSION_KEY, "")
+        if not expected or not secrets.compare_digest(str(expected), submitted):
+            abort(400)
+        confirmation = request.form.get("confirm", "Y")
+        result = approve(paths, proposal_id, confirmation, agent="dashboard")
+        flash("Tag rename applied.", "success")
+        return redirect(url_for("broker_show", proposal_id=proposal_id))
 
     @app.route("/capture", methods=["GET", "POST"])
     def capture():

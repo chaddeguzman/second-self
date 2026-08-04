@@ -49,6 +49,9 @@ button, input, textarea { font: inherit; }
 .button:hover { background: var(--accent-dark); color: #211d16; }
 .button-secondary { background: transparent; color: var(--accent-dark); border-color: var(--line); }
 .button-secondary:hover { background: var(--accent-soft); color: var(--accent-dark); }
+.trigger { border: 1px solid var(--line); border-radius: 12px; padding: .7rem 1rem; background: var(--surface); color: var(--ink); cursor: pointer; }
+.trigger:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
+.form-panel { margin-bottom: 1.5rem; }
 
 .data-notice, .notice { display: flex; gap: .7rem; align-items: center; margin: 1.25rem 0; border-radius: 14px; padding: .9rem 1rem; background: var(--amber-soft); color: #f1d69d; }
 .data-notice span { color: #d7c19a; }
@@ -151,4 +154,79 @@ dd { margin: .2rem 0 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+.modal:not([open]) {
+  display: none;
+}
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+.modal-panel {
+  width: min(480px, 100%);
+  padding: 1.6rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.modal-panel h3 { margin: 0 0 1rem; font-size: 1.35rem; }
+.modal-panel label { display: block; margin: 1rem 0 .45rem; font-weight: 750; }
+.modal-panel select, .modal-panel input, .tag-dropdown-toggle {
+  width: 100%;
+  border: 1px solid #55565d;
+  border-radius: 12px;
+  padding: .8rem .9rem;
+  background: #1f2024;
+  color: var(--ink);
+}
+.modal-panel input:focus, .tag-dropdown-toggle:focus {
+  outline: 3px solid rgba(213, 173, 91, .24);
+  border-color: var(--accent);
+}
+.tag-dropdown {
+  position: relative;
+}
+.tag-dropdown-toggle {
+  text-align: left;
+  cursor: pointer;
+}
+.tag-dropdown-toggle::after {
+  content: "▾";
+  float: right;
+  color: var(--muted);
+}
+.tag-dropdown-list {
+  list-style: none;
+  margin: .4rem 0 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #202125;
+}
+.tag-dropdown-option {
+  display: block;
+  width: 100%;
+  padding: .65rem .9rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.tag-dropdown-option:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
 }

@@ -22,6 +22,7 @@ from .projects import register_project, registration_preview
 from .recent import recent_items
 from .scaffold import scaffold
 from .search import search_layer1
+from .tag_rename import build_tag_rename_proposal
 from .validation import validate
 from .wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 
@@ -125,6 +126,14 @@ def _command_tags(args: argparse.Namespace) -> int:
         )
     ]
     _print({"tags": tags})
+    return 0
+
+
+def _command_tag_rename(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    specification = build_tag_rename_proposal(paths, args.old_tag, args.new_tag)
+    proposal = propose(paths, specification)
+    _print(proposal)
     return 0
 
 
@@ -254,6 +263,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     tags = sub.add_parser("tags")
     tags.set_defaults(func=_command_tags)
+
+    tag_rename = sub.add_parser("tag-rename")
+    tag_rename.add_argument("old_tag")
+    tag_rename.add_argument("new_tag")
+    tag_rename.set_defaults(func=_command_tag_rename)
 
     stats = sub.add_parser("stats")
     stats.set_defaults(func=_command_stats)

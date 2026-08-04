@@ -279,6 +279,8 @@ def test_request_limit_and_route_surface(tmp_path: Path):
     assert response.status_code == 413
     assert paths == {
         "/",
+        "/broker/<proposal_id>",
+        "/broker/<proposal_id>/approve",
         "/capture",
         "/due",
         "/healthz",
@@ -289,6 +291,7 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         "/static/<path:filename>",
         "/tags",
         "/tags/<token>",
+        "/tags/rename",
         "/view/<token>",
     }
     assert not any(

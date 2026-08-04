@@ -37,6 +37,31 @@
   </header>
 
   <main id="main-content" class="shell main-content">
+    {% if not read_only %}
+    {% set tag_rename_tags = tags | default([]) %}
+    <dialog id="rename-tag-modal" class="modal" aria-modal="true" aria-labelledby="rename-tag-modal-title">
+      <form class="modal-panel" method="post" action="{{ url_for('rename_tag') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <h3 id="rename-tag-modal-title">Rename tag</h3>
+        <label>Old tag
+          <div class="tag-dropdown" data-tag-dropdown>
+            <input type="hidden" name="old_tag" required />
+            <button type="button" class="tag-dropdown-toggle" data-tag-dropdown-toggle>Select a tag</button>
+            <ul class="tag-dropdown-list" hidden>
+              {% for tag, _ in tag_rename_tags %}
+                <li><button type="button" class="tag-dropdown-option" data-tag-value="{{ tag }}">{{ tag }}</button></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </label>
+        <label>New tag<input type="text" name="new_tag" required /></label>
+        <div class="form-actions">
+          <button type="submit" class="button">Create rename proposal</button>
+          <button type="button" class="button button-secondary" data-close="rename-tag-modal">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+    {% endif %}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="notice notice-{{ category }}" role="status">{{ message }}</div>
