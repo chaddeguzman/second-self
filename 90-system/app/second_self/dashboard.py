@@ -55,6 +55,7 @@ class DashboardSnapshot:
     scan_errors: int
     scanned_files: int
     wiki: dict[str, Any]
+    legacy: tuple[dict[str, str], ...] = ()
     layer1: tuple[DashboardItem, ...] = ()
     projects: tuple[DashboardItem, ...] = ()
 
@@ -63,6 +64,7 @@ class DashboardSnapshot:
 class _ScanResult:
     layer1: list[DashboardItem]
     projects: list[DashboardItem]
+    legacy: list[dict[str, str]]
     legacy_excluded: int = 0
     errors: int = 0
     scanned: int = 0
@@ -117,16 +119,19 @@ def _inside(path: Path, root: Path) -> bool:
     return True
 
 
-def _item(path: Path, root: Path, scope: Literal["layer1", "projects"]) -> tuple[DashboardItem | None, bool, bool]:
+def _item(path: Path, root: Path, scope: Literal["layer1", "projects"], legacy: list[dict[str, str]]) -> tuple[DashboardItem | None, bool, bool]:
     if not _inside(path, root):
         return None, False, True
     try:
         if path.stat().st_size > MAX_NOTE_BYTES:
-            return None, False, True
+            legacy.append({"path": path.relative_to(root).as_posix(), "scope": scope, "reason": "oversized"})
+            return None, True, True
         metadata, body = read_note(path)
-    except (OSError, UnicodeError, ValueError):
-        return None, False, True
+    except (OSError, UnicodeError, ValueError) as exc:
+        legacy.append({"path": path.relative_to(root).as_posix(), "scope": scope, "reason": f"read error: {type(exc).__name__}"})
+        return None, True, True
     if not metadata:
+        legacy.append({"path": path.relative_to(root).as_posix(), "scope": scope, "reason": "empty metadata"})
         return None, True, False
     record_type = str(metadata.get("type", ""))
     status = str(metadata.get("status", ""))
@@ -247,13 +252,15 @@ def _scan_layer1(paths: SecondSelfPaths, result: _ScanResult) -> None:
                     continue
                 if Path(name).stem.casefold().endswith(" index"):
                     continue
+                if relative.parts and relative.parts[0].casefold() == "00 memory":
+                    continue
                 if result.scanned >= MAX_SCAN_FILES:
                     result.errors += 1
                     return
                 path = current / name
                 result.scanned += 1
-                item, legacy, error = _item(path, root, "layer1")
-                result.legacy_excluded += int(legacy)
+                item, is_legacy, error = _item(path, root, "layer1", result.legacy)
+                result.legacy_excluded += int(is_legacy)
                 result.errors += int(error)
                 if item is not None:
                     result.layer1.append(item)
@@ -278,8 +285,8 @@ def _scan_projects(paths: SecondSelfPaths, result: _ScanResult) -> None:
             result.errors += 1
             return
         result.scanned += 1
-        item, legacy, error = _item(path, root, "projects")
-        result.legacy_excluded += int(legacy)
+        item, is_legacy, error = _item(path, root, "projects", result.legacy)
+        result.legacy_excluded += int(is_legacy)
         result.errors += int(error)
         if item is not None:
             result.projects.append(item)
@@ -339,7 +346,7 @@ def _queue(
 
 def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> DashboardSnapshot:
     today = today or date.today()
-    result = _ScanResult([], [])
+    result = _ScanResult([], [], [])
     _scan_layer1(paths, result)
     _scan_projects(paths, result)
     layer1 = result.layer1
@@ -398,9 +405,15 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         active_projects=active_projects,
         tag_index=tag_index,
         legacy_excluded=result.legacy_excluded,
+        legacy=tuple(result.legacy),
         scan_errors=result.errors + int(root_error) + raw_scan_errors,
         scanned_files=result.scanned,
         wiki=wiki_status(paths),
         layer1=tuple(layer1),
         projects=tuple(result.projects),
     )
+
+
+def legacy_items(paths: SecondSelfPaths, today: date | None = None) -> tuple[dict[str, str], ...]:
+    snapshot = scan_dashboard(paths, today)
+    return tuple(snapshot.legacy)

@@ -12,7 +12,7 @@ from .broker import (
     recover_wiki_transactions,
 )
 from .capture import capture_note
-from .dashboard import scan_dashboard
+from .dashboard import legacy_items, scan_dashboard
 from .due import due_items
 from .indexes import generate_indexes
 from .ingest import ingest
@@ -157,6 +157,21 @@ def _command_stats(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_legacy(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    legacy = legacy_items(paths)
+    scope = args.scope
+    if scope != "all":
+        legacy = tuple(item for item in legacy if item["scope"] == scope)
+    if args.json:
+        _print(legacy)
+    else:
+        for item in legacy:
+            print(f"{item['scope']}: {item['path']} -- {item['reason']}")
+        print(f"\nTotal legacy files: {len(legacy)}")
+    return 0
+
+
 def _command_intake(args: argparse.Namespace) -> int:
     _print(ingest(load_paths(True), args.source))
     return 0
@@ -242,6 +257,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     stats = sub.add_parser("stats")
     stats.set_defaults(func=_command_stats)
+
+    legacy = sub.add_parser("legacy")
+    legacy.add_argument("--scope", choices=["layer1", "projects", "all"], default="all")
+    legacy.add_argument("--json", action="store_true")
+    legacy.set_defaults(func=_command_legacy)
 
     project = sub.add_parser("register-project")
     project.add_argument("path", type=Path)

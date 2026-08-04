@@ -85,9 +85,9 @@ def test_legacy_vault_is_not_silently_classified(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     data = tmp_path / "data"
     repo.mkdir()
-    memory = data / "01-strategy-storage/00 Memory"
-    memory.mkdir(parents=True)
-    (memory / "Who I Am.md").write_text("# Who I Am\n\nLegacy prose.", encoding="utf-8")
+    notes = data / "01-strategy-storage/01 Notes/02 Notes"
+    notes.mkdir(parents=True)
+    (notes / "Who I Am.md").write_text("# Who I Am\n\nLegacy prose.", encoding="utf-8")
     snapshot = scan_dashboard(SecondSelfPaths(repo, data), today=date(2026, 7, 23))
     assert snapshot.legacy_excluded == 1
     assert snapshot.queues["captures"].state == "unavailable"
