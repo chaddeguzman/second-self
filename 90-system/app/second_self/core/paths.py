@@ -6,7 +6,23 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+def _find_repo_root(start: Path) -> Path:
+    """Walk up from a module file until the repository root marker is found.
+
+    The package previously lived at ``second_self/paths.py``; it now lives at
+    ``second_self/core/paths.py``. A fixed ``parents`` offset is brittle, so
+    locate the root via a stable marker file instead.
+    """
+    for parent in (start.resolve() if start.is_absolute() else start.resolve()).parents:
+        if (parent / "Start-Second-Self.cmd").is_file():
+            return parent
+    raise FileNotFoundError(
+        "Could not locate Second Self repository root "
+        "(expected a Start-Second-Self.cmd marker)."
+    )
+
+
+REPO_ROOT = _find_repo_root(Path(__file__))
 CONFIG_PATH = REPO_ROOT / ".second-self.local.json"
 
 
