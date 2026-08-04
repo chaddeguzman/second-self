@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Due · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Due</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Commitments</p>
+  <h1>Notes with due dates.</h1>
+  <p>Items are sorted by urgency. Overdue items are past their due date; upcoming items are still open.</p>
+</section>
+
+{% if overdue and overdue|length > 0 %}
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Overdue</p>
+    <h2>{{ overdue|length }} item{{ '' if overdue|length == 1 else 's' }} past due</h2>
+  </div>
+</section>
+<ul class="record-list">
+  {% for item in overdue %}
+    <li>
+      <article>
+        <div>
+          <h2>{{ item.title }}</h2>
+          <p class="path">{{ item.path }}</p>
+        </div>
+        <dl>
+          <div><dt>Due</dt><dd>{{ item.due }} ({{ item.days_until_due|abs }} day{{ '' if item.days_until_due|abs == 1 else 's' }} overdue)</dd></div>
+          <div><dt>Type</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+        </dl>
+      </article>
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if upcoming and upcoming|length > 0 %}
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Upcoming</p>
+    <h2>{{ upcoming|length }} item{{ '' if upcoming|length == 1 else 's' }} pending</h2>
+  </div>
+</section>
+<ul class="record-list">
+  {% for item in upcoming %}
+    <li>
+      <article>
+        <div>
+          <h2>{{ item.title }}</h2>
+          <p class="path">{{ item.path }}</p>
+        </div>
+        <dl>
+          <div><dt>Due</dt><dd>{{ item.due }} ({{ item.days_until_due }} day{{ '' if item.days_until_due == 1 else 's' }})</dd></div>
+          <div><dt>Type</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+        </dl>
+      </article>
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if not overdue and not upcoming %}
+<div class="empty-panel large">
+  <strong>No due dates found.</strong>
+  <p>Add a "due" field to your note frontmatter to have it appear here.</p>
+</div>
+{% endif %}
+{% endblock %}
