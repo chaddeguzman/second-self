@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Proposal {{ proposal.id }} · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Broker proposal</span>
+</nav>
+<section class="page-header">
+  <p class="eyebrow">Broker proposal</p>
+  <h1>{{ proposal.id }}</h1>
+  <p>Status: {{ proposal.status }}</p>
+</section>
+
+<section class="preview-panel">
+  <h2>Exact preview</h2>
+  <pre>{{ proposal.exact_preview }}</pre>
+</section>
+
+{% if proposal.status in ('approval-pending', 'intent-pending', 'exact-pending') %}
+<section class="form-panel">
+  <h2>Approve proposal</h2>
+  <form method="post" action="{{ url_for('broker_approve', proposal_id=proposal.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <button type="submit" name="confirm" value="Y">Approve</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

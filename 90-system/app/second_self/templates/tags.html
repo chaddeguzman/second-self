@@ -10,6 +10,12 @@
   <p>Every tag found in structured notes, with the number of notes carrying it.</p>
 </section>
 
+{% if not read_only %}
+<section class="form-panel">
+  <button type="button" class="trigger" data-open="rename-tag-modal">Rename tag</button>
+</section>
+{% endif %}
+
 {% if tags %}
   <div class="tag-list">
     {% for tag, items in tags %}
