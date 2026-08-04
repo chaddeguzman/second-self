@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Recent · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Recent</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Recently created</p>
+  <h1>Notes created in the last {{ days }} day{{ '' if days == 1 else 's' }}.</h1>
+  <p>Sorted newest first.</p>
+</section>
+
+<form class="capture-form" method="get" action="{{ url_for('recent') }}">
+  <label for="days">Window (days)</label>
+  <input id="days" name="days" type="number" min="1" max="365" value="{{ days }}" autocomplete="off">
+  <div class="form-actions">
+    <button class="button" type="submit">Update</button>
+    <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>
+  </div>
+</form>
+
+{% if results and results|length > 0 %}
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Results</p>
+    <h2>{{ results|length }} item{{ '' if results|length == 1 else 's' }}</h2>
+  </div>
+</section>
+<ul class="record-list">
+  {% for item in results %}
+    <li>
+      <article>
+        <div>
+          <h2>{{ item.title }}</h2>
+          <p class="path">{{ item.path }}</p>
+        </div>
+        <dl>
+          <div><dt>Created</dt><dd>{{ item.created }} ({{ item.age_days }} day{{ '' if item.age_days == 1 else 's' }} ago)</dd></div>
+          <div><dt>Type</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
+        </dl>
+      </article>
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty-panel large">
+  <strong>No recent items found.</strong>
+  <p>No notes were created in the last {{ days }} day{{ '' if days == 1 else 's' }}.</p>
+</div>
+{% endif %}
+{% endblock %}

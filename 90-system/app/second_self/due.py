@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 from .dashboard import scan_dashboard
 from .paths import SecondSelfPaths
@@ -11,10 +12,10 @@ def due_items(
     *,
     overdue_only: bool = False,
     today: date | None = None,
-) -> list[dict[str, object]]:
+) -> list[dict[str, Any]]:
     today = today or date.today()
     snapshot = scan_dashboard(paths, today)
-    results: list[dict[str, object]] = []
+    results: list[dict[str, Any]] = []
     for item in [*snapshot.layer1, *snapshot.projects]:
         if item.due is None:
             continue

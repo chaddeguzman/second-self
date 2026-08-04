@@ -30,9 +30,11 @@ from werkzeug.exceptions import SecurityError
 
 from .capture import capture_note
 from .dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
+from .due import due_items
 from .frontmatter import read_note
 from .journal import journal_entry
 from .paths import SecondSelfPaths
+from .recent import recent_items
 from .search import search_layer1
 
 
@@ -355,6 +357,29 @@ def create_app(
         return render_template(
             "search.html",
             query=query,
+            results=results,
+            read_only=read_only,
+        )
+
+    @app.get("/due")
+    def due():
+        results = due_items(paths)
+        overdue = [r for r in results if int(r["days_until_due"]) < 0]
+        upcoming = [r for r in results if int(r["days_until_due"]) >= 0]
+        return render_template(
+            "due.html",
+            overdue=overdue,
+            upcoming=upcoming,
+            read_only=read_only,
+        )
+
+    @app.get("/recent")
+    def recent():
+        days = request.args.get("days", default=7, type=int)
+        results = recent_items(paths, days=days)
+        return render_template(
+            "recent.html",
+            days=days,
             results=results,
             read_only=read_only,
         )

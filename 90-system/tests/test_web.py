@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -40,6 +41,14 @@ def _token(app, scope: str, relative_path: str) -> str:
 
 def _tag_token(app, tag: str) -> str:
     return app.extensions["second_self_preview_serializer"].dumps({"tag": tag})
+
+
+def _note(path: Path, metadata: str, title: str = "Example") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\n{metadata.strip()}\n---\n\n# {title}\n",
+        encoding="utf-8",
+    )
 
 
 def test_home_is_local_private_and_honest_about_unavailable_queues(tmp_path: Path):
@@ -271,9 +280,11 @@ def test_request_limit_and_route_surface(tmp_path: Path):
     assert paths == {
         "/",
         "/capture",
+        "/due",
         "/healthz",
         "/journal",
         "/queue/<queue_key>",
+        "/recent",
         "/search",
         "/static/<path:filename>",
         "/tags",
@@ -372,6 +383,79 @@ def test_journal_read_only_mode_returns_403(tmp_path: Path):
     assert response.status_code == 403
     assert posted.status_code == 403
     assert not list((paths.layer1 / "02 Journal").glob("*.md"))
+
+
+def test_due_page_lists_overdue_and_upcoming_without_private_root(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    layer1 = paths.layer1
+    today = date.today()
+    _note(
+        layer1 / "03 Strategy/02 Decisions/Overdue.md",
+        f"type: decision\ncreated: {(today - timedelta(days=30)).isoformat()}\nstatus: active\ndue: {(today - timedelta(days=3)).isoformat()}",
+        "Overdue task",
+    )
+    _note(
+        layer1 / "03 Strategy/02 Decisions/Upcoming.md",
+        f"type: decision\ncreated: {(today - timedelta(days=30)).isoformat()}\nstatus: active\ndue: {(today + timedelta(days=6)).isoformat()}",
+        "Upcoming task",
+    )
+
+    response = app.test_client().get("/due")
+
+    assert response.status_code == 200
+    assert b"Overdue task" in response.data
+    assert b"Upcoming task" in response.data
+    assert b"Overdue" in response.data
+    assert b"Upcoming" in response.data
+    assert str(paths.data_root).encode() not in response.data
+
+
+def test_due_page_empty_state_when_no_due_dates(tmp_path: Path):
+    app, _ = _app(tmp_path)
+    response = app.test_client().get("/due")
+    assert response.status_code == 200
+    assert b"No due dates found" in response.data
+
+
+def test_recent_page_lists_recent_items_without_private_root(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    layer1 = paths.layer1
+    today = date.today()
+    _note(
+        layer1 / "01 Notes/02 Notes/Recent.md",
+        f"type: note\ncreated: {(today - timedelta(days=1)).isoformat()}\nstatus: active",
+        "Recent note",
+    )
+
+    response = app.test_client().get("/recent?days=7")
+
+    assert response.status_code == 200
+    assert b"Recent note" in response.data
+    assert str(paths.data_root).encode() not in response.data
+
+
+def test_recent_page_respects_days_parameter(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    layer1 = paths.layer1
+    today = date.today()
+    _note(
+        layer1 / "01 Notes/02 Notes/Recent.md",
+        f"type: note\ncreated: {(today - timedelta(days=1)).isoformat()}\nstatus: active",
+        "Recent note",
+    )
+    _note(
+        layer1 / "01 Notes/02 Notes/Old.md",
+        f"type: note\ncreated: {(today - timedelta(days=10)).isoformat()}\nstatus: active",
+        "Old note",
+    )
+
+    short = app.test_client().get("/recent?days=7")
+    long_window = app.test_client().get("/recent?days=30")
+
+    assert b"Recent note" in short.data
+    assert b"Old note" not in short.data
+    assert b"Recent note" in long_window.data
+    assert b"Old note" in long_window.data
 
 
 def test_port_selection_uses_requested_port_or_first_available(monkeypatch):

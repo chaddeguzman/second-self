@@ -27,6 +27,8 @@
       <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" href="{{ url_for('journal') }}">Journal</a>
       <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" href="{{ url_for('tag_list') }}">Tags</a>
       <a class="{{ 'active' if request.endpoint == 'search' else '' }}" href="{{ url_for('search') }}">Search</a>
+      <a class="{{ 'active' if request.endpoint == 'due' else '' }}" href="{{ url_for('due') }}">Due</a>
+      <a class="{{ 'active' if request.endpoint == 'recent' else '' }}" href="{{ url_for('recent') }}">Recent</a>
       <span aria-disabled="true" title="Coming next">Reviews <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Conflicts <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Projects <small>Coming next</small></span>
