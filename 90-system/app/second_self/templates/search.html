@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Search · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Search</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Private search</p>
+  <h1>Search across Layer 1.</h1>
+  <p>Case-insensitive full-text search across Memory, Notes, Journal, Strategy, References, and Reviews.</p>
+</section>
+
+<form class="capture-form" method="get" action="{{ url_for('search') }}">
+  <label for="query">Search query</label>
+  <input id="query" name="q" maxlength="200" value="{{ query or '' }}" autocomplete="off" placeholder="Enter a word or phrase">
+  <div class="field-help">Searches all Layer 1 files. Binary and oversized files are skipped.</div>
+  <div class="form-actions">
+    <button class="button" type="submit">Search</button>
+    <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>
+  </div>
+</form>
+
+{% if query %}
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Results</p>
+    <h2>{{ results|length }} match{{ '' if results|length == 1 else 'es' }} for "{{ query }}"</h2>
+  </div>
+</section>
+
+{% if results %}
+  <ul class="record-list">
+    {% for result in results %}
+      <li>
+        <article>
+          <div>
+            <h2><a href="{{ url_for('search') }}#">{{ result.path }}</a></h2>
+            <p class="path">{{ result.snippet }}</p>
+          </div>
+        </article>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="empty-panel large">
+    <strong>No matches found.</strong>
+    <p>Try a different word or phrase.</p>
+  </div>
+{% endif %}
+{% endif %}
+{% endblock %}

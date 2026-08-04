@@ -24,8 +24,9 @@
     <nav class="shell navigation" aria-label="Primary navigation">
       <a class="{{ 'active' if request.endpoint == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
       <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
+      <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" href="{{ url_for('journal') }}">Journal</a>
       <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" href="{{ url_for('tag_list') }}">Tags</a>
-      <span aria-disabled="true" title="Coming next">Search <small>Coming next</small></span>
+      <a class="{{ 'active' if request.endpoint == 'search' else '' }}" href="{{ url_for('search') }}">Search</a>
       <span aria-disabled="true" title="Coming next">Reviews <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Conflicts <small>Coming next</small></span>
       <span aria-disabled="true" title="Coming next">Projects <small>Coming next</small></span>
@@ -43,7 +44,7 @@
   </main>
 
   <footer class="shell site-footer">
-    <p>Markdown remains the source of truth. Capture is the only write action available in this release.</p>
+    <p>Markdown remains the source of truth. Capture and journal are the write actions available in this release.</p>
     {% if read_only %}<p><strong>Read-only mode is active.</strong></p>{% endif %}
   </footer>
 </body>
