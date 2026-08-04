@@ -3,24 +3,24 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from ..core.paths import SecondSelfPaths
 from .dashboard import scan_dashboard
-from .paths import SecondSelfPaths
 
 
-def due_items(
+def recent_items(
     paths: SecondSelfPaths,
     *,
-    overdue_only: bool = False,
+    days: int = 7,
     today: date | None = None,
 ) -> list[dict[str, Any]]:
     today = today or date.today()
     snapshot = scan_dashboard(paths, today)
     results: list[dict[str, Any]] = []
     for item in [*snapshot.layer1, *snapshot.projects]:
-        if item.due is None:
+        if item.created is None:
             continue
-        days_until_due = (item.due - today).days
-        if overdue_only and days_until_due >= 0:
+        age_days = (today - item.created).days
+        if age_days < 0 or age_days > days:
             continue
         results.append(
             {
@@ -28,9 +28,12 @@ def due_items(
                 "title": item.title,
                 "type": item.record_type,
                 "status": item.status,
-                "due": item.due.isoformat(),
-                "days_until_due": days_until_due,
+                "created": item.created.isoformat(),
+                "age_days": age_days,
             }
         )
-    results.sort(key=lambda entry: (entry["due"], str(entry["title"]).casefold()))
+    results.sort(
+        key=lambda entry: (entry["created"], str(entry["title"]).casefold()),
+        reverse=True,
+    )
     return results

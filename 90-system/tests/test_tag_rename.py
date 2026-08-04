@@ -5,10 +5,10 @@ from pathlib import Path
 import pytest
 
 from second_self.cli import main
-from second_self.dashboard import scan_dashboard
-from second_self.frontmatter import split_frontmatter
-from second_self.paths import SecondSelfPaths
-from second_self.tag_rename import _replace_tag_in_frontmatter, build_tag_rename_proposal
+from second_self.reads.dashboard import scan_dashboard
+from second_self.core.frontmatter import split_frontmatter
+from second_self.core.paths import SecondSelfPaths
+from second_self.writes.tag_rename import _replace_tag_in_frontmatter, build_tag_rename_proposal
 from second_self.web import create_app
 
 

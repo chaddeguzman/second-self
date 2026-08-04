@@ -4,8 +4,8 @@ from docx import Document
 from openpyxl import Workbook
 from pypdf import PdfWriter
 
-from second_self.ingest import ingest
-from second_self.paths import SecondSelfPaths
+from second_self.ingest.ingest import ingest
+from second_self.core.paths import SecondSelfPaths
 
 
 def test_txt_ingest_is_provenance_safe(second_self: SecondSelfPaths, tmp_path: Path) -> None:

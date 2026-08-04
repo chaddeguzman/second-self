@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .frontmatter import read_note, split_frontmatter, validate_metadata
-from .paths import SecondSelfPaths, resolve_private_path
-from .scaffold import scaffold_wiki
+from ..core.frontmatter import read_note, split_frontmatter, validate_metadata
+from ..core.paths import SecondSelfPaths, resolve_private_path
+from ..core.scaffold import scaffold_wiki
 
 
 SUPPORTED = {

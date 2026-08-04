@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from second_self.capture import capture_note
+from second_self.writes.capture import capture_note
 from second_self.cli import main
-from second_self.frontmatter import read_note
-from second_self.paths import SecondSelfPaths
+from second_self.core.frontmatter import read_note
+from second_self.core.paths import SecondSelfPaths
 
 
 def test_capture_is_structured_and_preserves_body(second_self: SecondSelfPaths) -> None:
@@ -62,7 +62,7 @@ def test_concurrent_captures_never_overwrite(second_self: SecondSelfPaths) -> No
 def test_failed_link_leaves_no_partial_capture(
     second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import second_self.capture as capture_module
+    import second_self.writes.capture as capture_module
 
     def fail_link(source: Path, destination: Path) -> None:
         raise OSError("simulated link failure")
@@ -78,7 +78,7 @@ def test_failed_link_leaves_no_partial_capture(
 def test_failed_verification_removes_final_capture(
     second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import second_self.capture as capture_module
+    import second_self.writes.capture as capture_module
 
     monkeypatch.setattr(
         capture_module,

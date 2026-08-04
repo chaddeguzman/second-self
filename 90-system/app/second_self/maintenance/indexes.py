@@ -4,8 +4,8 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from .frontmatter import read_note
-from .paths import SecondSelfPaths
+from ..core.frontmatter import read_note
+from ..core.paths import SecondSelfPaths
 
 
 BEGIN = "<!-- BEGIN GENERATED -->"

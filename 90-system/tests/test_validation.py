@@ -3,8 +3,8 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from second_self.paths import SecondSelfPaths
-from second_self.validation import validate
+from second_self.core.paths import SecondSelfPaths
+from second_self.maintenance.validation import validate
 
 
 def test_layer1_readme_is_public_but_personal_notes_are_rejected(

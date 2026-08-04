@@ -4,9 +4,9 @@ import re
 import subprocess
 from pathlib import Path
 
-from .frontmatter import read_note, validate_metadata
-from .paths import SecondSelfPaths
-from .scaffold import DIRECTORIES
+from ..core.frontmatter import read_note, validate_metadata
+from ..core.paths import SecondSelfPaths
+from ..core.scaffold import DIRECTORIES
 
 
 SECRET_PATTERNS = {

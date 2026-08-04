@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from second_self.dashboard import legacy_items, scan_dashboard
-from second_self.paths import SecondSelfPaths
+from second_self.reads.dashboard import legacy_items, scan_dashboard
+from second_self.core.paths import SecondSelfPaths
 
 
 def _note(path: Path, metadata: str, title: str = "Example") -> None:

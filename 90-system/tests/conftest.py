@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from second_self.paths import SecondSelfPaths
-from second_self.scaffold import scaffold
+from second_self.core.paths import SecondSelfPaths
+from second_self.core.scaffold import scaffold
 
 
 @pytest.fixture

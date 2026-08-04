@@ -29,16 +29,16 @@ from markupsafe import Markup
 from werkzeug.serving import WSGIRequestHandler, make_server
 from werkzeug.exceptions import SecurityError
 
-from .broker import approve, load_proposal, propose
-from .capture import capture_note
-from .dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
-from .due import due_items
-from .frontmatter import read_note
-from .journal import journal_entry
-from .paths import SecondSelfPaths
-from .recent import recent_items
-from .search import search_layer1
-from .tag_rename import build_tag_rename_proposal
+from .broker.broker import approve, load_proposal, propose
+from .core.paths import SecondSelfPaths
+from .reads.dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
+from .reads.due import due_items
+from .reads.recent import recent_items
+from .reads.search import search_layer1
+from .writes.capture import capture_note
+from .writes.journal import journal_entry
+from .writes.tag_rename import build_tag_rename_proposal
+from .core.frontmatter import read_note
 
 
 DEFAULT_PORT = 8765

@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .paths import SecondSelfPaths, resolve_private_path
+from ..core.paths import SecondSelfPaths, resolve_private_path
 
 
 ALLOWED_OPERATIONS = {
@@ -315,7 +315,7 @@ def _apply_wiki_process(
     specification: dict[str, Any],
     proposal_id: str,
 ) -> list[str]:
-    from .wiki import validate_wiki_change_set
+    from ..wiki.wiki import validate_wiki_change_set
 
     changes = specification.get("changes", [])
     moves = specification.get("moves", [])
@@ -429,7 +429,7 @@ def _apply_wiki_process(
                 target.parent.name == "sources"
                 and target.exists()
             ):
-                from .frontmatter import read_note
+                from ..core.frontmatter import read_note
                 try:
                     metadata, _ = read_note(target)
                 except (OSError, UnicodeError, ValueError):
