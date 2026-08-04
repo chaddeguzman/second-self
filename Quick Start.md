@@ -148,6 +148,11 @@ For read-only mode or a custom port:
 .\90-system\automation\scripts\second-self.ps1 ingest "C:\path\document.pdf"
 .\90-system\automation\scripts\second-self.ps1 indexes
 
+# Inspect legacy/unstructured files
+.\90-system\automation\scripts\second-self.ps1 legacy
+.\90-system\automation\scripts\second-self.ps1 legacy --scope layer1
+.\90-system\automation\scripts\second-self.ps1 legacy --json
+
 # Maintain the private LLM Wiki
 .\90-system\automation\scripts\second-self.ps1 wiki init
 .\90-system\automation\scripts\second-self.ps1 wiki add "C:\path\source.pdf"
