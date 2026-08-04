@@ -5,26 +5,26 @@ import json
 import sys
 from pathlib import Path
 
-from .broker import (
+from .broker.broker import (
     approve,
     load_proposal,
     propose,
     recover_wiki_transactions,
 )
-from .capture import capture_note
-from .dashboard import legacy_items, scan_dashboard
-from .due import due_items
-from .indexes import generate_indexes
-from .ingest import ingest
-from .journal import journal_entry
-from .paths import CONFIG_PATH, load_paths, write_config
-from .projects import register_project, registration_preview
-from .recent import recent_items
-from .scaffold import scaffold
-from .search import search_layer1
-from .tag_rename import build_tag_rename_proposal
-from .validation import validate
-from .wiki import add_source, initialize_wiki, lint_wiki, wiki_status
+from .core.paths import CONFIG_PATH, load_paths, write_config
+from .core.scaffold import scaffold
+from .ingest.ingest import ingest
+from .maintenance.indexes import generate_indexes
+from .maintenance.validation import validate
+from .projects.projects import register_project, registration_preview
+from .reads.dashboard import legacy_items, scan_dashboard
+from .reads.due import due_items
+from .reads.recent import recent_items
+from .reads.search import search_layer1
+from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
+from .writes.capture import capture_note
+from .writes.journal import journal_entry
+from .writes.tag_rename import build_tag_rename_proposal
 
 
 def _print(value: object) -> None:

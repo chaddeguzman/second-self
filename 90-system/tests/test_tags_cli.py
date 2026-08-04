@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from second_self.cli import main
-from second_self.paths import SecondSelfPaths
+from second_self.core.paths import SecondSelfPaths
 
 
 def test_tags_command_lists_tags_with_counts(

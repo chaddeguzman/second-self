@@ -3,9 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from second_self.paths import SecondSelfPaths
-from second_self.projects import LOCAL_PATHS, register_project
-from second_self.validation import validate
+from second_self.core.paths import SecondSelfPaths
+from second_self.projects.projects import LOCAL_PATHS, register_project
+from second_self.maintenance.validation import validate
 
 
 def test_project_registration_is_local_and_ignored(

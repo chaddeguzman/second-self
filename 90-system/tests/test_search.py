@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from second_self.cli import main
-from second_self.paths import SecondSelfPaths
-from second_self.search import search_layer1
+from second_self.core.paths import SecondSelfPaths
+from second_self.reads.search import search_layer1
 
 
 def _note(path: Path, text: str) -> None:

@@ -6,7 +6,7 @@ import subprocess
 from datetime import date
 from pathlib import Path
 
-from .paths import SecondSelfPaths
+from ..core.paths import SecondSelfPaths
 
 
 LOCAL_PATHS = [

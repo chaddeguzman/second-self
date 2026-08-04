@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from second_self.paths import SecondSelfPaths
-from second_self.dashboard import MAX_NOTE_BYTES
+from second_self.core.paths import SecondSelfPaths
+from second_self.reads.dashboard import MAX_NOTE_BYTES
 from second_self.web import (
     _select_port,
     create_app,

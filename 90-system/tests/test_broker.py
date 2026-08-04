@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from second_self.broker import approve, propose
+from second_self.broker.broker import approve, propose
 from second_self.cli import main
-from second_self.paths import SecondSelfPaths
+from second_self.core.paths import SecondSelfPaths
 
 
 @pytest.mark.parametrize("confirmation", ["Y", "y", "Yes", "YES", " yes "])

@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from .frontmatter import read_note, validate_metadata
-from .paths import SecondSelfPaths
+from ..core.frontmatter import read_note, validate_metadata
+from ..core.paths import SecondSelfPaths
 
 
 MAX_TITLE_LENGTH = 120

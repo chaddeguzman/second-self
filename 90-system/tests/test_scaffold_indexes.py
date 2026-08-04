@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from second_self.indexes import generate_indexes
-from second_self.paths import SecondSelfPaths
-from second_self.scaffold import scaffold
-from second_self.validation import validate
+from second_self.maintenance.indexes import generate_indexes
+from second_self.core.paths import SecondSelfPaths
+from second_self.core.scaffold import scaffold
+from second_self.maintenance.validation import validate
 
 
 def test_scaffold_is_idempotent(second_self: SecondSelfPaths) -> None:

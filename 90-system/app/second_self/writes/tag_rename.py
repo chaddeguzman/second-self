@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .frontmatter import split_frontmatter
-from .paths import SecondSelfPaths
+from ..core.frontmatter import split_frontmatter
+from ..core.paths import SecondSelfPaths
 
 
 MAX_WARN_NOTES = 100

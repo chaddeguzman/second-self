@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from second_self.dashboard import scan_dashboard
-from second_self.paths import SecondSelfPaths
+from second_self.reads.dashboard import scan_dashboard
+from second_self.core.paths import SecondSelfPaths
 
 
 def _note(path: Path, metadata: str, title: str = "Example") -> None:
@@ -161,7 +161,7 @@ def test_malformed_and_oversized_notes_do_not_break_home(
 def test_scan_bound_stops_safely(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import second_self.dashboard as dashboard_module
+    import second_self.reads.dashboard as dashboard_module
 
     paths = SecondSelfPaths(tmp_path / "repo", tmp_path / "data")
     for index in range(3):

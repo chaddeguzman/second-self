@@ -7,9 +7,9 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Literal, cast
 
-from .frontmatter import read_note
-from .paths import SecondSelfPaths
-from .wiki import wiki_status
+from ..core.frontmatter import read_note
+from ..core.paths import SecondSelfPaths
+from ..wiki.wiki import wiki_status
 
 
 MAX_SCAN_FILES = 10_000

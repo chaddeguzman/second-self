@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from .paths import SecondSelfPaths
+from ..core.paths import SecondSelfPaths
 
 
 MAX_FILE_BYTES = 2 * 1024 * 1024

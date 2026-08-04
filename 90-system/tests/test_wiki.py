@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from second_self.broker import (
+from second_self.broker.broker import (
     approve,
     propose,
     recover_wiki_transactions,
 )
 from second_self.cli import main
-from second_self.paths import SecondSelfPaths
-from second_self.wiki import (
+from second_self.core.paths import SecondSelfPaths
+from second_self.wiki.wiki import (
     add_source,
     lint_wiki,
     references_destination,
@@ -151,7 +151,7 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
 def test_wiki_process_rolls_back_page_when_move_fails(
     second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import second_self.broker as broker_module
+    import second_self.broker.broker as broker_module
 
     source = second_self.raw / "rollback.txt"
     source.write_text("safe", encoding="utf-8")

@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 import pytest
 
 from second_self.cli import main
-from second_self.frontmatter import read_note
-from second_self.journal import journal_entry
-from second_self.paths import SecondSelfPaths
+from second_self.core.frontmatter import read_note
+from second_self.writes.journal import journal_entry
+from second_self.core.paths import SecondSelfPaths
 
 
 def test_journal_creates_new_daily_note(second_self: SecondSelfPaths) -> None:
