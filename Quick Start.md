@@ -141,6 +141,8 @@ For read-only mode or a custom port:
 ```powershell
 # Capture and retrieve local work
 .\90-system\automation\scripts\second-self.ps1 capture --title "Idea"
+.\90-system\automation\scripts\second-self.ps1 journal --body "Today I..."
+.\90-system\automation\scripts\second-self.ps1 search "topic"
 .\90-system\automation\scripts\second-self.ps1 ingest "C:\path\document.pdf"
 .\90-system\automation\scripts\second-self.ps1 indexes
 

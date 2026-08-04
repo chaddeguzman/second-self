@@ -15,9 +15,11 @@ from .capture import capture_note
 from .dashboard import scan_dashboard
 from .indexes import generate_indexes
 from .ingest import ingest
+from .journal import journal_entry
 from .paths import CONFIG_PATH, load_paths, write_config
 from .projects import register_project, registration_preview
 from .scaffold import scaffold
+from .search import search_layer1
 from .validation import validate
 from .wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 
@@ -56,6 +58,19 @@ def _command_capture(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     captured = capture_note(paths, args.title, args.body or "", source="cli")
     print(captured.path.relative_to(paths.data_root))
+    return 0
+
+
+def _command_journal(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    entry = journal_entry(paths, args.body, title=args.title)
+    print(entry.path.relative_to(paths.data_root))
+    return 0
+
+
+def _command_search(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    _print({"results": search_layer1(paths, args.query, max_results=args.max_results)})
     return 0
 
 
@@ -176,6 +191,16 @@ def build_parser() -> argparse.ArgumentParser:
     capture.add_argument("--title", required=True)
     capture.add_argument("--body")
     capture.set_defaults(func=_command_capture)
+
+    journal = sub.add_parser("journal")
+    journal.add_argument("--body", required=True)
+    journal.add_argument("--title", default="")
+    journal.set_defaults(func=_command_journal)
+
+    search = sub.add_parser("search")
+    search.add_argument("query")
+    search.add_argument("--max-results", type=int, default=50)
+    search.set_defaults(func=_command_search)
 
     web = sub.add_parser("web")
     web.add_argument("--port", type=int)

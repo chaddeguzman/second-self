@@ -272,7 +272,9 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         "/",
         "/capture",
         "/healthz",
+        "/journal",
         "/queue/<queue_key>",
+        "/search",
         "/static/<path:filename>",
         "/tags",
         "/tags/<token>",
@@ -283,6 +285,93 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         for rule in paths
         for fragment in ("edit", "delete", "apply", "resolve", "status")
     )
+
+
+def test_search_page_finds_matches_without_exposing_private_root(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    note = paths.layer1 / "01 Notes" / "02 Notes" / "Searchable.md"
+    note.parent.mkdir(parents=True)
+    note.write_text(
+        "\n".join(
+            [
+                "---",
+                "type: note",
+                "created: 2026-07-23",
+                "status: active",
+                "---",
+                "# Searchable",
+                "unique searchable content here",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    client = app.test_client()
+
+    response = client.get("/search?q=unique%20searchable")
+
+    assert response.status_code == 200
+    assert b"unique searchable content" in response.data
+    assert b"Searchable.md" in response.data
+    assert str(paths.data_root).encode() not in response.data
+
+
+def test_search_get_works_without_csrf(tmp_path: Path):
+    app, _ = _app(tmp_path)
+    client = app.test_client()
+
+    response = client.get("/search?q=test")
+
+    assert response.status_code == 200
+    assert b"Search" in response.data
+
+
+def test_journal_requires_csrf_and_redirects_to_verified_preview(tmp_path: Path):
+    app, paths = _app(tmp_path)
+    client = app.test_client()
+    client.get("/journal")
+    with client.session_transaction() as session:
+        csrf = session["_second_self_csrf"]
+
+    rejected = client.post(
+        "/journal",
+        data={"csrf_token": "wrong", "body": "Never logged"},
+    )
+    response = client.post(
+        "/journal",
+        data={
+            "csrf_token": csrf,
+            "title": "Morning",
+            "body": "Journal body preserved.\n",
+        },
+        follow_redirects=False,
+    )
+
+    assert rejected.status_code == 400
+    assert b"Never logged" not in rejected.data
+    assert response.status_code == 303
+    assert response.headers["Location"].startswith("/view/")
+    journals = list((paths.layer1 / "02 Journal").glob("*.md"))
+    assert len(journals) == 1
+    assert "Journal body preserved." in journals[0].read_text(encoding="utf-8")
+
+    preview = client.get(response.headers["Location"])
+    assert preview.status_code == 200
+    assert b"Journal body preserved." in preview.data
+    assert str(paths.data_root).encode() not in preview.data
+
+
+def test_journal_read_only_mode_returns_403(tmp_path: Path):
+    app, paths = _app(tmp_path, read_only=True)
+    client = app.test_client()
+    response = client.get("/journal")
+    posted = client.post(
+        "/journal",
+        data={"csrf_token": "unused", "body": "Blocked"},
+    )
+
+    assert response.status_code == 403
+    assert posted.status_code == 403
+    assert not list((paths.layer1 / "02 Journal").glob("*.md"))
 
 
 def test_port_selection_uses_requested_port_or_first_available(monkeypatch):

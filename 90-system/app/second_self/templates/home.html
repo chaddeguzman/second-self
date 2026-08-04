@@ -9,8 +9,10 @@
   </div>
   {% if read_only %}
     <a class="button button-secondary" href="{{ url_for('capture') }}">Capture unavailable</a>
+    <a class="button button-secondary" href="{{ url_for('journal') }}">Journal unavailable</a>
   {% else %}
     <a class="button" href="{{ url_for('capture') }}">Quick capture</a>
+    <a class="button button-secondary" href="{{ url_for('journal') }}">Journal entry</a>
   {% endif %}
 </section>
 

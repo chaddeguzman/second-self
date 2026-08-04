@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Journal · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Journal</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Daily journal</p>
+  <h1>Record what happened today.</h1>
+  <p>Creates or appends to today's journal note in 02 Journal. Multiple entries on the same day accumulate under the Notes section.</p>
+</section>
+
+{% if read_only %}
+  <div class="empty-panel large">
+    <strong>Journal is disabled in read-only mode.</strong>
+    <p>Restart without <code>--read-only</code> when you want to create a journal entry.</p>
+  </div>
+{% else %}
+  <form class="capture-form" method="post" action="{{ url_for('journal') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+    <label for="title">Title <small>(optional)</small></label>
+    <input id="title" name="title" maxlength="120" value="{{ title or '' }}" autocomplete="off">
+    <div class="field-help">A short heading for this entry. If omitted, the body is added directly under Notes.</div>
+
+    <label for="body">Body</label>
+    <textarea id="body" name="body" maxlength="102400" required rows="14">{{ body or '' }}</textarea>
+    <div class="field-help">Markdown is accepted. Maximum 100 KiB.</div>
+
+    <div class="form-actions">
+      <button class="button" type="submit">Save journal entry</button>
+      <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>
+    </div>
+  </form>
+{% endif %}
+{% endblock %}

@@ -31,7 +31,9 @@ from werkzeug.exceptions import SecurityError
 from .capture import capture_note
 from .dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
 from .frontmatter import read_note
+from .journal import journal_entry
 from .paths import SecondSelfPaths
+from .search import search_layer1
 
 
 DEFAULT_PORT = 8765
@@ -345,6 +347,52 @@ def create_app(
                 code=303,
             )
         return render_template("capture.html", read_only=False)
+
+    @app.get("/search")
+    def search():
+        query = request.args.get("q", "").strip()
+        results = search_layer1(paths, query) if query else []
+        return render_template(
+            "search.html",
+            query=query,
+            results=results,
+            read_only=read_only,
+        )
+
+    @app.route("/journal", methods=["GET", "POST"])
+    def journal():
+        if read_only:
+            return render_template("journal.html", read_only=True), 403
+        if request.method == "POST":
+            submitted = request.form.get("csrf_token", "")
+            expected = session.get(CSRF_SESSION_KEY, "")
+            if not expected or not secrets.compare_digest(str(expected), submitted):
+                abort(400)
+            body = request.form.get("body", "")
+            title = request.form.get("title", "")
+            try:
+                entry = journal_entry(paths, body, title=title)
+            except ValueError as exc:
+                return (
+                    render_template(
+                        "journal.html",
+                        read_only=False,
+                        error=str(exc),
+                        title=title,
+                        body=body,
+                    ),
+                    400,
+                )
+            relative = entry.path.relative_to(paths.layer1).as_posix()
+            flash("Journal entry saved.", "success")
+            return redirect(
+                url_for(
+                    "preview",
+                    token=preview_token("layer1", relative),
+                ),
+                code=303,
+            )
+        return render_template("journal.html", read_only=False)
 
     @app.get("/view/<token>")
     def preview(token: str):
