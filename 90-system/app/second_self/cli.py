@@ -13,11 +13,13 @@ from .broker import (
 )
 from .capture import capture_note
 from .dashboard import scan_dashboard
+from .due import due_items
 from .indexes import generate_indexes
 from .ingest import ingest
 from .journal import journal_entry
 from .paths import CONFIG_PATH, load_paths, write_config
 from .projects import register_project, registration_preview
+from .recent import recent_items
 from .scaffold import scaffold
 from .search import search_layer1
 from .validation import validate
@@ -71,6 +73,18 @@ def _command_journal(args: argparse.Namespace) -> int:
 def _command_search(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     _print({"results": search_layer1(paths, args.query, max_results=args.max_results)})
+    return 0
+
+
+def _command_due(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    _print({"results": due_items(paths, overdue_only=args.overdue_only)})
+    return 0
+
+
+def _command_recent(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    _print({"results": recent_items(paths, days=args.days)})
     return 0
 
 
@@ -201,6 +215,14 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("query")
     search.add_argument("--max-results", type=int, default=50)
     search.set_defaults(func=_command_search)
+
+    due = sub.add_parser("due")
+    due.add_argument("--overdue-only", action="store_true")
+    due.set_defaults(func=_command_due)
+
+    recent = sub.add_parser("recent")
+    recent.add_argument("--days", type=int, default=7)
+    recent.set_defaults(func=_command_recent)
 
     web = sub.add_parser("web")
     web.add_argument("--port", type=int)
