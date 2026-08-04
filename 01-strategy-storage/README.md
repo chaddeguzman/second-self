@@ -1,3 +1,9 @@
+---
+type: layer1-readme
+created: 2026-01-01
+status: active
+---
+
 # Strategy Storage
 
 `01-strategy-storage` is the private, personal layer of Second Self. It holds

@@ -1,3 +1,9 @@
+---
+type: readme
+created: 2026-01-01
+status: active
+---
+
 # Second Self
 
 [Quick Start](Quick%20Start.md) · [FAQ](FAQ.md) · [License](LICENSE)
