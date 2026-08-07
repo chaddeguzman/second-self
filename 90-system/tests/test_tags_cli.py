@@ -11,7 +11,7 @@ def test_tags_command_lists_tags_with_counts(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    note = second_self.layer1 / "01 Notes/02 Notes" / "Tagged.md"
+    note = second_self.layer1 / "01 Capture/02 Notes" / "Tagged.md"
     note.parent.mkdir(parents=True, exist_ok=True)
     note.write_text(
         "---\n"
@@ -23,7 +23,7 @@ def test_tags_command_lists_tags_with_counts(
         "# Tagged\n",
         encoding="utf-8",
     )
-    second = second_self.layer1 / "01 Notes/02 Notes" / "Second.md"
+    second = second_self.layer1 / "01 Capture/02 Notes" / "Second.md"
     second.write_text(
         "---\n"
         "type: note\n"

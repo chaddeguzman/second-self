@@ -26,16 +26,16 @@ Use this folder for relatively stable context that should guide recall,
 decisions, and agent behavior across many sessions. Update it deliberately when
 your understanding of yourself changes.
 
-### `01 Notes`
+### `01 Capture`
 
-Stores general-purpose notes, ideas, observations, lessons, and working
-knowledge that do not belong to a dated journal entry or a formal reference.
+Stores captured thoughts, ideas, observations, notes, and incoming source
+material that do not belong to a dated journal entry or a formal reference.
 
-Use this folder to develop thoughts over time. Notes may later inform memory,
+Use this folder to develop thoughts over time. Captures may later inform memory,
 strategy, projects, or reviews, but they do not automatically become confirmed
 personal context.
 
-Two ordered support folders implement the LLM Wiki source lifecycle:
+The controlled support folder implements the LLM Wiki source lifecycle:
 
 - `00 Raw` is the pending queue for quick captures, documents, Markdown,
   screenshots, images, and attachment bundles.
@@ -116,7 +116,7 @@ the only context available to the user, Codex, Claude, or another trusted
 agent. All six Layer 1 folders may contribute to recall and reasoning:
 
 - `00 Memory` provides stable personal context and confirmed understanding.
-- `01 Notes` contributes developed thoughts, observations, and working ideas.
+- `01 Capture` contributes captured thoughts, notes, and working ideas.
 - `02 Journal` contributes dated experiences, events, and reflections.
 - `03 Strategy` contributes current direction, priorities, goals, and
   commitments.

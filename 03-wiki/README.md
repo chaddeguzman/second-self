@@ -6,7 +6,7 @@ entities, source pages, and analyses that make relevant context easier to
 retrieve.
 
 The wiki is a navigation and synthesis layer, not a replacement for primary
-evidence. Material claims must trace back to a source in `01 Notes/00 Raw`,
+evidence. Material claims must trace back to a source in `01 Capture/00 Raw`,
 `04 References/{subfolder}`, or an existing Second Self note.
 
 ## Folder Guide
@@ -68,7 +68,7 @@ there is sufficient evidence or an explicit user decision.
 
 ## Processing Workflow
 
-1. Place captures and imported material in `01 Notes/00 Raw`.
+1. Place captures and imported material in `01 Capture/00 Raw`.
 2. Read the wiki index and only the sources and primary notes relevant to the
    task.
 3. Hash and inspect each selected source, preserving its provenance.

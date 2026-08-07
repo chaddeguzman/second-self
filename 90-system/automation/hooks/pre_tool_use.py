@@ -30,7 +30,7 @@ def main() -> None:
         return
 
     protected_markers = [
-        "\\01 Notes\\01 Current\\",
+        "\\01 Capture\\",
         "current identity.md",
         "current strategy.md",
     ]

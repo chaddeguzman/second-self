@@ -17,19 +17,19 @@ def _note(path: Path, text: str) -> None:
 
 def test_search_finds_match_in_body(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Note.md",
+        second_self.layer1 / "01 Capture/02 Notes/Note.md",
         "---\ntype: note\ncreated: 2026-08-01\nstatus: active\n---\n\n# Note\n\nThis is a unique needle in the haystack.\n",
     )
     results = search_layer1(second_self, "unique needle")
     assert len(results) == 1
-    assert results[0]["path"] == "01-strategy-storage/01 Notes/02 Notes/Note.md"
+    assert results[0]["path"] == "01-strategy-storage/01 Capture/02 Notes/Note.md"
     assert "unique needle" in results[0]["snippet"]
     assert results[0]["matched"] == "unique needle"
 
 
 def test_search_is_case_insensitive(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Note.md",
+        second_self.layer1 / "01 Capture/02 Notes/Note.md",
         "---\ntype: note\ncreated: 2026-08-01\nstatus: active\n---\n\n# Note\n\nUPPERCASE CONTENT HERE.\n",
     )
     results = search_layer1(second_self, "uppercase content")
@@ -39,7 +39,7 @@ def test_search_is_case_insensitive(second_self: SecondSelfPaths) -> None:
 
 def test_search_matches_frontmatter(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Note.md",
+        second_self.layer1 / "01 Capture/02 Notes/Note.md",
         "---\ntype: note\ncreated: 2026-08-01\nstatus: active\ntags: [important-topic]\n---\n\n# Note\n\nBody text.\n",
     )
     results = search_layer1(second_self, "important-topic")
@@ -57,7 +57,7 @@ def test_search_skips_trash(second_self: SecondSelfPaths) -> None:
 
 
 def test_search_skips_binary(second_self: SecondSelfPaths) -> None:
-    binary = second_self.layer1 / "01 Notes/00 Raw/binary.bin"
+    binary = second_self.layer1 / "01 Capture/00 Raw/binary.bin"
     binary.parent.mkdir(parents=True, exist_ok=True)
     binary.write_bytes(b"\x00\x01\x02\xff\xfe needle \x00\x01")
     results = search_layer1(second_self, "needle")
@@ -74,7 +74,7 @@ def test_search_cli_returns_json(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Note.md",
+        second_self.layer1 / "01 Capture/02 Notes/Note.md",
         "---\ntype: note\ncreated: 2026-08-01\nstatus: active\n---\n\n# Note\n\nCLI searchable content.\n",
     )
     monkeypatch.setattr("second_self.cli.load_paths", lambda require_config=True: second_self)

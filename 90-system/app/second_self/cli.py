@@ -15,6 +15,7 @@ from .core.paths import CONFIG_PATH, load_paths, write_config
 from .core.scaffold import scaffold
 from .ingest.ingest import ingest
 from .maintenance.indexes import generate_indexes
+from .maintenance.link_check import build_link_fix_proposal
 from .maintenance.validation import validate
 from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
@@ -49,6 +50,7 @@ def _command_validate(args: argparse.Namespace) -> int:
         load_paths(require_config=require_config),
         privacy=args.privacy,
         check_private=CONFIG_PATH.exists() and not args.tracked_only,
+        link_check=args.link_check,
     )
     if errors:
         _print({"valid": False, "errors": errors})
@@ -191,6 +193,19 @@ def _command_indexes(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_link_fix(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    corrections = None
+    if args.corrections:
+        corrections = json.loads(Path(args.corrections).read_text(encoding="utf-8"))
+    specification = build_link_fix_proposal(paths, corrections=corrections)
+    if not specification["fixes"]:
+        _print({"valid": True, "message": "No broken wikilinks detected."})
+    else:
+        _print(propose(paths, specification))
+    return 0
+
+
 def _command_wiki(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     if args.wiki_command == "init":
@@ -222,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--tracked-only",
         action="store_true",
         help="skip private-note schema checks and validate tracked repository privacy only",
+    )
+    check.add_argument(
+        "--link-check",
+        action="store_true",
+        help="verify all [[wikilinks]] in Layer 1 notes resolve to existing targets",
     )
     check.set_defaults(func=_command_validate)
 
@@ -260,6 +280,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     indexes = sub.add_parser("indexes")
     indexes.set_defaults(func=_command_indexes)
+
+    link_fix = sub.add_parser("link-fix")
+    link_fix.add_argument(
+        "--corrections",
+        type=Path,
+        help="JSON file mapping 'source>wikilink_target' to replacement wikilink text",
+    )
+    link_fix.set_defaults(func=_command_link_fix)
 
     tags = sub.add_parser("tags")
     tags.set_defaults(func=_command_tags)

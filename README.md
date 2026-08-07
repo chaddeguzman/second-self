@@ -52,7 +52,7 @@ trusted agents are different ways to view and work with that same system.
 `01-strategy-storage` holds your durable whole-person context:
 
 - `00 Memory` — confirmed, durable personal context;
-- `01 Notes` — ideas, observations, working knowledge, and source intake;
+- `01 Capture` — captured thoughts, notes, and incoming source material;
 - `02 Journal` — dated experiences and reflections;
 - `03 Strategy` — purpose, values, goals, priorities, and decisions;
 - `04 References` — research, books, quotations, guides, and documents; and
@@ -76,7 +76,7 @@ Reusable skills may be versioned in Git. The contents of `projects` stay local.
 connects topics, entities, sources, analyses, and open questions without
 replacing the underlying evidence.
 
-New source material enters `01-strategy-storage/01 Notes/00 Raw`. When you say
+New source material enters `01-strategy-storage/01 Capture/00 Raw`. When you say
 "process these files", the agent prepares wiki pages and asks you which
 `04 References` subfolder each source should live in. Valid subfolders are
 `01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
@@ -107,7 +107,7 @@ system area.
 second-self/
 |-- 01-strategy-storage/       Private personal context (Layer 1)
 |   |-- 00 Memory/
-|   |-- 01 Notes/
+|   |-- 01 Capture/
 |   |   `-- 00 Raw/            Pending source queue
 |   |-- 02 Journal/
 |   |-- 03 Strategy/
@@ -140,7 +140,7 @@ public/private boundary.
 Capture or import
         |
         v
-01 Notes/00 Raw or another Layer 1 folder
+01 Capture/00 Raw or another Layer 1 folder
         |
         +--> Weekly and quarterly review
         |         |
@@ -165,7 +165,7 @@ Skills and project work in Layer 2
 Decisions, progress, and reusable lessons return through review/writeback
 ```
 
-Primary evidence remains in Memory, Notes, Journal, Strategy, References,
+Primary evidence remains in Memory, Capture, Journal, Strategy, References,
 Reviews, and project records. Wiki pages help navigate and synthesize that
 evidence but do not silently replace it.
 

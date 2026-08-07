@@ -25,12 +25,12 @@ def test_dashboard_has_only_the_captures_queue(second_self: SecondSelfPaths) -> 
 def test_dashboard_lists_every_raw_file_and_bundle(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/00 Raw/Capture.md",
+        layer1 / "01 Capture/00 Raw/Capture.md",
         "type: capture\ncreated: 2026-07-22\nstatus: inbox",
         "Captured thought",
     )
-    (layer1 / "01 Notes/00 Raw/Plain.txt").write_text("plain", encoding="utf-8")
-    bundle = layer1 / "01 Notes/00 Raw/Article"
+    (layer1 / "01 Capture/00 Raw/Plain.txt").write_text("plain", encoding="utf-8")
+    bundle = layer1 / "01 Capture/00 Raw/Article"
     bundle.mkdir()
     (bundle / "article.md").write_text("# Article\n", encoding="utf-8")
 
@@ -59,7 +59,7 @@ def test_raw_dotfiles_are_excluded(second_self: SecondSelfPaths) -> None:
 
 def test_raw_markdown_uses_frontmatter_metadata(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/00 Raw/Inbox Capture.md",
+        second_self.layer1 / "01 Capture/00 Raw/Inbox Capture.md",
         "type: capture\ncreated: 2026-07-22\nstatus: inbox",
         "Inbox capture",
     )
@@ -85,7 +85,7 @@ def test_legacy_vault_is_not_silently_classified(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     data = tmp_path / "data"
     repo.mkdir()
-    notes = data / "01-strategy-storage/01 Notes/02 Notes"
+    notes = data / "01-strategy-storage/01 Capture/02 Notes"
     notes.mkdir(parents=True)
     (notes / "Who I Am.md").write_text("# Who I Am\n\nLegacy prose.", encoding="utf-8")
     snapshot = scan_dashboard(SecondSelfPaths(repo, data), today=date(2026, 7, 23))
@@ -96,17 +96,17 @@ def test_legacy_vault_is_not_silently_classified(tmp_path: Path) -> None:
 
 def test_tag_index_normalizes_and_aggregates(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Alpha.md",
+        second_self.layer1 / "01 Capture/02 Notes/Alpha.md",
         "type: note\ncreated: 2026-07-01\nstatus: active\ntags: [health, work, health]",
         "Alpha",
     )
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Beta.md",
+        second_self.layer1 / "01 Capture/02 Notes/Beta.md",
         "type: note\ncreated: 2026-07-02\nstatus: active\ntags: [health]",
         "Beta",
     )
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Gamma.md",
+        second_self.layer1 / "01 Capture/02 Notes/Gamma.md",
         "type: note\ncreated: 2026-07-03\nstatus: active",
         "Gamma",
     )
@@ -123,7 +123,7 @@ def test_tag_index_normalizes_and_aggregates(second_self: SecondSelfPaths) -> No
 
 def test_tag_index_ignores_non_list_and_untagged(second_self: SecondSelfPaths) -> None:
     _note(
-        second_self.layer1 / "01 Notes/02 Notes/Weird.md",
+        second_self.layer1 / "01 Capture/02 Notes/Weird.md",
         "type: note\ncreated: 2026-07-01\nstatus: active\ntags: not-a-list",
         "Weird tags",
     )
@@ -149,9 +149,11 @@ def test_projects_scan_only_direct_records(second_self: SecondSelfPaths) -> None
 def test_malformed_and_oversized_notes_do_not_break_home(
     second_self: SecondSelfPaths,
 ) -> None:
-    malformed = second_self.layer1 / "01 Notes/02 Notes/Malformed.md"
+    malformed = second_self.layer1 / "01 Capture/02 Notes/Malformed.md"
+    malformed.parent.mkdir(parents=True, exist_ok=True)
     malformed.write_text("---\nnot: [valid\n---\n", encoding="utf-8")
-    oversized = second_self.layer1 / "01 Notes/02 Notes/Oversized.md"
+    oversized = second_self.layer1 / "01 Capture/02 Notes/Oversized.md"
+    oversized.parent.mkdir(parents=True, exist_ok=True)
     oversized.write_bytes(b"x" * (2 * 1024 * 1024 + 1))
     snapshot = scan_dashboard(second_self)
     assert snapshot.scan_errors >= 2
@@ -166,7 +168,7 @@ def test_scan_bound_stops_safely(
     paths = SecondSelfPaths(tmp_path / "repo", tmp_path / "data")
     for index in range(3):
         _note(
-            paths.layer1 / f"01 Notes/02 Notes/{index}.md",
+            paths.layer1 / f"01 Capture/02 Notes/{index}.md",
             f"type: note\ncreated: 2026-07-0{index + 1}\nstatus: active",
             f"Note {index}",
         )

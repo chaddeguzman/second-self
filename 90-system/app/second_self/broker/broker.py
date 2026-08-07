@@ -22,10 +22,11 @@ ALLOWED_OPERATIONS = {
     "export",
     "assemble_layer1",
     "wiki_process",
+    "link_fix",
 }
 LAYER1_SCAFFOLD_FILES = (
     "00 Memory/.gitkeep",
-    "01 Notes/.gitkeep",
+    "01 Capture/.gitkeep",
     "02 Journal/.gitkeep",
     "03 Strategy/.gitkeep",
     "04 References/.gitkeep",
@@ -96,6 +97,8 @@ def _affected(paths: SecondSelfPaths, specification: dict[str, Any]) -> list[Pat
         return [resolve_private_path(paths, item["from"]) for item in specification["moves"]]
     if operation == "export":
         return [resolve_private_path(paths, value) for value in specification.get("sources", [])]
+    if operation == "link_fix":
+        return [resolve_private_path(paths, item["path"]) for item in specification["fixes"]]
     if operation == "assemble_layer1":
         return [
             paths.repo_root / "01-strategy-storage",
@@ -128,6 +131,24 @@ def _exact_preview(paths: SecondSelfPaths, specification: dict[str, Any]) -> str
                     "## Source archive moves",
                     json.dumps(specification.get("moves", []), indent=2),
                 ]
+            )
+        return "\n".join(chunks)
+    if operation == "link_fix":
+        chunks: list[str] = []
+        for item in specification["fixes"]:
+            path = resolve_private_path(paths, item["path"])
+            old = path.read_text(encoding="utf-8") if path.exists() else ""
+            new = old
+            for replacement in item.get("replacements", []):
+                new = new.replace(replacement["old"], replacement["new"], 1)
+            chunks.extend(
+                difflib.unified_diff(
+                    old.splitlines(),
+                    new.splitlines(),
+                    fromfile=_path_label(paths, path),
+                    tofile=_path_label(paths, path),
+                    lineterm="",
+                )
             )
         return "\n".join(chunks)
     if operation == "assemble_layer1":
@@ -514,6 +535,15 @@ def _apply(
         changed.extend(_assemble_layer1(paths))
     elif operation == "wiki_process":
         changed.extend(_apply_wiki_process(paths, specification, proposal_id))
+    elif operation == "link_fix":
+        for item in specification["fixes"]:
+            path = resolve_private_path(paths, item["path"])
+            text = path.read_text(encoding="utf-8") if path.exists() else ""
+            for replacement in item.get("replacements", []):
+                text = text.replace(replacement["old"], replacement["new"], 1)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+            changed.append(str(path))
     return changed
 
 

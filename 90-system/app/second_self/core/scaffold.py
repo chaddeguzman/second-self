@@ -8,13 +8,7 @@ from .paths import SecondSelfPaths
 
 DIRECTORIES = [
     "01-strategy-storage/00 Memory",
-    "01-strategy-storage/01 Notes/00 Raw",
-    "01-strategy-storage/01 Notes/01 Current",
-    "01-strategy-storage/01 Notes/02 Notes",
-    "01-strategy-storage/01 Notes/03 History",
-    "01-strategy-storage/01 Notes/04 Imports/extracted",
-    "01-strategy-storage/01 Notes/04 Imports/originals",
-    "01-strategy-storage/01 Notes/05 Assets",
+    "01-strategy-storage/01 Capture/00 Raw",
     "01-strategy-storage/02 Journal",
     "01-strategy-storage/03 Strategy/01 Conflicts",
     "01-strategy-storage/03 Strategy/02 Decisions",
@@ -37,46 +31,6 @@ DIRECTORIES = [
 
 
 CURRENT_FILES = {
-    "01-strategy-storage/01 Notes/01 Current/Current Identity.md": """---
-type: identity
-created: {today}
-status: proposed
-tags: []
-projects: []
-related: []
----
-
-# Current Identity
-
-## Purpose
-
-## Values
-
-## Principles
-
-## Roles
-
-## Preferences
-""",
-    "01-strategy-storage/01 Notes/01 Current/Current Strategy.md": """---
-type: strategy
-created: {today}
-status: proposed
-tags: []
-projects: []
-related: []
----
-
-# Current Strategy
-
-## Direction
-
-## Goals
-
-## Current Priorities
-
-## Commitments
-""",
     "01-strategy-storage/03 Strategy/01 Conflicts/Conflicts Index.md": """---
 type: conflict
 created: {today}

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from second_self.maintenance.indexes import generate_indexes
 from second_self.core.paths import SecondSelfPaths
 from second_self.core.scaffold import scaffold
@@ -7,15 +5,16 @@ from second_self.maintenance.validation import validate
 
 
 def test_scaffold_is_idempotent(second_self: SecondSelfPaths) -> None:
-    identity = second_self.layer1 / "01 Notes/01 Current" / "Current Identity.md"
-    original = identity.read_text(encoding="utf-8")
+    index = second_self.layer1 / "99-audit/indexes" / "Content Index.md"
+    original = index.read_text(encoding="utf-8")
     assert scaffold(second_self) == []
-    assert identity.read_text(encoding="utf-8") == original
+    assert index.read_text(encoding="utf-8") == original
     assert validate(second_self) == []
 
 
 def test_indexes_preserve_manual_text(second_self: SecondSelfPaths) -> None:
-    note = second_self.layer1 / "01 Notes/02 Notes" / "Decision Context.md"
+    note = second_self.layer1 / "01 Capture/02 Notes" / "Decision Context.md"
+    note.parent.mkdir(parents=True, exist_ok=True)
     note.write_text(
         """---
 type: note
@@ -40,7 +39,8 @@ status: active
 
 
 def test_validation_reports_missing_metadata(second_self: SecondSelfPaths) -> None:
-    bad = second_self.layer1 / "01 Notes/02 Notes" / "Bad.md"
+    bad = second_self.layer1 / "01 Capture/02 Notes" / "Bad.md"
+    bad.parent.mkdir(parents=True, exist_ok=True)
     bad.write_text("# Missing metadata\n", encoding="utf-8")
     errors = validate(second_self)
     assert any("missing required field: type" in error for error in errors)

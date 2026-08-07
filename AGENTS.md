@@ -40,7 +40,7 @@ an agent reading this for the first time:
 5. When a task depends on personal context, begin with relevant notes under
    `01-strategy-storage/00 Memory`, but do not treat Memory as the only context
    source. When broader context is useful, also retrieve relevant material from
-   `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and `05 Reviews`,
+   `01 Capture`, `02 Journal`, `03 Strategy`, `04 References`, and `05 Reviews`,
    plus
    `02-skills-projects/projects/Projects Index.md` when project context is
    relevant.
@@ -62,7 +62,7 @@ an agent reading this for the first time:
 - Do not answer personal recall questions from model memory or assumptions.
   Use the `second-self-recall` workflow and stored Markdown evidence.
 - Start recall in `01-strategy-storage/00 Memory`, then assemble additional
-  relevant context from `01 Notes`, `02 Journal`, `03 Strategy`,
+  relevant context from `01 Capture`, `02 Journal`, `03 Strategy`,
   `04 References`, `05 Reviews`, historical sources, and project records.
 - Use the available context window intentionally. A task may benefit from
   multiple complementary sources across all six Layer 1 folders rather than a
@@ -82,7 +82,7 @@ an agent reading this for the first time:
 
 ## LLM Wiki
 
-- `01-strategy-storage/01 Notes/00 Raw` is the pending source queue.
+- `01-strategy-storage/01 Capture/00 Raw` is the pending source queue.
 - `01-strategy-storage/04 References/{subfolder}` is the single source of truth
   for successfully reviewed sources. Corrections enter Raw as new revisions.
 - `03-wiki` is private, derived, and agent-maintained. Use the
@@ -156,7 +156,7 @@ an agent reading this for the first time:
 - Protected changes include identity or strategy edits, private-context
   exports, deletes, moves, renames, and changes to five or more existing files.
 - The only approved top-level folders under `01-strategy-storage` are
-  `00 Memory`, `01 Notes`, `02 Journal`, `03 Strategy`, `04 References`, and
+  `00 Memory`, `01 Capture`, `02 Journal`, `03 Strategy`, `04 References`, and
   `05 Reviews`.
 - Creating any other top-level folder under `01-strategy-storage` is protected
   and requires one approval of the proposal's exact change.
@@ -213,7 +213,7 @@ Run:
 python -m pytest
 ```
 
-Before committing anything that touches `03-wiki`, `01 Notes`, or templates,
+Before committing anything that touches `03-wiki`, `01 Capture`, or templates,
 also run the `second-self-wiki` lint operation. Privacy validation checks for
 data leakage; wiki lint checks front-matter compliance, broken links, and
 orphaned pages — both are required, and neither substitutes for the other.

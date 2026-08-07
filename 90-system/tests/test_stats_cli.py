@@ -23,17 +23,17 @@ def test_stats_command_reports_counts_and_wiki(
 ) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/00 Raw/Capture One.md",
+        layer1 / "01 Capture/00 Raw/Capture One.md",
         "type: capture\ncreated: 2026-07-10\nstatus: inbox",
         "Capture one",
     )
     _note(
-        layer1 / "01 Notes/00 Raw/Capture Two.md",
+        layer1 / "01 Capture/00 Raw/Capture Two.md",
         "type: capture\ncreated: 2026-07-20\nstatus: inbox",
         "Capture two",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Note.md",
+        layer1 / "01 Capture/02 Notes/Note.md",
         "type: note\ncreated: 2026-07-15\nstatus: active",
         "Note",
     )
@@ -81,10 +81,7 @@ def test_stats_command_reports_empty_vault(
     output = capsys.readouterr().out
     assert '"counts_by_type"' in output
     assert '"reference": 1' in output
-    assert '"identity": 1' in output
-    assert '"strategy": 1' in output
     assert '"counts_by_status"' in output
-    assert '"proposed": 2' in output
     assert '"active": 1' in output
     assert '"captures_per_month": {}' in output
     assert '"total": 0' in output

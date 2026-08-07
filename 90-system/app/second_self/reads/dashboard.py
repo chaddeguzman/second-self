@@ -155,7 +155,7 @@ def _item(path: Path, root: Path, scope: Literal["layer1", "projects"], legacy: 
 
 
 def _raw_file_items(root: Path, layer1_root: Path) -> tuple[list[DashboardItem], int]:
-    """List every direct entry in 01 Notes/00 Raw (files and bundles).
+    """List every direct entry in 01 Capture/00 Raw (files and bundles).
 
     Mirrors the wiki's raw_units enumeration (top-level files plus
     top-level directories treated as bundles, dotfiles excluded) but uses
@@ -241,7 +241,7 @@ def _scan_layer1(paths: SecondSelfPaths, result: _ScanResult) -> None:
                     if name.casefold() not in SKIPPED_LAYER1_DIRECTORIES
                 ]
             elif tuple(part.casefold() for part in relative.parts) == (
-                "01 notes",
+                "01 capture",
                 "04 imports",
             ):
                 directories[:] = [
@@ -370,10 +370,10 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         "captures": _queue(
             "captures",
             "Unprocessed captures",
-            "Every file and bundle waiting in 01 Notes/00 Raw.",
+            "Every file and bundle waiting in 01 Capture/00 Raw.",
             list(raw_items),
             paths.raw.is_dir(),
-            "The 01 Notes/00 Raw inbox does not exist yet.",
+            "The 01 Capture/00 Raw inbox does not exist yet.",
             scan_problem,
         ),
     }

@@ -9,11 +9,20 @@ from second_self.cli import main
 from second_self.core.paths import SecondSelfPaths
 
 
+def _ensure_note(path: Path, title: str = "Note") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\ntype: note\ncreated: 2026-07-24\nstatus: active\n---\n\n# {title}\n",
+        encoding="utf-8",
+    )
+
+
 @pytest.mark.parametrize("confirmation", ["Y", "y", "Yes", "YES", " yes "])
 def test_single_approval_edit_and_audit(
     second_self: SecondSelfPaths, confirmation: str
 ) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Identity.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Identity.md"
+    _ensure_note(target, "Current Identity")
     updated = target.read_text(encoding="utf-8") + "\nApproved value.\n"
     proposal = propose(
         second_self,
@@ -39,7 +48,8 @@ def test_single_approval_edit_and_audit(
 def test_single_rejection_leaves_content_unchanged(
     second_self: SecondSelfPaths, confirmation: str
 ) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Identity.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Identity.md"
+    _ensure_note(target, "Current Identity")
     original = target.read_text(encoding="utf-8")
     proposal = propose(
         second_self,
@@ -61,7 +71,8 @@ def test_single_rejection_leaves_content_unchanged(
 def test_legacy_pending_proposal_accepts_one_simple_decision(
     second_self: SecondSelfPaths, legacy_status: str
 ) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
     proposal = propose(
         second_self,
         {
@@ -80,7 +91,8 @@ def test_legacy_pending_proposal_accepts_one_simple_decision(
 
 
 def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
     proposal = propose(
         second_self,
         {
@@ -96,7 +108,8 @@ def test_stale_input_invalidates_approval(second_self: SecondSelfPaths) -> None:
 def test_proposal_and_result_never_expose_absolute_private_root(
     second_self: SecondSelfPaths,
 ) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
     proposal = propose(
         second_self,
         {
@@ -111,14 +124,15 @@ def test_proposal_and_result_never_expose_absolute_private_root(
     )
     serialized = json.dumps(proposal)
     assert str(second_self.data_root) not in serialized
-    assert "01-strategy-storage/01 Notes/01 Current/Current Strategy.md" in serialized
+    assert "01-strategy-storage/01 Capture/01 Current/Current Strategy.md" in serialized
 
     applied = approve(second_self, proposal["id"], "yes", agent="pytest")
     assert str(second_self.data_root) not in json.dumps(applied)
 
 
 def test_delete_moves_to_private_trash(second_self: SecondSelfPaths) -> None:
-    target = second_self.layer1 / "01 Notes/02 Notes" / "Disposable.md"
+    target = second_self.layer1 / "01 Capture/02 Notes" / "Disposable.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("temporary", encoding="utf-8")
     proposal = propose(
         second_self,
@@ -134,7 +148,8 @@ def test_cli_broker_uses_one_simple_confirmation(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    target = second_self.layer1 / "01 Notes/01 Current" / "Current Strategy.md"
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
     proposal = propose(
         second_self,
         {

@@ -29,7 +29,7 @@ must also enforce this rule when staging:
 
 - `01-strategy-storage/00 Memory/` — private identity and durable context
 - `01-strategy-storage/04 References/` — private reference material
-- `01-strategy-storage/01 Notes/` — private notes (except scaffold `.gitkeep`)
+- `01-strategy-storage/01 Capture/` — private notes (except scaffold `.gitkeep`)
 - `01-strategy-storage/02 Journal/` — private journals
 - `01-strategy-storage/03 Strategy/` — private strategy
 - `01-strategy-storage/05 Reviews/` — private reviews
@@ -118,7 +118,7 @@ Run all three checks before committing. Stop on any error.
    python -m pytest
    ```
 
-3. If the changes touch `03-wiki`, `01 Notes`, or templates, also run:
+3. If the changes touch `03-wiki`, `01 Capture`, or templates, also run:
    ```sh
    python -m second_self wiki lint
    ```
