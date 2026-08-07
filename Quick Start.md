@@ -105,7 +105,7 @@ For the Second Self workflow, configure your general web-capture template to
 save new clips to:
 
 ```text
-01-strategy-storage/01 Notes/00 Raw
+01-strategy-storage/01 Capture/00 Raw
 ```
 
 This keeps incoming web material in the review queue. A trusted agent can later

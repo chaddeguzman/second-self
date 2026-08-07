@@ -7,6 +7,7 @@ from pathlib import Path
 from ..core.frontmatter import read_note, validate_metadata
 from ..core.paths import SecondSelfPaths
 from ..core.scaffold import DIRECTORIES
+from ..maintenance.link_check import as_error_strings, check_wikilinks
 
 
 SECRET_PATTERNS = {
@@ -26,7 +27,7 @@ IGNORED_TRACKED_PREFIXES = (
 ALLOWED_PRIVATE_SCAFFOLD_FILES = {
     "01-strategy-storage/README.md",
     "01-strategy-storage/00 Memory/.gitkeep",
-    "01-strategy-storage/01 Notes/.gitkeep",
+    "01-strategy-storage/01 Capture/.gitkeep",
     "01-strategy-storage/02 Journal/.gitkeep",
     "01-strategy-storage/03 Strategy/.gitkeep",
     "01-strategy-storage/04 References/.gitkeep",
@@ -59,13 +60,18 @@ def _tracked_files(repo: Path) -> list[Path]:
 
 
 def validate(
-    paths: SecondSelfPaths, privacy: bool = False, check_private: bool = True
+    paths: SecondSelfPaths,
+    privacy: bool = False,
+    check_private: bool = True,
+    link_check: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     if check_private:
         for relative in DIRECTORIES:
             if not (paths.data_root / relative).exists():
                 errors.append(f"missing private directory: {relative}")
+    if link_check:
+        errors.extend(as_error_strings(check_wikilinks(paths)))
 
     private_notes = (
         paths.data_root.rglob("*.md")

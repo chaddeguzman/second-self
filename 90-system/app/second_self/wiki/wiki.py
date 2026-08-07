@@ -185,7 +185,7 @@ def wiki_status(paths: SecondSelfPaths) -> dict[str, Any]:
     changed_curated = []
     curated_roots = [
         paths.layer1 / name
-        for name in ("00 Memory", "01 Notes", "02 Journal", "03 Strategy", "04 References", "05 Reviews")
+        for name in ("00 Memory", "01 Capture", "02 Journal", "03 Strategy", "04 References", "05 Reviews")
     ]
     candidates: list[Path] = []
     for root in curated_roots:

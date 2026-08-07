@@ -42,7 +42,7 @@ def test_hook_blocks_protected_edit(monkeypatch, tmp_path: Path) -> None:
     event = {
         "tool_name": "apply_patch",
         "tool_input": {
-            "command": "*** Update File: 01-strategy-storage/01 Notes/01 Current/Current Identity.md"
+            "command": "*** Update File: 01-strategy-storage/01 Capture/01 Current/Current Identity.md"
         },
     }
     result = subprocess.run(

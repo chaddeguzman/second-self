@@ -87,9 +87,9 @@ def test_build_tag_rename_proposal_requires_different_tags(tmp_path: Path):
 
 def test_build_tag_rename_proposal_raises_when_tag_missing(tmp_path: Path):
     paths = _paths(tmp_path)
-    (paths.layer1 / "01 Notes/02 Notes").mkdir(parents=True)
+    (paths.layer1 / "01 Capture/02 Notes").mkdir(parents=True)
     _note(
-        paths.layer1 / "01 Notes/02 Notes/Alpha.md",
+        paths.layer1 / "01 Capture/02 Notes/Alpha.md",
         "type: note\ncreated: 2026-07-01\nstatus: active\ntags: [work]",
         "Alpha",
     )
@@ -99,14 +99,14 @@ def test_build_tag_rename_proposal_raises_when_tag_missing(tmp_path: Path):
 
 def test_build_tag_rename_proposal_edits_affected_notes(tmp_path: Path):
     paths = _paths(tmp_path)
-    (paths.layer1 / "01 Notes/02 Notes").mkdir(parents=True)
+    (paths.layer1 / "01 Capture/02 Notes").mkdir(parents=True)
     _note(
-        paths.layer1 / "01 Notes/02 Notes/Alpha.md",
+        paths.layer1 / "01 Capture/02 Notes/Alpha.md",
         "type: note\ncreated: 2026-07-01\nstatus: active\ntags: [work, health]",
         "Alpha",
     )
     _note(
-        paths.layer1 / "01 Notes/02 Notes/Beta.md",
+        paths.layer1 / "01 Capture/02 Notes/Beta.md",
         "type: note\ncreated: 2026-07-02\nstatus: active\ntags: [work]",
         "Beta",
     )
@@ -115,20 +115,20 @@ def test_build_tag_rename_proposal_edits_affected_notes(tmp_path: Path):
     assert len(proposal["changes"]) == 2
     by_path = {item["path"]: item["content"] for item in proposal["changes"]}
     alpha_metadata, _ = split_frontmatter(
-        by_path["01-strategy-storage/01 Notes/02 Notes/Alpha.md"]
+        by_path["01-strategy-storage/01 Capture/02 Notes/Alpha.md"]
     )
     assert alpha_metadata["tags"] == ["career", "health"]
     beta_metadata, _ = split_frontmatter(
-        by_path["01-strategy-storage/01 Notes/02 Notes/Beta.md"]
+        by_path["01-strategy-storage/01 Capture/02 Notes/Beta.md"]
     )
     assert beta_metadata["tags"] == ["career"]
 
 
 def test_tag_rename_web_form_creates_proposal(tmp_path: Path):
     app, paths = _app(tmp_path)
-    (paths.layer1 / "01 Notes/02 Notes").mkdir(parents=True, exist_ok=True)
+    (paths.layer1 / "01 Capture/02 Notes").mkdir(parents=True, exist_ok=True)
     _note(
-        paths.layer1 / "01 Notes/02 Notes/Alpha.md",
+        paths.layer1 / "01 Capture/02 Notes/Alpha.md",
         "type: note\ncreated: 2026-07-01\nstatus: active\ntags: [work]",
         "Alpha",
     )

@@ -26,7 +26,7 @@ def test_due_finds_items_with_due_dates(second_self: SecondSelfPaths) -> None:
         "Review project X",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Note.md",
+        layer1 / "01 Capture/02 Notes/Note.md",
         "type: note\ncreated: 2026-07-15\nstatus: active\ndue: 2026-08-05",
         "Follow up on Y",
     )
@@ -47,7 +47,7 @@ def test_due_overdue_only_filters_future(second_self: SecondSelfPaths) -> None:
         "Overdue item",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Upcoming.md",
+        layer1 / "01 Capture/02 Notes/Upcoming.md",
         "type: note\ncreated: 2026-07-15\nstatus: active\ndue: 2026-08-10",
         "Upcoming item",
     )
@@ -60,7 +60,7 @@ def test_due_overdue_only_filters_future(second_self: SecondSelfPaths) -> None:
 def test_due_skips_items_without_due(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/02 Notes/NoDue.md",
+        layer1 / "01 Capture/02 Notes/NoDue.md",
         "type: note\ncreated: 2026-07-15\nstatus: active",
         "No due date",
     )

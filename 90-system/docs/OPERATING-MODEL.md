@@ -39,8 +39,8 @@ prompt. Consequential responses cite the relevant private note and date.
 ## LLM Wiki
 
 The wiki is a persistent derived navigation layer between questions and primary
-sources. Raw items wait under `01 Notes/00 Raw`; a reviewed transaction creates
-or updates interlinked Markdown and moves successful sources into
+sources. Raw items wait under `01 Capture/00 Raw`; a reviewed transaction
+creates or updates interlinked Markdown and moves successful sources into
 `04 References/{subfolder}`. Existing curated evidence stays in place.
 
 Generated pages always remain derived. They must trace material claims to

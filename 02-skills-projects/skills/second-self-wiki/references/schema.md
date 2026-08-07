@@ -72,7 +72,7 @@ Use:
   "operation": "wiki_process",
   "changes": [{"path": "03-wiki/...", "content": "..."}],
   "moves": [{
-    "from": "01-strategy-storage/01 Notes/00 Raw/...",
+    "from": "01-strategy-storage/01 Capture/00 Raw/...",
     "to": "01-strategy-storage/04 References/{subfolder}/OriginalName.ext"
   }]
 }

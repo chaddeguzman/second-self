@@ -72,7 +72,7 @@ $Links = @{
 }
 $Layer1ScaffoldFiles = @(
     "00 Memory\.gitkeep",
-    "01 Notes\.gitkeep",
+    "01 Capture\.gitkeep",
     "02 Journal\.gitkeep",
     "03 Strategy\.gitkeep",
     "04 References\.gitkeep",

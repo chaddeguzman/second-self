@@ -135,7 +135,7 @@ def test_read_only_mode_has_no_write_route(tmp_path: Path):
 
 def test_tag_pages_list_tags_and_notes_without_private_content(tmp_path: Path):
     app, paths = _app(tmp_path)
-    note = paths.layer1 / "01 Notes" / "02 Notes" / "Tagged.md"
+    note = paths.layer1 / "01 Capture" / "02 Notes" / "Tagged.md"
     note.parent.mkdir(parents=True)
     note.write_text(
         "\n".join(
@@ -224,8 +224,8 @@ def test_preview_escapes_html_and_rewrites_only_safe_links(tmp_path: Path):
         ("layer1", "../outside.md"),
         ("layer1", "99-audit/entry.md"),
         ("layer1", r"99-audit\entry.md"),
-        ("layer1", "01 Notes/04 Imports/originals/source.md"),
-        ("layer1", r"01 Notes\04 Imports\originals\source.md"),
+        ("layer1", "01 Capture/04 Imports/originals/source.md"),
+        ("layer1", r"01 Capture\04 Imports\originals\source.md"),
         ("projects", "nested/repository/note.md"),
         ("unknown", "note.md"),
     ],
@@ -303,7 +303,7 @@ def test_request_limit_and_route_surface(tmp_path: Path):
 
 def test_search_page_finds_matches_without_exposing_private_root(tmp_path: Path):
     app, paths = _app(tmp_path)
-    note = paths.layer1 / "01 Notes" / "02 Notes" / "Searchable.md"
+    note = paths.layer1 / "01 Capture" / "02 Notes" / "Searchable.md"
     note.parent.mkdir(parents=True)
     note.write_text(
         "\n".join(
@@ -425,7 +425,7 @@ def test_recent_page_lists_recent_items_without_private_root(tmp_path: Path):
     layer1 = paths.layer1
     today = date.today()
     _note(
-        layer1 / "01 Notes/02 Notes/Recent.md",
+        layer1 / "01 Capture/02 Notes/Recent.md",
         f"type: note\ncreated: {(today - timedelta(days=1)).isoformat()}\nstatus: active",
         "Recent note",
     )
@@ -442,12 +442,12 @@ def test_recent_page_respects_days_parameter(tmp_path: Path):
     layer1 = paths.layer1
     today = date.today()
     _note(
-        layer1 / "01 Notes/02 Notes/Recent.md",
+        layer1 / "01 Capture/02 Notes/Recent.md",
         f"type: note\ncreated: {(today - timedelta(days=1)).isoformat()}\nstatus: active",
         "Recent note",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Old.md",
+        layer1 / "01 Capture/02 Notes/Old.md",
         f"type: note\ncreated: {(today - timedelta(days=10)).isoformat()}\nstatus: active",
         "Old note",
     )

@@ -21,12 +21,12 @@ def _note(path: Path, metadata: str, title: str = "Example") -> None:
 def test_recent_finds_items_within_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/02 Notes/Recent.md",
+        layer1 / "01 Capture/02 Notes/Recent.md",
         "type: note\ncreated: 2026-08-02\nstatus: active",
         "Recent note",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Older.md",
+        layer1 / "01 Capture/02 Notes/Older.md",
         "type: note\ncreated: 2026-07-30\nstatus: active",
         "Older note",
     )
@@ -45,12 +45,12 @@ def test_recent_finds_items_within_window(second_self: SecondSelfPaths) -> None:
 def test_recent_excludes_items_outside_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/02 Notes/Recent.md",
+        layer1 / "01 Capture/02 Notes/Recent.md",
         "type: note\ncreated: 2026-08-02\nstatus: active",
         "Recent note",
     )
     _note(
-        layer1 / "01 Notes/02 Notes/Old.md",
+        layer1 / "01 Capture/02 Notes/Old.md",
         "type: note\ncreated: 2026-07-01\nstatus: active",
         "Old note",
     )
@@ -63,7 +63,7 @@ def test_recent_excludes_items_outside_window(second_self: SecondSelfPaths) -> N
 def test_recent_custom_days_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/02 Notes/TenDaysOld.md",
+        layer1 / "01 Capture/02 Notes/TenDaysOld.md",
         "type: note\ncreated: 2026-07-25\nstatus: active",
         "Ten days old",
     )
@@ -80,7 +80,7 @@ def test_recent_cli_returns_json(
 ) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Notes/02 Notes/Recent.md",
+        layer1 / "01 Capture/02 Notes/Recent.md",
         "type: note\ncreated: 2026-08-02\nstatus: active",
         "Recent note",
     )

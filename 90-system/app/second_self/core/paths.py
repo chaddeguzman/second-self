@@ -41,7 +41,7 @@ class SecondSelfPaths:
 
     @property
     def raw(self) -> Path:
-        return self.layer1 / "01 Notes" / "00 Raw"
+        return self.layer1 / "01 Capture" / "00 Raw"
 
     @property
     def wiki(self) -> Path:

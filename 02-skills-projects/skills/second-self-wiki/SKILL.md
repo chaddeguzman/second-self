@@ -8,7 +8,7 @@ Read `references/schema.md` before proposing wiki changes.
 
 ## Process sources
 
-1. Run `python -m second_self wiki status` and resolve requested source units under `01 Notes/00 Raw`. Process at most ten.
+1. Run `python -m second_self wiki status` and resolve requested source units under `01 Capture/00 Raw`. Process at most ten.
 2. Stop if an interrupted transaction exists. Run recovery only with user authorization.
 3. Hash and read each source. Inspect PNG, JPG, or WebP sources visually. Never invent missing extraction or OCR.
 4. Read `03-wiki/index.md`, then only relevant source, topic, entity, analysis, and primary Second Self pages.
@@ -17,7 +17,7 @@ Read `references/schema.md` before proposing wiki changes.
 7. **Ask the user where each source should live.** Present the list of files and ask which `04 References` subfolder each belongs to. Accept the user's answer for all files in a single response. Valid subfolders: `01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, `06 Uncategorized`. Use `06 Uncategorized` when no other subfolder fits.
 8. **Build the destination paths.** For each source, use `references_destination(paths, source_path, subfolder_name)` from `wiki.py` to get the collision-safe target. This preserves the original filename (no timestamp prefix). Set `source_path` in the wiki source page front-matter to this exact References-relative path.
 9. **Prepare the move manifest.** Each move entry must use:
-   - `from`: the relative path of the source inside `01 Notes/00 Raw`
+   - `from`: the relative path of the source inside `01 Capture/00 Raw`
    - `to`: the relative path under `04 References/{subfolder}/` returned by `references_destination()`
    - `source_id`: the SHA-256 hash of the source
 10. Submit one `wiki_process` broker proposal containing wiki page changes plus the move manifest. Do not write wiki pages or move sources directly.
