@@ -21,12 +21,12 @@ def _note(path: Path, metadata: str, title: str = "Example") -> None:
 def test_recent_finds_items_within_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Capture/02 Notes/Recent.md",
+        layer1 / "02 Journal/Recent.md",
         "type: note\ncreated: 2026-08-02\nstatus: active",
         "Recent note",
     )
     _note(
-        layer1 / "01 Capture/02 Notes/Older.md",
+        layer1 / "02 Journal/Older.md",
         "type: note\ncreated: 2026-07-30\nstatus: active",
         "Older note",
     )
@@ -45,12 +45,12 @@ def test_recent_finds_items_within_window(second_self: SecondSelfPaths) -> None:
 def test_recent_excludes_items_outside_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Capture/02 Notes/Recent.md",
+        layer1 / "02 Journal/Recent.md",
         "type: note\ncreated: 2026-08-02\nstatus: active",
         "Recent note",
     )
     _note(
-        layer1 / "01 Capture/02 Notes/Old.md",
+        layer1 / "02 Journal/Old.md",
         "type: note\ncreated: 2026-07-01\nstatus: active",
         "Old note",
     )
@@ -63,7 +63,7 @@ def test_recent_excludes_items_outside_window(second_self: SecondSelfPaths) -> N
 def test_recent_custom_days_window(second_self: SecondSelfPaths) -> None:
     layer1 = second_self.layer1
     _note(
-        layer1 / "01 Capture/02 Notes/TenDaysOld.md",
+        layer1 / "02 Journal/TenDaysOld.md",
         "type: note\ncreated: 2026-07-25\nstatus: active",
         "Ten days old",
     )
@@ -79,9 +79,10 @@ def test_recent_cli_returns_json(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     layer1 = second_self.layer1
+    created = date.today().isoformat()
     _note(
-        layer1 / "01 Capture/02 Notes/Recent.md",
-        "type: note\ncreated: 2026-08-02\nstatus: active",
+        layer1 / "02 Journal/Recent.md",
+        f"type: note\ncreated: {created}\nstatus: active",
         "Recent note",
     )
     monkeypatch.setattr("second_self.cli.load_paths", lambda require_config=True: second_self)
@@ -91,5 +92,6 @@ def test_recent_cli_returns_json(
     assert result == 0
     output = capsys.readouterr().out
     assert '"results"' in output
-    assert "2026-08-02" in output
+    assert created in output
+    assert "Recent note" in output
     assert str(second_self.data_root) not in output

@@ -13,3 +13,16 @@ Version: `1.0.0`
 5. If evidence is missing or contradictory, state what was searched and ask.
 6. Do not load unrelated journals or history.
 
+## Ranked Recall Command
+
+Use the `recall` CLI subcommand for ranked results across Layer 1:
+
+```sh
+python -m second_self recall "<topic>" [--max-results N] [--min-score N]
+```
+
+Results are scored by folder priority (00 Memory highest), recency, tag
+strength (frontmatter tags and body `#tag` mentions), and title match. Higher
+scores rank first. Use `--min-score` to filter weak matches and `--max-results`
+to cap the result count.
+
