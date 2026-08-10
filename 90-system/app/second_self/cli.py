@@ -16,10 +16,12 @@ from .core.scaffold import scaffold
 from .ingest.ingest import ingest
 from .maintenance.indexes import generate_indexes
 from .maintenance.link_check import build_link_fix_proposal
+from .maintenance.tag_audit import audit_tags, build_tag_audit_proposal
 from .maintenance.validation import validate
 from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
 from .reads.due import due_items
+from .reads.recall import recall_layer1
 from .reads.recent import recent_items
 from .reads.search import search_layer1
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
@@ -46,16 +48,36 @@ def _command_bootstrap(args: argparse.Namespace) -> int:
 
 def _command_validate(args: argparse.Namespace) -> int:
     require_config = not args.privacy
+    paths = load_paths(require_config=require_config)
     errors = validate(
-        load_paths(require_config=require_config),
+        paths,
         privacy=args.privacy,
         check_private=CONFIG_PATH.exists() and not args.tracked_only,
         link_check=args.link_check,
     )
+    audit_result = None
+    if args.tag_audit:
+        audit_result = audit_tags(paths)
+        if not audit_result.valid:
+            errors.append("tag audit found issues")
     if errors:
         _print({"valid": False, "errors": errors})
         return 1
-    _print({"valid": True})
+    if audit_result is not None:
+        specification = build_tag_audit_proposal(paths)
+        if specification["changes"]:
+            _print(propose(paths, specification))
+        else:
+            _print(
+                {
+                    "valid": True,
+                    "unused": audit_result.unused,
+                    "unregistered": audit_result.unregistered,
+                    "near_duplicates": audit_result.near_duplicates,
+                }
+            )
+    else:
+        _print({"valid": True})
     return 0
 
 
@@ -76,6 +98,21 @@ def _command_journal(args: argparse.Namespace) -> int:
 def _command_search(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     _print({"results": search_layer1(paths, args.query, max_results=args.max_results)})
+    return 0
+
+
+def _command_recall(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    _print(
+        {
+            "results": recall_layer1(
+                paths,
+                args.query,
+                max_results=args.max_results,
+                min_score=args.min_score,
+            )
+        }
+    )
     return 0
 
 
@@ -243,6 +280,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="verify all [[wikilinks]] in Layer 1 notes resolve to existing targets",
     )
+    check.add_argument(
+        "--tag-audit",
+        action="store_true",
+        help="audit tags against the Tag Registry for unused or near-duplicate tags",
+    )
     check.set_defaults(func=_command_validate)
 
     capture = sub.add_parser("capture")
@@ -259,6 +301,12 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("query")
     search.add_argument("--max-results", type=int, default=50)
     search.set_defaults(func=_command_search)
+
+    recall = sub.add_parser("recall")
+    recall.add_argument("query")
+    recall.add_argument("--max-results", type=int, default=50)
+    recall.add_argument("--min-score", type=int, default=0)
+    recall.set_defaults(func=_command_recall)
 
     due = sub.add_parser("due")
     due.add_argument("--overdue-only", action="store_true")
