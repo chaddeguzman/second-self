@@ -8,7 +8,7 @@ tell which module does what.
 
 | File / Folder | Purpose |
 |---|---|
-| `cli.py` | Argparse CLI. Wires every subcommand (`capture`, `journal`, `search`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
+| `cli.py` | Argparse CLI. Wires every subcommand (`capture`, `journal`, `search`, `recall`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
 | `web.py` | Flask app for the local dashboard: routes, templates, static assets, Markdown preview rendering, server launcher. |
 | `__main__.py` | Allows `python -m second_self`. |
 | `templates/` | Jinja HTML templates used by `web.py`. |
@@ -38,6 +38,7 @@ Low-level utilities almost every module depends on.
 |---|---|
 | `dashboard.py` | Scans Layer 1 + projects; builds `DashboardSnapshot`, queues, tag index, legacy list. |
 | `search.py` | Full-text search over Layer 1. |
+| `recall.py` | Ranked recall search over Layer 1 (folder priority, recency, tag strength, title match). |
 | `due.py` | Due-date query. |
 | `recent.py` | Recent-items query. |
 
@@ -73,6 +74,8 @@ Low-level utilities almost every module depends on.
 |---|---|
 | `indexes.py` | Regenerate generated index notes. |
 | `validation.py` | Privacy + tracked-file validation (`second-self validate`). |
+| `link_check.py` | Wikilink integrity checker for Layer 1 notes; builds `link_fix` broker proposals. |
+| `tag_audit.py` | Tag vocabulary audit against `Tag Registry.md`; builds `edit` broker proposals for near-duplicates. |
 
 ## Import conventions
 
