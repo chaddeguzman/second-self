@@ -132,11 +132,13 @@ asks what was previously recorded.
 
 Retrieves personal facts, preferences, decisions, commitments, lessons, or
 history from Second Self. The skill reads compact current-view indexes first,
-then searches titles, metadata, and content for the specific topic. Every
-matching source is treated as evidence; conflicts are not discarded. Paths
-and dates are cited for consequential claims. If evidence is missing or
-contradictory, the skill states what was searched and asks. Unrelated
-journals or history are not loaded.
+then searches titles, metadata, and content for the specific topic. The
+`recall` CLI subcommand provides ranked results scored by folder priority,
+recency, tag strength, and title match. Every matching source is treated as
+evidence; conflicts are not discarded. Paths and dates are cited for
+consequential claims. If evidence is missing or contradictory, the skill
+states what was searched and asks. Unrelated journals or history are not
+loaded.
 
 ### second-self-restore
 
