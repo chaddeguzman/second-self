@@ -1,4 +1,0 @@
-interface:
-  display_name: "Second Self Wiki"
-  short_description: "Process and maintain the private LLM wiki"
-  default_prompt: "Use $second-self-wiki to process selected Raw sources into the reviewed private wiki."
