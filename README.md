@@ -78,10 +78,17 @@ replacing the underlying evidence.
 
 New source material enters `01-strategy-storage/01 Capture/00 Raw`. When you say
 "process these files", the agent prepares wiki pages and asks you which
-`04 References` subfolder each source should live in. Valid subfolders are
-`01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
-`06 Uncategorized`. The original filename is preserved and the wiki
-`source_path` points to the References location.
+`04 References` subfolder each source should live in.
+
+Valid subfolders are:
+- `01 books`
+- `02 quotes`
+- `03 research`
+- `04 guides`
+- `05 docs`
+- `06 Uncategorized`.
+
+The original filename is preserved and the wiki `source_path` points to the References location.
 
 The wiki receives traceable derived pages. All wiki pages, source pages, and
 file moves are applied together in a single journaled transaction, so the

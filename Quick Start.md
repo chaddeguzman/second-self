@@ -4,19 +4,19 @@
 
 Second Self currently targets Windows.
 
-| Prerequisite | Status | Why it is needed |
-| --- | --- | --- |
-| Windows 10 or 11 with Windows PowerShell 5.1 | Required | Runs the bootstrap, launcher, validation, backup, and restore scripts and supports the directory-junction layout. |
-| [Git for Windows](https://git-scm.com/download/win) | Required | Clones the repository and manages versioned architecture and workflows. |
-| [Python 3.12 or newer](https://www.python.org/downloads/windows/) | Required | Runs the local application and installs its locked dependencies. Select **Add Python to PATH** if offered. |
-| Internet connection | Required for initial setup | Downloads the repository and Python packages. |
-| [Visual Studio Code](https://code.visualstudio.com/) | Recommended | Provides the documented editing, terminal, Source Control, and project workflow. Another Git-aware editor can be used. |
-| [Obsidian](https://obsidian.md/download) | Recommended | Provides the intended Markdown knowledge-base interface. |
-| [Obsidian Web Clipper](https://obsidian.md/clipper) | Optional | Adds one-click browser capture for web pages, highlights, links, and metadata. |
-| BitLocker or Windows device encryption | Strongly recommended | Protects the private plaintext data on the local system drive. |
-| [`age`](https://github.com/FiloSottile/age) | Required for backup and restore | Encrypts manual Second Self snapshots; it is not required for basic local use. |
-| GitHub account | Optional | Needed to fork, publish changes, use the automated pull-request workflow, or clone GitHub-hosted projects. |
-| Codex or Claude | Optional | A trusted local agent can retrieve context and run workflows, but Obsidian and the dashboard work without one. |
+| Prerequisite                                                      | Status                          | Why it is needed                                                                                                       |
+| ----------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Windows 10 or 11 with PowerShell 5.1                              | Required                        | Runs the bootstrap, launcher, validation, backup, and restore scripts and supports the directory-junction layout.      |
+| [Git for Windows](https://git-scm.com/download/win)               | Required                        | Clones the repository and manages versioned architecture and workflows.                                                |
+| [Python 3.12 or newer](https://www.python.org/downloads/windows/) | Required                        | Runs the local application and installs its locked dependencies. Select **Add Python to PATH** if offered.             |
+| Internet connection                                               | Required for initial setup      | Downloads the repository and Python packages.                                                                          |
+| [Visual Studio Code](https://code.visualstudio.com/)              | Recommended                     | Provides the documented editing, terminal, Source Control, and project workflow. Another Git-aware editor can be used. |
+| [Obsidian](https://obsidian.md/download)                          | Recommended                     | Provides the intended Markdown knowledge-base interface.                                                               |
+| [Obsidian Web Clipper](https://obsidian.md/clipper)               | Optional                        | Adds one-click browser capture for web pages, highlights, links, and metadata.                                         |
+| BitLocker or Windows device encryption                            | Strongly recommended            | Protects the private plaintext data on the local system drive.                                                         |
+| [`age`](https://github.com/FiloSottile/age)                       | Required for backup and restore | Encrypts manual Second Self snapshots; it is not required for basic local use.                                         |
+| GitHub account                                                    | Optional                        | Needed to fork, publish changes, use the automated pull-request workflow, or clone GitHub-hosted projects.             |
+| Codex or Claude                                                   | Optional                        | A trusted local agent can retrieve context and run workflows, but Obsidian and the dashboard work without one.         |
 
 ### Install the Tools
 
