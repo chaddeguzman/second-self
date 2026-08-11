@@ -3,28 +3,25 @@
 ## Universal Entry Point
 
 This file is the canonical startup guide for **any coding agent** (Claude Code,
-Cline, Cursor, Deepseek, Windsurf, or any other LLM-powered agent). If you are
-an agent reading this for the first time:
+Cline, Cursor, Deepseek, Windsurf, or any other LLM-powered agent).
+
+If you are an agent reading this for the first time:
 
 1. Read `01-strategy-storage/00 Memory/00 Second Self Context.md` for the system's
    purpose, architecture, privacy model, and shared human-agent context.
 2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
    immediate task permits, ask one focused question from an incomplete memory
    topic and save only a user-confirmed summary.
-3. Read `90-system/docs/OPERATING-MODEL.md` and
-   `90-system/docs/SECURITY.md`.
+3. Read `90-system/docs/OPERATING-MODEL.md` and `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
-5. Browse `02-skills-projects/skills/` to discover available skills. Each skill
-   has a `SKILL.md` with instructions. Use the matching skill when a task
-   matches its description.
-6. Use `01-strategy-storage/README.md` and
-   `02-skills-projects/README.md` as the folder-purpose guides. Use
-   `Quick Start.md` for the independent nested-project Git workflow.
-7. Before writing, moving, or deleting any file through an Obsidian-aware
-   operation, confirm the active vault is Second Self. Treat this as an
-   approved-vault safelist of one; never touch another vault from a Second
-   Self session, even if asked.
-
+5. Browse `02-skills-projects/skills/` to discover available skills. Each skill has a
+   `SKILL.md` with instructions. Use the matching skill when a task matches its description.
+6. Use `01-strategy-storage/README.md` and `02-skills-projects/README.md`
+   as the folder-purpose guides. Use `Quick Start.md` for the independent
+   nested-project Git workflow.
+7. Before writing, moving, or deleting any file through an Obsidian-aware operation,
+   confirm the active vault is Second Self. Treat this as an approved-vault safelist of one;
+   never touch another vault from a Second Self session, even if asked.
 ## Startup
 
 1. Always read
@@ -164,8 +161,7 @@ an agent reading this for the first time:
   or payload. Accept `Y` or `Yes` to apply and `N` or `No` to reject. Never
   require an approval phrase, proposal ID, timestamp, or second approval.
   Changed inputs invalidate approval and require a new proposal.
-- Deletion means moving to private trash. Permanent purge is separately
-  protected.
+- Deletion means moving to private trash. Permanent purge is separately protected.
 - Project agents may update their own project record directly. Put broader
   lessons and proposed Layer 1 changes in the inbox.
 - Never expose private paths or personal content in Git, logs, hook output, or
