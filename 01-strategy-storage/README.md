@@ -111,9 +111,12 @@ surface conflicts instead of silently choosing between contradictory records.
 
 ## Using Layer 1 as Context
 
-`00 Memory` is the starting point for durable personal context, but it is not
-the only context available to the user, Codex, Claude, or another trusted
-agent. All six Layer 1 folders may contribute to recall and reasoning:
+`04 References` is the starting point for most personal recall — that's where
+the majority of what gets asked for actually lives. Begin with
+`00 Memory` instead only when the question is clearly about Chad's identity,
+values, or beliefs specifically. Neither is the only context available to the
+user, Codex, Claude, or another trusted agent. All six Layer 1 folders may
+contribute to recall and reasoning:
 
 - `00 Memory` provides stable personal context and confirmed understanding.
 - `01 Capture` contributes captured thoughts, notes, and working ideas.
@@ -125,7 +128,7 @@ agent. All six Layer 1 folders may contribute to recall and reasoning:
 - `05 Reviews` contributes periodic assessments, decisions, follow-ups, and
   explanations for previous changes.
 
-For a simple question, one relevant memory note may be enough. For deeper
+For a simple question, one relevant reference note may be enough. For deeper
 recall, investigations, project work, or idea development, use a larger
 task-relevant context set assembled from several folders. The goal is to use
 the available context window well without loading unrelated private material

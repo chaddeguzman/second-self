@@ -26,7 +26,8 @@ and follow the instructions manually.
 
 Follow the recall workflow in AGENTS.md. Key points:
 
-1. Start in `01-strategy-storage/00 Memory`, then assemble broader context.
+1. Start by checking `04 References` subfolders for most requests; begin with
+   `00 Memory` only for identity/values questions.
 2. Use the `second-self-recall` skill.
 3. Cite stored sources and dates. Do not invent personal context.
 

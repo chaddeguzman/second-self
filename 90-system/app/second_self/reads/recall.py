@@ -21,11 +21,13 @@ SKIPPED_DIRECTORIES = {"98-trash", "99-audit"}
 EXCLUDED_FILES = {"tag registry.md"}
 
 # Folder priority weights (higher = more important).
+# 04 References ranks highest because most personal recall lives there;
+# 00 Memory remains high for identity/values questions.
 FOLDER_PRIORITY = {
-    "00 memory": 40,
-    "03 strategy": 30,
+    "04 references": 40,
+    "00 memory": 30,
+    "03 strategy": 25,
     "02 journal": 20,
-    "04 references": 15,
     "05 reviews": 10,
     "01 capture": 5,
 }
