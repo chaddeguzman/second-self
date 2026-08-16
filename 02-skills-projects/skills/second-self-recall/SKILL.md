@@ -21,8 +21,7 @@ Use the `recall` CLI subcommand for ranked results across Layer 1:
 python -m second_self recall "<topic>" [--max-results N] [--min-score N]
 ```
 
-Results are scored by folder priority (00 Memory highest), recency, tag
-strength (frontmatter tags and body `#tag` mentions), and title match. Higher
-scores rank first. Use `--min-score` to filter weak matches and `--max-results`
-to cap the result count.
-
+Results are scored by folder priority (04 References highest for most recall),
+recency, tag strength (frontmatter tags and body `#tag` mentions), and title
+match. Higher scores rank first. Use `--min-score` to filter weak matches and
+`--max-results` to cap the result count.

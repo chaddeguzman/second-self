@@ -85,7 +85,8 @@ recovered before another source is processed.
 
 ## Evidence and Retrieval
 
-- Start with `01-strategy-storage/00 Memory` for durable personal context.
+- Start by checking `04 References` subfolders for most requests; begin with
+  `00 Memory` only for identity/values questions.
 - Use the wiki index to locate relevant derived pages.
 - Trace consequential claims through wiki source pages to their primary
   evidence.

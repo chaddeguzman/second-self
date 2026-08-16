@@ -24,12 +24,12 @@ def _note(
     return str(path.relative_to(root.data_root).as_posix())
 
 
-def test_folder_priority_ranks_memory_higher(second_self: SecondSelfPaths) -> None:
+def test_folder_priority_ranks_references_higher(second_self: SecondSelfPaths) -> None:
+    _note(second_self, "04 References/03 research/Note.md", body="discuss the topic")
     _note(second_self, "00 Memory/Profile.md", body="discuss the topic")
-    _note(second_self, "01 Capture/Note.md", body="discuss the topic")
     results = recall_layer1(second_self, "discuss")
     assert len(results) == 2
-    assert results[0]["path"].startswith("01-strategy-storage/00 Memory")
+    assert results[0]["path"].startswith("01-strategy-storage/04 References")
     assert results[0]["score"] > results[1]["score"]
 
 
