@@ -23,8 +23,13 @@
     </div>
     <nav class="shell navigation" aria-label="Primary navigation">
       <a class="{{ 'active' if request.endpoint == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
-      <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
-      <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" href="{{ url_for('journal') }}">Journal</a>
+      {% if read_only %}
+        <span aria-disabled="true" title="Disabled in read-only mode">Capture <small>Read-only</small></span>
+        <span aria-disabled="true" title="Disabled in read-only mode">Journal <small>Read-only</small></span>
+      {% else %}
+        <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
+        <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" href="{{ url_for('journal') }}">Journal</a>
+      {% endif %}
       <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" href="{{ url_for('tag_list') }}">Tags</a>
       <a class="{{ 'active' if request.endpoint == 'search' else '' }}" href="{{ url_for('search') }}">Search</a>
       <a class="{{ 'active' if request.endpoint == 'due' else '' }}" href="{{ url_for('due') }}">Due</a>
@@ -37,8 +42,7 @@
   </header>
 
   <main id="main-content" class="shell main-content">
-    {% if not read_only %}
-    {% set tag_rename_tags = tags | default([]) %}
+    {% if not read_only and tags is defined %}
     <dialog id="rename-tag-modal" class="modal" aria-modal="true" aria-labelledby="rename-tag-modal-title">
       <form class="modal-panel" method="post" action="{{ url_for('rename_tag') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -48,7 +52,7 @@
             <input type="hidden" name="old_tag" required />
             <button type="button" class="tag-dropdown-toggle" data-tag-dropdown-toggle>Select a tag</button>
             <ul class="tag-dropdown-list" hidden>
-              {% for tag, _ in tag_rename_tags %}
+              {% for tag, _ in tags %}
                 <li><button type="button" class="tag-dropdown-option" data-tag-value="{{ tag }}">{{ tag }}</button></li>
               {% endfor %}
             </ul>
@@ -64,7 +68,10 @@
     {% endif %}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        <div class="notice notice-{{ category }}" role="status">{{ message }}</div>
+        <div class="notice notice-{{ category }}" role="status">
+          {{ message }}
+          <button type="button" class="notice-dismiss" data-dismiss aria-label="Dismiss">✕</button>
+        </div>
       {% endfor %}
     {% endwith %}
     {% block content %}{% endblock %}

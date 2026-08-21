@@ -28,14 +28,17 @@
   </div>
 </section>
 
+{% if truncated %}
+  <div class="notice" role="status">Only the first {{ results|length }} matches are shown. Narrow your query for more precise results.</div>
+{% endif %}
 {% if results %}
   <ul class="record-list">
     {% for result in results %}
       <li>
         <article>
           <div>
-            <h2><a href="{{ url_for('search') }}#">{{ result.path }}</a></h2>
-            <p class="path">{{ result.snippet }}</p>
+            <h2><a href="{{ result.preview_url }}">{{ result.path }}</a></h2>
+            <p class="path">{{ result.snippet_html }}</p>
           </div>
         </article>
       </li>

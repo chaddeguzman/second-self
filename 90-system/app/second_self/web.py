@@ -15,7 +15,6 @@ from urllib.parse import unquote, urlsplit
 import markdown
 from flask import (
     Flask,
-    Response,
     abort,
     flash,
     redirect,
@@ -31,7 +30,12 @@ from werkzeug.exceptions import SecurityError
 
 from .broker.broker import approve, load_proposal, propose
 from .core.paths import SecondSelfPaths
-from .reads.dashboard import DashboardItem, MAX_NOTE_BYTES, scan_dashboard
+from .reads.dashboard import (
+    DashboardItem,
+    MAX_NOTE_BYTES,
+    legacy_items,
+    scan_dashboard,
+)
 from .reads.due import due_items
 from .reads.recent import recent_items
 from .reads.search import search_layer1
@@ -257,6 +261,26 @@ def create_app(
     def healthz():
         return {"status": "ready"}
 
+    @app.get("/stats")
+    def stats():
+        snapshot = scan_dashboard(paths)
+        captures = snapshot.queues.get("captures")
+        return {
+            "scanned_files": snapshot.scanned_files,
+            "captures": len(captures.items) if captures else 0,
+            "wiki_pending": len(snapshot.wiki.get("pending", [])),
+            "active_projects": len(snapshot.active_projects),
+        }
+
+    @app.get("/legacy")
+    def legacy():
+        items = legacy_items(paths)
+        return render_template(
+            "legacy.html",
+            items=items,
+            read_only=read_only,
+        )
+
     @app.get("/")
     def home():
         snapshot = scan_dashboard(paths)
@@ -305,10 +329,15 @@ def create_app(
         items = snapshot.tag_index.get(tag)
         if items is None:
             abort(404)
+        all_tags = sorted(
+            snapshot.tag_index.items(),
+            key=lambda pair: (-len(pair[1]), pair[0].casefold()),
+        )
         return render_template(
             "tag.html",
             tag=tag,
             items=items,
+            tags=all_tags,
             read_only=read_only,
         )
 
@@ -417,16 +446,38 @@ def create_app(
     def search():
         query = request.args.get("q", "").strip()
         results = search_layer1(paths, query) if query else []
+        for result in results:
+            result["preview_url"] = url_for(
+                "preview",
+                token=preview_token(
+                    result.get("scope", "layer1"),
+                    result.get("relative_path", ""),
+                ),
+            )
+            matched = result.get("matched", "")
+            snippet_html = html.escape(result.get("snippet", ""))
+            if matched:
+                snippet_html = snippet_html.replace(
+                    html.escape(matched),
+                    f"<mark>{html.escape(matched)}</mark>",
+                )
+            result["snippet_html"] = Markup(snippet_html)
         return render_template(
             "search.html",
             query=query,
             results=results,
+            truncated=getattr(results, "truncated", False),
             read_only=read_only,
         )
 
     @app.get("/due")
     def due():
         results = due_items(paths)
+        for item in results:
+            item["preview_url"] = url_for(
+                "preview",
+                token=preview_token(item["scope"], item["relative_path"]),
+            )
         overdue = [r for r in results if int(r["days_until_due"]) < 0]
         upcoming = [r for r in results if int(r["days_until_due"]) >= 0]
         return render_template(
@@ -440,6 +491,11 @@ def create_app(
     def recent():
         days = request.args.get("days", default=7, type=int)
         results = recent_items(paths, days=days)
+        for item in results:
+            item["preview_url"] = url_for(
+                "preview",
+                token=preview_token(item["scope"], item["relative_path"]),
+            )
         return render_template(
             "recent.html",
             days=days,
@@ -531,6 +587,9 @@ def create_app(
         parser.feed(generated)
         parser.close()
         safe_html = Markup("".join(parser.output))
+        tags = metadata.get("tags", [])
+        if not isinstance(tags, list):
+            tags = []
         return render_template(
             "preview.html",
             metadata={
@@ -538,6 +597,7 @@ def create_app(
                 "status": metadata.get("status", ""),
                 "created": metadata.get("created", ""),
             },
+            tags=[str(tag) for tag in tags if isinstance(tag, str) and tag.strip()],
             title=next(
                 (
                     line[2:].strip()
@@ -554,14 +614,29 @@ def create_app(
     @app.errorhandler(SecurityError)
     def untrusted_host(error):  # type: ignore[no-untyped-def]
         correlation = secrets.token_hex(4)
-        return Response(
+        page = (
             "<!doctype html><html lang=\"en\"><head>"
-            "<meta charset=\"utf-8\"><title>Local request rejected</title>"
-            "</head><body><main><h1>Request rejected</h1>"
-            f"<p>Reference: {correlation}</p></main></body></html>",
-            status=400,
-            content_type="text/html; charset=utf-8",
+            "<meta charset=\"utf-8\"><meta name=\"color-scheme\" content=\"dark\">"
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+            "<title>Local request rejected · Second Self</title>"
+            "<style>body{margin:0;background:#1b1c20;color:#f2eee5}"
+            "main{display:flex;min-height:100vh;align-items:center;justify-content:center}"
+            ".card{border:1px solid #414249;border-radius:24px;background:#25262b;"
+            "box-shadow:0 18px 50px rgba(0,0,0,.24);max-width:600px;padding:2.5rem;text-align:center}"
+            ".accent{color:#e2bd6b}.muted{color:#b8b2a6;font-size:.82rem}"
+            "a{color:#e2bd6b;text-decoration:none}a:hover{color:#d5ad5b}"
+            "code{background:#3d3322;padding:.1rem .25rem;border-radius:3px}</style></head>"
+            "<body><main><section class=\"card\">"
+            "<p class=\"accent\">Local request rejected</p>"
+            "<h1>Second Self could not complete that request.</h1>"
+            "<p class=\"muted\">No private content or filesystem details were included in this error.</p>"
+            "<p class=\"muted\">Reference: <code>"
+            + correlation
+            + "</code></p>"
+            "<p><a href=\"/\">Return Home</a></p>"
+            "</section></main></body></html>"
         )
+        return page, 400
 
     @app.errorhandler(400)
     @app.errorhandler(403)

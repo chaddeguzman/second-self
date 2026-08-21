@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Legacy · Second Self{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ url_for('home') }}">Home</a><span aria-hidden="true">/</span><span>Legacy files</span>
+</nav>
+<section class="page-header narrow">
+  <p class="eyebrow">Legacy-safe view</p>
+  <h1>Excluded files</h1>
+  <p>These files were excluded from operational counts because they are too large, unreadable, or lack structured metadata. They are listed here for transparency, never rendered or indexed.</p>
+</section>
+
+{% if items %}
+  <ul class="record-list">
+    {% for item in items %}
+      <li>
+        <article>
+          <div>
+            <h2>{{ item.path }}</h2>
+            <dl>
+              <div><dt>Scope</dt><dd>{{ item.scope }}</dd></div>
+              <div><dt>Reason</dt><dd>{{ item.reason }}</dd></div>
+            </dl>
+          </div>
+        </article>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="empty-panel large">
+    <strong>No excluded files.</strong>
+    <p>All Layer 1 files were scanned safely.</p>
+  </div>
+{% endif %}
+{% endblock %}

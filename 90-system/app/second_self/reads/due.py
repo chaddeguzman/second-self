@@ -30,6 +30,8 @@ def due_items(
                 "status": item.status,
                 "due": item.due.isoformat(),
                 "days_until_due": days_until_due,
+                "scope": item.scope,
+                "relative_path": item.relative_path,
             }
         )
     results.sort(key=lambda entry: (entry["due"], str(entry["title"]).casefold()))

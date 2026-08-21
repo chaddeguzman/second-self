@@ -289,6 +289,8 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         "/recent",
         "/search",
         "/static/<path:filename>",
+        "/stats",
+        "/legacy",
         "/tags",
         "/tags/<token>",
         "/tags/rename",
@@ -324,7 +326,7 @@ def test_search_page_finds_matches_without_exposing_private_root(tmp_path: Path)
     response = client.get("/search?q=unique%20searchable")
 
     assert response.status_code == 200
-    assert b"unique searchable content" in response.data
+    assert b"<mark>unique searchable</mark> content" in response.data
     assert b"Searchable.md" in response.data
     assert str(paths.data_root).encode() not in response.data
 
