@@ -30,6 +30,8 @@ def recent_items(
                 "status": item.status,
                 "created": item.created.isoformat(),
                 "age_days": age_days,
+                "scope": item.scope,
+                "relative_path": item.relative_path,
             }
         )
     results.sort(

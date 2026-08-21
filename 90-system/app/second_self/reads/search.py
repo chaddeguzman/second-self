@@ -43,6 +43,7 @@ def search_layer1(
                 ]
             for name in files:
                 if len(results) >= max_results:
+                    results.truncated = True  # type: ignore[attr-defined]
                     return results
                 path = current / name
                 try:
@@ -57,6 +58,8 @@ def search_layer1(
                 results.append(
                     {
                         "path": path.relative_to(paths.data_root).as_posix(),
+                        "relative_path": path.relative_to(root).as_posix(),
+                        "scope": "layer1",
                         "snippet": _snippet(text, index, index + len(query)),
                         "matched": text[index : index + len(query)],
                     }

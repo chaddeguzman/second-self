@@ -19,13 +19,14 @@
 {% if snapshot.legacy_excluded or snapshot.scan_errors %}
 <aside class="data-notice" aria-label="Data quality notice">
   <strong>Legacy-safe view</strong>
-  <span>
-    {{ snapshot.legacy_excluded }} unstructured file{{ '' if snapshot.legacy_excluded == 1 else 's' }}
-    excluded from operational counts.
-    {% if snapshot.scan_errors %}
-      {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be scanned safely.
-    {% endif %}
-  </span>
+    <span>
+      {{ snapshot.legacy_excluded }} unstructured file{{ '' if snapshot.legacy_excluded == 1 else 's' }}
+      excluded from operational counts.
+      {% if snapshot.scan_errors %}
+        {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be scanned safely.
+      {% endif %}
+    </span>
+    <a class="card-link" href="{{ url_for('legacy') }}">View excluded files</a>
 </aside>
 {% endif %}
 
@@ -34,7 +35,7 @@
     <p class="eyebrow">Unified inbox</p>
     <h2>Action queues</h2>
   </div>
-  <p>{{ snapshot.scanned_files }} structured or legacy Markdown files checked locally.</p>
+  <p><span data-stat="scanned_files">{{ snapshot.scanned_files }}</span> structured or legacy Markdown files checked locally.</p>
 </section>
 
 {% set queue = snapshot.queues['captures'] %}
@@ -48,7 +49,7 @@
       {% if queue.state == 'unavailable' %}Not configured yet
       {% elif queue.state == 'scan-error' %}Needs attention
       {% elif queue.state == 'configured-empty' %}Clear
-      {% else %}{{ queue.items|length }} file{{ '' if queue.items|length == 1 else 's' }}{% endif %}
+      {% else %}<span data-stat="captures">{{ queue.items|length }}</span> file{{ '' if queue.items|length == 1 else 's' }}{% endif %}
     </span>
   </div>
   {% if queue.state == 'unavailable' %}
@@ -101,7 +102,7 @@
   </div>
   <div class="card-grid">
     <article class="queue-card">
-      <span class="count">{{ snapshot.wiki.pending|length }}</span>
+      <span class="count" data-stat="wiki_pending">{{ snapshot.wiki.pending|length }}</span>
       <h3>Pending Raw sources</h3>
       <p>{{ snapshot.wiki.unsupported|length }} unsupported and {{ snapshot.wiki.duplicates|length }} duplicate source(s).</p>
     </article>
@@ -124,7 +125,7 @@
       <p class="eyebrow">Current work</p>
       <h2>Active projects</h2>
     </div>
-    <span class="count">{{ snapshot.active_projects|length }}</span>
+    <span class="count" data-stat="active_projects">{{ snapshot.active_projects|length }}</span>
   </div>
   {% if snapshot.active_projects %}
     <ul class="project-list">

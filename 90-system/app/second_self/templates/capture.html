@@ -24,8 +24,8 @@
     <div class="field-help">A short, single-line description.</div>
 
     <label for="body">Body</label>
-    <textarea id="body" name="body" maxlength="102400" required rows="14">{{ body or '' }}</textarea>
-    <div class="field-help">Markdown is accepted. Maximum 100 KiB.</div>
+    <textarea id="body" name="body" maxlength="102400" required rows="14" data-char-count>{{ body or '' }}</textarea>
+    <div class="field-help">Markdown is accepted. Maximum 100 KiB. <span class="char-count" data-char-count-for="body"></span></div>
 
     <div class="form-actions">
       <button class="button" type="submit">Save to private inbox</button>

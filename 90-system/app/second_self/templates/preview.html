@@ -17,6 +17,13 @@
     <div><dt>Status</dt><dd>{{ metadata.status or 'Unavailable' }}</dd></div>
     <div><dt>Created</dt><dd>{{ metadata.created or 'Unavailable' }}</dd></div>
   </dl>
+  {% if tags %}
+  <div class="preview-tags">
+    {% for tag in tags %}
+      <a class="tag-chip" href="{{ tag_url(tag) }}"><strong>{{ tag }}</strong></a>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="path-row">
     <code>{{ relative_path }}</code>
     <button class="copy-button" type="button" data-copy="{{ relative_path }}">Copy path</button>
