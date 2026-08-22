@@ -22,7 +22,7 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 status: active
 verification: derived
-source_id: <full sha256 or bundle manifest hash>
+source_id: <12-char truncated sha256 or bundle manifest hash>
 source_path: <private-relative final path>
 source_sha256: <full sha256 or bundle manifest hash>
 source_kind: <format or bundle>
@@ -33,6 +33,12 @@ tags: []
 projects: []
 related: []
 ```
+
+`source_id` is the first 12 hex characters (48 bits) of the SHA-256 digest,
+matching the source-page filename prefix (e.g. `072958a2620b-<slug>.md`). It
+serves as the primary key for deduplication and is collision-safe for a
+personal vault. `source_sha256` retains the full 64-character digest and is
+used for integrity and change detection.
 
 Use sections: Summary, Key Evidence, Connections, Uncertainties, and Source.
 Label visual transcription or interpretation as agent-generated.

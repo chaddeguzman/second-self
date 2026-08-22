@@ -17,6 +17,7 @@ from second_self.wiki.wiki import (
     lint_wiki,
     references_destination,
     source_hash,
+    source_id,
     wiki_status,
 )
 
@@ -52,6 +53,12 @@ def test_add_status_and_collision_safe_copy(
     assert len(status["pending"]) == 2
 
 
+def test_source_id_truncates_to_12_chars() -> None:
+    digest = "072958a2620bc0d4459fd8ac5ba6bee566ff39c76a6ba1d283a33be4fa0709dd"
+    assert source_id(digest) == "072958a2620b"
+    assert len(source_id(digest)) == 12
+
+
 def test_bundle_hash_changes_with_relative_path(second_self: SecondSelfPaths) -> None:
     bundle = second_self.raw / "Article"
     bundle.mkdir()
@@ -81,7 +88,7 @@ def test_wiki_process_moves_source_to_references_and_updates_pages(
     source_page = _page(
         "wiki-source",
         extra=(
-            f"source_id: {digest}\n"
+            f"source_id: {source_id(digest)}\n"
             f"source_path: \"{move['to']}\"\n"
             f"source_sha256: {digest}\n"
             "source_kind: md\n"
@@ -133,7 +140,7 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
                     "content": _page(
                         "wiki-source",
                         extra=(
-                            f"source_id: {digest}\nsource_path: \"{move['to']}\"\n"
+                            f"source_id: {source_id(digest)}\nsource_path: \"{move['to']}\"\n"
                             f"source_sha256: {digest}\n"
                         ),
                     ),
@@ -173,7 +180,7 @@ def test_wiki_process_rolls_back_page_when_move_fails(
                     "content": _page(
                         "wiki-source",
                         extra=(
-                            f"source_id: {digest}\nsource_path: \"{move['to']}\"\n"
+                            f"source_id: {source_id(digest)}\nsource_path: \"{move['to']}\"\n"
                             f"source_sha256: {digest}\n"
                         ),
                     ),
@@ -262,7 +269,7 @@ def test_status_detects_new_and_changed_curated_notes(
         _page(
             "wiki-source",
             extra=(
-                f"source_id: {first_hash}\nsource_path: \"{relative}\"\n"
+                f"source_id: {source_id(first_hash)}\nsource_path: \"{relative}\"\n"
                 f"source_sha256: {first_hash}\n"
             ),
         ),
