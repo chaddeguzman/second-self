@@ -58,6 +58,17 @@ def source_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
+def source_id(digest: str) -> str:
+    """Return the short 12-character source identifier.
+
+    The full SHA-256 digest is truncated to its first 12 hex characters
+    (48 bits). This matches the source-page filename prefix convention and
+    is collision-safe for a personal vault (see schema.md). The full digest
+    is retained separately as ``source_sha256`` for integrity checks.
+    """
+    return digest[:12]
+
+
 def _supported(path: Path) -> bool:
     if path.is_file():
         return path.suffix.casefold() in SUPPORTED
@@ -78,7 +89,7 @@ def raw_units(paths: SecondSelfPaths) -> list[SourceUnit]:
         units.append(
             SourceUnit(
                 item,
-                digest,
+                source_id(digest),
                 "bundle" if item.is_dir() else item.suffix.casefold().lstrip("."),
                 _supported(item),
             )
@@ -123,7 +134,7 @@ def add_source(paths: SecondSelfPaths, source: Path) -> dict[str, Any]:
     digest = source_hash(unit)
     duplicates = digest in _source_records(paths)
     return {
-        "source_id": digest,
+        "source_id": source_id(digest),
         "path": unit.relative_to(paths.data_root).as_posix(),
         "kind": "bundle" if unit.is_dir() else unit.suffix.casefold().lstrip("."),
         "supported": _supported(unit),
@@ -205,7 +216,7 @@ def wiki_status(paths: SecondSelfPaths) -> dict[str, Any]:
         record = records_by_path.get(relative)
         value = {
             "path": relative,
-            "source_id": digest,
+            "source_id": source_id(digest),
             "kind": path.suffix.casefold().lstrip("."),
         }
         if record and record.get("source_sha256") != digest:
