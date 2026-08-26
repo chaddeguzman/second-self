@@ -6,7 +6,6 @@ tags: []
 projects: []
 related: []
 ---
-
 # {{date}}
 
 ## Notes

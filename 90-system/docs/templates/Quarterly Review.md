@@ -6,7 +6,6 @@ tags: [quarterly-review]
 projects: []
 related: []
 ---
-
 # Quarterly Review - {{date}}
 
 ## Identity And Values

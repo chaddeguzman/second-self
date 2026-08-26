@@ -8,7 +8,6 @@ local_path: ""
 tags: []
 related: []
 ---
-
 # {{title}}
 
 ## Outcome

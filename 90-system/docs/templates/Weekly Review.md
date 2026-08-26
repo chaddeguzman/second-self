@@ -6,7 +6,6 @@ tags: [weekly-review]
 projects: []
 related: []
 ---
-
 # Weekly Review - {{date}}
 
 ## Inbox Decisions
