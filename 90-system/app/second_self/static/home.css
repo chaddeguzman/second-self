@@ -161,7 +161,7 @@ dd { margin: .2rem 0 0; }
   position: fixed;
   inset: 0;
   border: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
