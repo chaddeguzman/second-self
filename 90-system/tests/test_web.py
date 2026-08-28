@@ -295,6 +295,7 @@ def test_request_limit_and_route_surface(tmp_path: Path):
         "/tags/<token>",
         "/tags/rename",
         "/view/<token>",
+        "/wiki/process-raw",
     }
     assert not any(
         fragment in rule

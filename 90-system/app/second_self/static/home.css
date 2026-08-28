@@ -182,6 +182,48 @@ dd { margin: .2rem 0 0; }
   box-shadow: var(--shadow);
 }
 .modal-panel h3 { margin: 0 0 1rem; font-size: 1.35rem; }
+.modal-panel .muted { color: var(--muted); font-size: .88rem; margin: 0 0 .6rem; }
+
+.process-raw-list {
+  max-height: 46vh;
+  overflow-y: auto;
+  margin-top: .6rem;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.process-raw-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .55rem .7rem;
+}
+
+.process-raw-name {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 600;
+  min-width: 0;
+  margin: 0;
+}
+
+.process-raw-name span {
+  overflow-wrap: anywhere;
+}
+
+.process-raw-name input[type="checkbox"] {
+  width: auto;
+}
+
+.modal-panel .process-raw-row select {
+  width: auto;
+  min-width: 11rem;
+}
 .modal-panel label { display: block; margin: 1rem 0 .45rem; font-weight: 750; }
 .modal-panel select, .modal-panel input, .tag-dropdown-toggle {
   width: 100%;

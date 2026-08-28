@@ -43,6 +43,11 @@ from .writes.capture import capture_note
 from .writes.journal import journal_entry
 from .writes.tag_rename import build_tag_rename_proposal
 from .core.frontmatter import read_note
+from .wiki.web_process import (
+    eligible_raw_sources,
+    build_wiki_process_spec,
+    REFERENCES_SUBFOLDERS,
+)
 
 
 DEFAULT_PORT = 8765
@@ -284,10 +289,13 @@ def create_app(
     @app.get("/")
     def home():
         snapshot = scan_dashboard(paths)
+        raw_sources = [] if read_only else eligible_raw_sources(paths)
         return render_template(
             "home.html",
             snapshot=snapshot,
             queue_order=("captures",),
+            raw_sources=raw_sources,
+            subfolders=sorted(REFERENCES_SUBFOLDERS),
             read_only=read_only,
         )
 
@@ -374,6 +382,56 @@ def create_app(
             f"Tag rename proposal created: {old_tag} -> {new_tag}. Review and approve it below.",
             "success",
         )
+        return redirect(url_for("broker_show", proposal_id=proposal["id"]), code=303)
+
+    @app.get("/wiki/process-raw")
+    def wiki_process_raw():
+        if read_only:
+            abort(403)
+        snapshot = scan_dashboard(paths)
+        return render_template(
+            "home.html",
+            snapshot=snapshot,
+            queue_order=("captures",),
+            raw_sources=eligible_raw_sources(paths),
+            subfolders=sorted(REFERENCES_SUBFOLDERS),
+            read_only=read_only,
+        )
+
+    @app.post("/wiki/process-raw")
+    def wiki_process_raw_submit():
+        if read_only:
+            abort(403)
+        submitted = request.form.get("csrf_token", "")
+        expected = session.get(CSRF_SESSION_KEY, "")
+        if not expected or not secrets.compare_digest(str(expected), submitted):
+            abort(400)
+        assignments: dict[str, str] = {}
+        for relative_path in request.form.getlist("source_path"):
+            subfolder = request.form.get(f"dest::{relative_path}", "").strip()
+            if not subfolder:
+                continue
+            assignments[relative_path] = subfolder
+        if not assignments:
+            flash("Select at least one destination to process Raw sources.", "error")
+            return redirect(url_for("wiki_process_raw"))
+        try:
+            specification = build_wiki_process_spec(paths, assignments)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return redirect(url_for("wiki_process_raw"))
+        proposal = propose(paths, specification)
+        paths.audit.mkdir(parents=True, exist_ok=True)
+        event = {
+            "time": proposal["created"],
+            "agent": "dashboard",
+            "action": "wiki-process-raw-propose",
+            "paths": [item["from"] for item in specification.get("moves", [])],
+            "approval": proposal["id"],
+        }
+        with (paths.audit / "agent-edits.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(event) + "\n")
+        flash("Process Raw proposal created. Review and approve it below.", "success")
         return redirect(url_for("broker_show", proposal_id=proposal["id"]), code=303)
 
     @app.get("/broker/<proposal_id>")
