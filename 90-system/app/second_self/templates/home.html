@@ -105,7 +105,7 @@
       <span class="count" data-stat="wiki_pending">{{ snapshot.wiki.pending|length }}</span>
       <h3>Pending Raw sources</h3>
       <p>{{ snapshot.wiki.unsupported|length }} unsupported and {{ snapshot.wiki.duplicates|length }} duplicate source(s).</p>
-      {% if not read_only and raw_sources %}
+      {% if not read_only %}
         <button type="button" class="button" data-open="process-raw-modal">Process Raw</button>
       {% endif %}
     </article>
@@ -147,31 +147,38 @@
   {% endif %}
 </section>
 
-{% if not read_only and raw_sources %}
+{% if not read_only %}
 <dialog id="process-raw-modal" class="modal" aria-modal="true" aria-labelledby="process-raw-modal-title">
   <form class="modal-panel" method="post" action="{{ url_for('wiki_process_raw_submit') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <h3 id="process-raw-modal-title">Process Raw sources</h3>
-    <p class="muted">Choose an 04 References destination for each file. Recommendations are pre-selected.</p>
-    <div class="process-raw-list">
-      {% for source in raw_sources %}
-        <div class="process-raw-row">
-          <label class="process-raw-name">
-            <input type="checkbox" name="source_path" value="{{ source.relative_path }}" checked />
-            <span>{{ source.name }}</span>
-          </label>
-          <select name="dest::{{ source.relative_path }}" aria-label="Destination for {{ source.name }}">
-            {% for subfolder in subfolders %}
-              <option value="{{ subfolder }}" {% if subfolder == source.recommendation %}selected{% endif %}>{{ subfolder }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      {% endfor %}
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="button">Create proposal</button>
-      <button type="button" class="button button-secondary" data-close="process-raw-modal">Cancel</button>
-    </div>
+    {% if raw_sources %}
+      <p class="muted">Choose an 04 References destination for each file. Recommendations are pre-selected.</p>
+      <div class="process-raw-list">
+        {% for source in raw_sources %}
+          <div class="process-raw-row">
+            <label class="process-raw-name">
+              <input type="checkbox" name="source_path" value="{{ source.relative_path }}" checked />
+              <span>{{ source.name }}</span>
+            </label>
+            <select name="dest::{{ source.relative_path }}" aria-label="Destination for {{ source.name }}">
+              {% for subfolder in subfolders %}
+                <option value="{{ subfolder }}" {% if subfolder == source.recommendation %}selected{% endif %}>{{ subfolder }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button">Create proposal</button>
+        <button type="button" class="button button-secondary" data-close="process-raw-modal">Cancel</button>
+      </div>
+    {% else %}
+      <p class="muted">No eligible .md or .txt files are waiting in 01 Capture/00 Raw. Add files there, then reopen this dialog.</p>
+      <div class="form-actions">
+        <button type="button" class="button button-secondary" data-close="process-raw-modal">Close</button>
+      </div>
+    {% endif %}
   </form>
 </dialog>
 {% endif %}
