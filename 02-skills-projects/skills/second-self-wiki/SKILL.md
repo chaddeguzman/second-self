@@ -1,10 +1,28 @@
 ---
 name: second-self-wiki
-description: Process files, screenshots, bundles, quick captures, and changed curated notes into the private Second Self LLM Wiki. Use when the user asks to process Raw sources, maintain or lint the wiki, query connected knowledge, refresh changed notes, resolve wiki contradictions, or explicitly save an analysis.
+description: Process files, screenshots, bundles, quick captures, and changed curated notes into the private Second Self LLM Wiki. Use when the user asks to process Raw sources, maintain or lint the wiki, query connected knowledge, refresh changed notes, resolve wiki contradictions, or explicitly save an analysis. Activated by the `process-raw` chat trigger.
 ---
 # Second Self Wiki
 
 Read `references/schema.md` before proposing wiki changes.
+
+## Trigger: process-raw
+
+When the user types `process-raw` (alone or leading a message) in chat, run the full
+**Process sources** workflow below over the pending sources in `01 Capture/00 Raw`,
+with these scope rules:
+
+- Only `.md` and `.txt` files are in scope. Skip images, screenshots, and any other
+  file types (leave them in Raw).
+- Process at most ten sources per run, in filename order.
+- At step 7, do not ask an open-ended destination question. Instead, analyze each
+  file's content against the existing `04 References` subfolders and **present a
+  recommended subfolder per file** (`01 books`, `02 quotes`, `03 research`,
+  `04 guides`, `05 docs`, `06 uncategorized`). Ask for a quick confirm: the user may
+  reply with a single "yes" to accept all recommendations, or correct specific files
+  in one response. Then continue with steps 8–12 unchanged.
+
+If no eligible sources exist in Raw, report that and stop.
 
 ## Process sources
 
