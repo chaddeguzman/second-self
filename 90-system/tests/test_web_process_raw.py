@@ -155,6 +155,20 @@ def test_process_raw_routes_and_proposal_flow(tmp_path: Path):
     assert rejected.status_code == 400
 
 
+def test_process_raw_button_visible_even_when_raw_is_empty(tmp_path: Path):
+    app, _ = _app(tmp_path)
+    client = app.test_client()
+
+    home = client.get("/")
+    modal = client.get("/wiki/process-raw")
+
+    assert home.status_code == 200
+    assert b"Process Raw" in home.data
+    assert b"process-raw-modal" in home.data
+    assert modal.status_code == 200
+    assert b"No eligible .md or .txt files" in modal.data
+
+
 def test_process_raw_read_only_is_forbidden(tmp_path: Path):
     app, paths = _app(tmp_path, read_only=True)
     _raw(paths, "Note.md")
