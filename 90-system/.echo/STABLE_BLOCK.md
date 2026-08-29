@@ -13,7 +13,9 @@
    keeps taking effect on ECHO's very next response.
 2. **Operating rules** — `02-skills-projects/skills/echo/SKILL.md`, in full
    (what ECHO is, fragment-first behavior, interaction pattern, v1
-   boundaries, examples).
+   boundaries, examples), plus `90-system/.echo/RECALL.md` (Tier 6:
+   memory-store recall — keyword-first ranking, derived rebuildable index,
+   graceful degradation).
 3. **Core knowledge** — `90-system/.echo/CORE_KNOWLEDGE.md`
    *(Tier 3 — active; private, git-ignored, human-curated)*. Load it in full
    when present; if a section is still `(fill in)`, skip that section — never

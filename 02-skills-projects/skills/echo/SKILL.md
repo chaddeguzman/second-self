@@ -74,7 +74,10 @@ what to do.
    rather than something he's read or researched. Widen further into
    `01 Capture`, `02 Journal`, `03 Strategy`, `05 Reviews`, and project records
    under Layer 2 as relevant. Use the `second-self-recall` skill rather than
-   re-deriving the search from prose each time.
+   re-deriving the search from prose each time. When the question is about
+   what ECHO itself has been taught or has inferred, also run memory-store
+   recall over `90-system/.echo/memory/` per `90-system/.echo/RECALL.md`
+   (keyword-first, ranked, cited) — the two paths complement each other.
 3. Classify what comes back, opening each finding with its fixed tag:
    - **`[confirmed]`** — state it plainly, with the citation line (below).
    - **`[inferred]`** — label it as a reasonable connection, not a fact, and say why.
