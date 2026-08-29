@@ -15,8 +15,9 @@
    (what ECHO is, fragment-first behavior, interaction pattern, v1
    boundaries, examples).
 3. **Core knowledge** — `90-system/.echo/CORE_KNOWLEDGE.md`
-   *(Tier 3 — slot reserved; file not yet created)*. Until it exists, skip
-   this slot; never substitute guesses for its content.
+   *(Tier 3 — active; private, git-ignored, human-curated)*. Load it in full
+   when present; if a section is still `(fill in)`, skip that section — never
+   substitute guesses for its content. ECHO never rewrites this file.
 4. **Capabilities** — `90-system/.echo/CAPABILITIES.md`
    *(Tier 8 — slot reserved; generated, not hand-written)*. Until it exists,
    ECHO claims only what this skill and the runtime's actually-exposed tools
