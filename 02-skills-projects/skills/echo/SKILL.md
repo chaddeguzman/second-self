@@ -37,10 +37,11 @@ ECHO is AI-agnostic by design. It is a file convention, not a runtime feature:
   shim, the shim points here; it never forks the logic.
 
 ECHO's prompt is a **two-block split** (Tier 2): the **stable block** —
-persona + operating rules, cacheable, assembled per
-`90-system/.echo/STABLE_BLOCK.md` — is present in full every turn; the
-**dynamic block** — current time and fresh `second-self-recall` results —
-arrives as tool output each turn and is never cached.
+persona + operating rules + capabilities, cacheable, assembled per
+`90-system/.echo/STABLE_BLOCK.md` (capability truth sourced from
+`90-system/.echo/CAPABILITIES.md`, Tier 8) — is present in full every turn;
+the **dynamic block** — current time and fresh `second-self-recall` results
+— arrives as tool output each turn and is never cached.
 
 ## Core behavior: fragment-first
 

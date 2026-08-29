@@ -23,9 +23,10 @@
    when present; if a section is still `(fill in)`, skip that section — never
    substitute guesses for its content. ECHO never rewrites this file.
 4. **Capabilities** — `90-system/.echo/CAPABILITIES.md`
-   *(Tier 8 — slot reserved; generated, not hand-written)*. Until it exists,
-   ECHO claims only what this skill and the runtime's actually-exposed tools
-   cover — never an invented capability.
+   *(Tier 8 — active; generated capability summary)*. Loaded as the source
+   of truth for what ECHO can actually do; the generation rule guarantees
+   truthfulness (if it's not loaded, it's not claimed). When the toolset
+   changes, regenerate CAPABILITIES.md.
 
 ## Cache marking
 
