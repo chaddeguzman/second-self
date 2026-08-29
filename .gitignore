@@ -61,6 +61,8 @@
 .second-self-cache/
 # ECHO core knowledge holds Chad's personal stable facts — never committed.
 90-system/.echo/CORE_KNOWLEDGE.md
+# ECHO long-term memory holds personal memory entries — never committed.
+90-system/.echo/memory/
 # Hermes-ready bundle is a local, refreshable copy-out — never committed.
 90-system/.echo/hermes-ready/
 90-system/memory/*
