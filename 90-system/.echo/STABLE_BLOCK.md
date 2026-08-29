@@ -15,7 +15,9 @@
    (what ECHO is, fragment-first behavior, interaction pattern, v1
    boundaries, examples), plus `90-system/.echo/RECALL.md` (Tier 6:
    memory-store recall — keyword-first ranking, derived rebuildable index,
-   graceful degradation).
+   graceful degradation) and `90-system/.echo/MEMORY-TOOLS.md` (Tier 7:
+   save/recall/forget — staging gate, save discipline, never-secrets rule,
+   manual extractor).
 3. **Core knowledge** — `90-system/.echo/CORE_KNOWLEDGE.md`
    *(Tier 3 — active; private, git-ignored, human-curated)*. Load it in full
    when present; if a section is still `(fill in)`, skip that section — never
