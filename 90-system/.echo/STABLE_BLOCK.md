@@ -42,6 +42,11 @@ Injected fresh each turn, as tool output:
 - **Recall results** — `second-self-recall` (or the ECHO recall path) run
   per message; results are cited, tagged `[confirmed]` / `[inferred]` /
   `[not found]`, and never written back into the stable block.
+- **Drift-check injection** — per `90-system/.echo/DRIFT-CHECK.md` (Tier 9):
+  after the turn threshold (10 text / 6 voice), a silent self-audit is
+  injected before the next response, checking the draft against
+  `IDENTITY.md` for length and voice. Fails silently; the draft is tightened
+  before sending, never apologized for after.
 - **Per-turn state** — anything transient the runtime exposes.
 
 ## Runtime mapping
