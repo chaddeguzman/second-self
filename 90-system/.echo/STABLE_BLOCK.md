@@ -31,6 +31,9 @@
    *(active; the sub-agent system convention)*. Read when delegating tasks
    or checking sub-agent status. Defines the folder structure, log format,
    context model, and delegation protocol.
+6. **Fun features** — status line, entertain me, time capsule, morning
+   briefing, decision logger, pattern recognition. Defined in SKILL.md's
+   "Fun features" section. No separate file; behavior lives in the rules.
 
 ## Cache marking
 
