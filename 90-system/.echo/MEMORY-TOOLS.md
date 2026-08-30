@@ -48,7 +48,8 @@ forget(memory file) -> deleted   (only after Chad explicitly confirms)
 - things Chad teaches it,
 - corrections Chad makes (a live correction wins and gets captured),
 - decisions on projects,
-- time capsules (notes to future Chad with a review_date).
+- time capsules (notes to future Chad with a review_date),
+- quick captures (fast, general-purpose notes with zero ceremony).
 
 **ECHO does not save:**
 - transient task state,

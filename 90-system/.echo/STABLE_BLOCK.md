@@ -34,6 +34,10 @@
 6. **Fun features** — status line, entertain me, time capsule, morning
    briefing, decision logger, pattern recognition. Defined in SKILL.md's
    "Fun features" section. No separate file; behavior lives in the rules.
+7. **Sub-agent upgrades** — roster, delegation memory, handoff notes.
+   Defined in SKILL.md's "Sub-agent upgrades" section.
+8. **Quality of life** — quick capture, session wrap-up, memory health
+   dashboard. Defined in SKILL.md's "Quality of life" section.
 
 ## Cache marking
 
