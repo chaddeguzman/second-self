@@ -22,13 +22,13 @@ sub-agent works in parallel while ECHO handles other requests.
 ```
 subagents/
 ├── README.md          ← this file
-├── 01/                ← placeholder (research)
+├── walter/            ← research specialist
 │   ├── SKILL.md       ← specialist operating rules
 │   └── log.md         ← compounding task log
-├── 02/                ← placeholder (investigation)
+├── sherlock/          ← investigation specialist
 │   ├── SKILL.md
 │   └── log.md
-├── 03/                ← placeholder (development/coding)
+├── charlie/           ← development/coding specialist
 │   ├── SKILL.md
 │   └── log.md
 └── NN/                ← future sub-agents follow same pattern
@@ -97,7 +97,7 @@ Each sub-agent does NOT receive:
 
 | Scenario | Behavior |
 |----------|----------|
-| ECHO delegates to wrong agent | Chad overrides: "Use Agent 2." ECHO reassigns. |
+| ECHO delegates to wrong agent | Chad overrides: "Use Charlie." ECHO reassigns. |
 | Two sub-agents simultaneously | Supported — each has its own session and folder. |
 | Sub-agent stuck below 90% | Status stays `In Progress`. ECHO reports partial progress. |
 | Chad cancels a task | ECHO updates the log status to `Cancelled`. |
