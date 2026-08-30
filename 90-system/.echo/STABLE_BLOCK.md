@@ -38,6 +38,9 @@
    Defined in SKILL.md's "Sub-agent upgrades" section.
 8. **Quality of life** — quick capture, session wrap-up, memory health
    dashboard. Defined in SKILL.md's "Quality of life" section.
+9. **Capability reference** — `90-system/.echo/CAPABILITY-LIST.md`
+   (curated human-readable reference; not loaded by the runtime,
+   linked from docs for quick lookup).
 
 ## Cache marking
 
