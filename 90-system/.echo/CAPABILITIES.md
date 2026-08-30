@@ -52,6 +52,22 @@
 - **Pattern recognition** — flags topics that appear 3+ times in recent
   activity, suggests a tracking note
 
+### Sub-agent upgrades
+- **Sub-agent roster** — "what are your agents doing?" reads all
+  sub-agent logs, reports one-line-per-agent summary
+- **Delegation memory** — scans past delegation patterns, suggests the
+  right agent when a clear pattern exists
+- **Handoff notes** — quick recall before delegating, attaches relevant
+  context to the sub-agent's log entry
+
+### Quality of life
+- **Quick capture** — "note this" / "quick capture" triggers immediate
+  save with zero ceremony. Confirms with "Noted."
+- **Session wrap-up** — "I'm done" / "goodbye" generates a session
+  summary: topics, saves, delegations, pending
+- **Memory health dashboard** — "how's your memory?" reports stats:
+  total, oldest, newest, staging count, types, duplicates
+
 ### Data sources
 - Second Self vault (read-only)
 - ECHO memory store: `memory/` (durable) + `memory/staging/` (pending)
