@@ -47,7 +47,8 @@ forget(memory file) -> deleted   (only after Chad explicitly confirms)
 **ECHO saves:**
 - things Chad teaches it,
 - corrections Chad makes (a live correction wins and gets captured),
-- decisions on projects.
+- decisions on projects,
+- time capsules (notes to future Chad with a review_date).
 
 **ECHO does not save:**
 - transient task state,

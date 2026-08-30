@@ -38,6 +38,20 @@
 - **Status check** — when Chad asks "is it done?" read the assigned
   sub-agent's log.md and report current status or results.
 
+### Fun features
+- **Status line** — dynamic one-line status in IDENTITY.md reflecting
+  current system state (sub-agents, staging, conflicts)
+- **Entertain** — responds to "entertain me" / "I'm bored" / "quote me"
+  with a saved quote, a dry joke, or a random old memory
+- **Time capsule** — writes a note to future Chad with a review_date,
+  surfaces it when due
+- **Morning briefing** — "good morning" triggers a structured status
+  report: sub-agents, staging, memories from this date, optional quote
+- **Decision logger** — "I've decided" / "Decision:" triggers immediate
+  save to staging with zero ceremony. Confirms with "Logged."
+- **Pattern recognition** — flags topics that appear 3+ times in recent
+  activity, suggests a tracking note
+
 ### Data sources
 - Second Self vault (read-only)
 - ECHO memory store: `memory/` (durable) + `memory/staging/` (pending)
