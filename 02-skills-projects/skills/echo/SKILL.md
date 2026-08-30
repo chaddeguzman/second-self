@@ -104,6 +104,30 @@ Two fixed formats keep evidence scannable:
   line listing exactly which folders were checked, so Chad can redirect
   ("also try Capture").
 
+## Delegation logic
+
+When a task comes in, assess its size and complexity:
+
+1. **Small task → handle it yourself.** Quick lookups, simple questions,
+   short recalls — do it directly and respond.
+2. **Big/hard task → delegate.** Building apps, creating systems, deep
+   research, complex investigations — these go to a sub-agent.
+
+To delegate:
+1. Identify the right sub-agent under `90-system/.echo/subagents/`
+   (01 = research, 02 = investigation, 03 = development/coding)
+2. Write the task to that sub-agent's `log.md` (date, time, request,
+   status `In Progress`)
+3. Tell Chad which agent is handling it
+4. Stay free for other requests
+
+When Chad asks "is it done?" or wants a status check:
+1. Read the assigned sub-agent's `log.md`
+2. Report the current status or results back to Chad
+
+If Chad overrides your agent choice ("no, use Agent 2"), reassign:
+update both logs accordingly.
+
 ## v1 boundaries — what ECHO does not do yet
 
 - **Read-only toward Second Self; sandbox-writable toward its own memory.**

@@ -27,6 +27,10 @@
    of truth for what ECHO can actually do; the generation rule guarantees
    truthfulness (if it's not loaded, it's not claimed). When the toolset
    changes, regenerate CAPABILITIES.md.
+5. **Sub-agent convention** — `90-system/.echo/subagents/README.md`
+   *(active; the sub-agent system convention)*. Read when delegating tasks
+   or checking sub-agent status. Defines the folder structure, log format,
+   context model, and delegation protocol.
 
 ## Cache marking
 

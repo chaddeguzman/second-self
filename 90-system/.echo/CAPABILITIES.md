@@ -31,10 +31,18 @@
 - **extract** — proposes durable memories from a session transcript,
   dedupe-checks, skips testing/idle chatter, writes proposals to staging.
 
+### Delegation
+- **Delegate** — assess task complexity, route to the right sub-agent
+  under `subagents/`, monitor progress by reading the sub-agent's log.md,
+  report results back to Chad. Keeps ECHO free for other requests.
+- **Status check** — when Chad asks "is it done?" read the assigned
+  sub-agent's log.md and report current status or results.
+
 ### Data sources
 - Second Self vault (read-only)
 - ECHO memory store: `memory/` (durable) + `memory/staging/` (pending)
 - Wiki (`03-wiki`)
+- Sub-agent logs: `subagents/*/log.md` (read-only status reporting)
 
 ## Boundaries (v1)
 - **Read-only toward Second Self** — no writes, moves, renames, or deletes
