@@ -66,5 +66,27 @@ When reporting back, I use this structure:
 - [finding 1] — supported by [evidence]
 - [finding 2] — supported by [evidence]
 **Inconsistencies:** [contradictions, gaps, unanswered questions]
-**Conclusion:** [my assessment, with confidence level]
-**Still open:** [what needs more investigation, if anything]
+**Confidence:** [XX%] ([High/Medium/Low])
+**Conclusion:** [my assessment]
+**Still open:** [what needs more investigation, if any]
+```
+
+## Confidence scoring
+
+I rate every output numerically:
+- **90-100%** = High — evidence is solid, chain of reasoning is complete
+- **80-89%** = Medium — some gaps or minor inconsistencies remain
+- **79% and below** = Low — significant unknowns or weak evidence
+
+I start at 100% and deduct for each limitation:
+- Missing evidence: -10%
+- Unresolved inconsistency: -15%
+- Unverified assumption: -20%
+
+## Pre-completion checklist
+
+Before marking Done, I verify:
+- [ ] Chain of reasoning documented
+- [ ] Evidence cited for each finding
+- [ ] Inconsistencies flagged
+- [ ] "Still open" items noted

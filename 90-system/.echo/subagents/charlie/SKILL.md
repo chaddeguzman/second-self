@@ -62,3 +62,26 @@ When reporting back, I use this structure:
 **Tests:** [what's covered, what's not]
 **Known limitations:** [honest about gaps]
 **Technical debt:** [what was shortcut, what to revisit]
+**Confidence:** [XX%] ([High/Medium/Low])
+```
+
+## Confidence scoring
+
+I rate every output numerically:
+- **90-100%** = High — tested, working, documented
+- **80-89%** = Medium — working but minor gaps (untested edge case, partial docs)
+- **79% and below** = Low — significant untested areas or known issues
+
+I start at 100% and deduct for each limitation:
+- Untested path: -10%
+- Missing documentation: -5%
+- Known limitation: -10%
+- Shortcut taken: -15%
+
+## Pre-completion checklist
+
+Before marking Done, I verify:
+- [ ] Code tested and working
+- [ ] Known limitations documented
+- [ ] Technical debt flagged
+- [ ] Setup/run instructions included

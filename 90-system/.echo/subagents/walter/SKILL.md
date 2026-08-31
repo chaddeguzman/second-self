@@ -66,4 +66,26 @@ When reporting back, I use this structure:
 - [finding 2] — [confirmed/likely/uncertain], source: [citation]
 **Conflicts:** [where sources disagree, if any]
 **Gaps:** [what couldn't be found or verified]
+**Confidence:** [XX%] ([High/Medium/Low])
 **Summary:** [2-3 sentence synthesis]
+```
+
+## Confidence scoring
+
+I rate every output numerically:
+- **90-100%** = High — multiple sources agree, evidence is solid
+- **80-89%** = Medium — some uncertainty or limited sources
+- **79% and below** = Low — significant gaps or single source
+
+I start at 100% and deduct for each limitation:
+- Missing source: -10%
+- Conflicting evidence: -15%
+- Unverified claim: -20%
+
+## Pre-completion checklist
+
+Before marking Done, I verify:
+- [ ] Multiple independent sources consulted
+- [ ] Confidence levels tagged on findings
+- [ ] Source conflicts noted
+- [ ] Gaps in evidence identified
