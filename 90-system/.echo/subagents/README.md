@@ -178,6 +178,77 @@ Before marking a task Done, agents self-review their work:
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included
 
+## Early blocker alerts
+
+When a sub-agent hits a blocker they can't resolve:
+
+1. Agent updates log status to `Blocked: [reason]`
+2. ECHO detects blocked status on next check
+3. ECHO immediately tells Chad: "Walter is blocked: [reason]"
+4. Chad can provide guidance, reassign, or cancel the task
+
+**Blocker examples:**
+- "Blocked: can't access the API documentation"
+- "Blocked: conflicting requirements, need Chad to decide"
+
+## Task acceptance
+
+When a sub-agent receives a new task:
+
+1. Agent reads the task in log.md (status: `Pending`)
+2. Agent updates status to `In Progress` to acknowledge
+3. ECHO knows the agent has accepted and is working
+
+This prevents tasks from sitting unnoticed in the queue.
+
+## Agent status line
+
+Each agent maintains a one-line status at the top of their log.md:
+
+```markdown
+# [Agent Name] — Status: [status]
+
+| Date | Time | Request | Status | Output/Summary |
+```
+
+**Status values:**
+| Status | Meaning |
+|--------|---------|
+| `Idle` | No active task, available for new work |
+| `Working: [brief description]` | Actively working on a task |
+| `Blocked: [reason]` | Stuck, needs Chad's help |
+| `Done` | Most recent task completed |
+
+ECHO reads these status lines for quick "what are your agents doing?" reports.
+
+## Known limitations
+
+Every output includes a dedicated section for what the agent couldn't do:
+
+```markdown
+**Known limitations:**
+- [what wasn't verified or tested]
+- [what was out of scope]
+- [what needs follow-up]
+```
+
+This ensures no output looks more complete than it actually is.
+
+## Task templates
+
+Common task types get pre-defined structures. ECHO includes a template
+reference when delegating:
+
+| Template | When to use | Structure |
+|----------|-------------|-----------|
+| `research` | Walter — new topic | Question → Sources → Findings → Confidence → Gaps |
+| `investigation` | Sherlock — deep dive | Scope → Evidence → Reasoning → Conclusion → Open items |
+| `build` | Charlie — new feature | What → How to run → Tests → Limitations → Debt |
+| `bugfix` | Charlie — fix issue | Root cause → Fix → Tests → Regression check |
+
+Agents follow the template that matches their task type for consistent,
+predictable output.
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`
