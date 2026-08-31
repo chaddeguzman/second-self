@@ -249,6 +249,78 @@ reference when delegating:
 Agents follow the template that matches their task type for consistent,
 predictable output.
 
+## Shared context file
+
+ECHO writes relevant vault notes to `subagents/shared/context.md` before
+delegating. All agents can read it for background beyond the raw task.
+
+```text
+subagents/shared/context.md   ← ECHO writes, all agents read
+```
+
+- ECHO updates it when a task needs vault context (relevant notes, prior
+  findings, constraints)
+- Agents read it at task start; it supplements — never replaces — the task
+  description
+- ECHO refreshes it per task; stale context is replaced, not accumulated
+
+## Subtask breakdown
+
+For complex tasks, agents create `subtasks.md` in their folder — a
+checklist of steps they'll complete:
+
+```markdown
+# Task: Build SAP workflow tracker
+
+- [ ] Research SAP workflow API
+- [ ] Design data model
+- [ ] Implement core module
+- [ ] Implement approval flow
+- [ ] Write tests
+- [ ] Write setup docs
+```
+
+- Chad can see the plan and redirect mid-task if needed
+- Agents check items off as they go
+- The file is deleted when the task completes
+
+## Task dependencies
+
+When an agent's task depends on another task finishing first:
+
+1. Agent updates log status to `Waiting: [what it's waiting for]`
+2. ECHO tracks the dependency chain
+3. When the blocking task completes, ECHO notifies the waiting agent
+
+**Example:** Charlie is `Waiting: Walter's API research` — ECHO tells
+Charlie when Walter's research is Done.
+
+## Stuck protocol
+
+If an agent has attempted a task 3 times without progress:
+
+1. Agent updates log status to `Stuck: [what was tried]`
+2. Agent writes what they tried and why it failed
+3. ECHO escalates to Chad: "Sherlock is stuck after 3 attempts: [details]"
+4. Chad decides: provide guidance, reassign, or cancel
+
+**Stuck ≠ Blocked:** Blocked means missing info or access. Stuck means
+the agent tried multiple approaches and none worked.
+
+## Daily digest
+
+On request ("daily digest," "what did the agents do today?"), ECHO compiles:
+
+```markdown
+## Agent Digest — 2026-08-31
+
+**Walter:** Completed "Research SAP workflows" (92% confidence)
+**Sherlock:** Investigating "why builds stall" — 50% checkpoint reached
+**Charlie:** Completed bugfix #2, started new build
+```
+
+One compact summary covering all agents' activity for the day.
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`

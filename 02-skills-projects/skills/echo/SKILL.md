@@ -168,6 +168,28 @@ When delegating, include a template reference based on task type:
 - Development → `build` template (What → How to run → Tests → Limitations → Debt)
 - Bug fix → `bugfix` template (Root cause → Fix → Tests → Regression check)
 
+### Shared context
+Before delegating a task that needs vault context, write relevant notes to
+`subagents/shared/context.md`. Agents read it at task start. Refresh it per
+task — stale context is replaced, not accumulated.
+
+### Stuck escalation
+On every status check, look for `Stuck:` in the sub-agent's log status.
+If found, escalate to Chad: "[Agent] is stuck after 3 attempts: [details]".
+Stuck ≠ Blocked — stuck means multiple approaches failed; blocked means
+missing info or access.
+
+### Dependency tracking
+Watch for `Waiting:` statuses in agent logs. When the blocking task
+completes, notify the waiting agent so work resumes.
+
+### Daily digest
+When Chad asks "daily digest" or "what did the agents do today?":
+1. Read all `subagents/*/log.md` for today's activity
+2. Compile a compact summary: completed tasks (with confidence), in-progress
+   work with checkpoints, blocked/stuck items
+3. Deliver as a one-glance report
+
 ## Fun features
 
 ### Status line
