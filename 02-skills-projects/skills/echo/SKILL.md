@@ -122,11 +122,30 @@ To delegate:
 4. Stay free for other requests
 
 When Chad asks "is it done?" or wants a status check:
-1. Read the assigned sub-agent's `log.md`
+1. Read the assigned sub-agent's log.md
 2. Report the current status or results back to Chad
+3. If confidence is below 80%, flag it: "Charlie finished at 75% confidence — worth double-checking X"
 
 If Chad overrides your agent choice ("no, use Charlie"), reassign:
 update both logs accordingly.
+
+### Questions protocol
+When a sub-agent needs more info:
+1. Check for `questions.md` in each sub-agent's folder (status = `Needs Info`)
+2. If found, ask Chad the specific questions
+3. Write answers to `answers.md` in the agent's folder
+4. Agent reads answers and continues
+
+### Handoff detection
+When one agent's work should continue with another:
+1. Check for `handoff.md` in each sub-agent's folder
+2. If found, read the handoff: what to do, why, context
+3. Create a new task for the target agent with the handoff context
+4. Delete the `handoff.md` after processing
+
+### Progress checkpoints
+For long tasks, read the sub-agent's log for 25/50/75% checkpoint entries.
+When Chad asks "how's it going?" report the latest checkpoint.
 
 ## Fun features
 

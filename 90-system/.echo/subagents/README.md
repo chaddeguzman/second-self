@@ -102,6 +102,82 @@ Each sub-agent does NOT receive:
 | Sub-agent stuck below 90% | Status stays `In Progress`. ECHO reports partial progress. |
 | Chad cancels a task | ECHO updates the log status to `Cancelled`. |
 
+## Questions protocol
+
+When a sub-agent needs more info than the task provides:
+
+1. Agent writes `questions.md` in its folder with specific questions
+2. Agent updates log status to `Needs Info`
+3. ECHO detects `questions.md`, asks Chad the questions
+4. ECHO writes answers to `answers.md` in the agent's folder
+5. Agent reads answers, continues work
+
+**Questions must be specific and actionable:**
+- ❌ "Tell me more about the project"
+- ✅ "What SAP module should the workflow tracker cover — MM, SD, or PP?"
+
+## Agent handoff protocol
+
+When one agent's work should continue with another:
+
+1. Agent writes `handoff.md` in the target agent's folder
+2. Contains: what to do, why, relevant findings, context
+3. ECHO detects handoff, creates a new task for the target agent
+4. ECHO includes the handoff context in the new task entry
+
+**Example:** Walter finds a feature that needs building → writes
+`subagents/charlie/handoff.md` → ECHO creates a Charlie task with context.
+
+## Progress checkpoint convention
+
+For tasks estimated at 30+ minutes, agents update their log at checkpoints:
+
+| Checkpoint | What to update |
+|------------|----------------|
+| 25% | What's done so far, what's next |
+| 50% | Progress summary, any blockers |
+| 75% | Nearly done, final steps remaining |
+
+Each checkpoint is a brief log entry — 1-2 lines. ECHO reads these when
+Chad asks "how's it going?"
+
+## Confidence scoring
+
+Every output includes a numeric confidence percentage:
+
+| Score | Label | Meaning |
+|-------|-------|---------|
+| 90-100% | High | Multiple sources agree, evidence is solid, reproducible |
+| 80-89% | Medium | Some uncertainty, limited sources, or minor conflicts |
+| 79% and below | Low | Significant gaps, single source, or high speculation |
+
+Agents calculate confidence by starting at 100% and deducting for each
+limitation (missing source -10%, conflicting evidence -15%, unverified -20%).
+
+ECHO flags low-confidence findings (below 80%) when reporting to Chad.
+
+## Pre-completion checklist
+
+Before marking a task Done, agents self-review their work:
+
+**Walter (Research):**
+- [ ] Multiple independent sources consulted
+- [ ] Confidence levels tagged on findings
+- [ ] Source conflicts noted
+- [ ] Gaps in evidence identified
+
+**Sherlock (Investigation):**
+- [ ] Chain of reasoning documented
+- [ ] Evidence cited for each finding
+- [ ] Inconsistencies flagged
+- [ ] "Still open" items noted
+
+**Charlie (Development):**
+- [ ] Code tested and working
+- [ ] Known limitations documented
+- [ ] Technical debt flagged
+- [ ] Setup/run instructions included
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`
