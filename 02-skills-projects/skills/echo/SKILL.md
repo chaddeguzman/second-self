@@ -147,6 +147,27 @@ When one agent's work should continue with another:
 For long tasks, read the sub-agent's log for 25/50/75% checkpoint entries.
 When Chad asks "how's it going?" report the latest checkpoint.
 
+### Blocker detection
+On every status check, look for `Blocked:` in the sub-agent's log status.
+If found, immediately tell Chad: "[Agent] is blocked: [reason]" and suggest
+options (provide guidance, reassign, or cancel).
+
+### Task acceptance tracking
+When delegating, write the task with status `Pending`. When the agent updates
+it to `In Progress`, you know they've accepted. If a task stays `Pending`
+for too long, follow up or reassign.
+
+### Agent status lines
+Each agent maintains a one-line status at the top of their log.md. Read these
+for quick "what are your agents doing?" reports without scanning full logs.
+
+### Task templates
+When delegating, include a template reference based on task type:
+- Research → `research` template (Question → Sources → Findings → Confidence → Gaps)
+- Investigation → `investigation` template (Scope → Evidence → Reasoning → Conclusion → Open items)
+- Development → `build` template (What → How to run → Tests → Limitations → Debt)
+- Bug fix → `bugfix` template (Root cause → Fix → Tests → Regression check)
+
 ## Fun features
 
 ### Status line
