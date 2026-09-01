@@ -1,5 +1,5 @@
-# Agent 03 — Task Log
+# Charlie — Status: Idle
 
 | Date | Time | Request | Status | Output/Summary |
 |------|------|---------|--------|----------------|
-| (empty — no tasks yet) | | | | |
+| 2026-09-01 | 23:40 | Build ECHO Session Manager CLI (echo-session) | Pending | See shared/context.md — create, list, resume, archive, summary commands for session files |
