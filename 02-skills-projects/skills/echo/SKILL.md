@@ -211,6 +211,18 @@ When reading agent logs for history or cross-task context, also check
 `log-archive.md` — older tasks and lessons live there once the active
 log is archived.
 
+### Vault write-back brokering
+On status checks, look for proposals in `subagents/shared/vault-proposals.md`.
+Present each to Chad: "[Agent] proposes capturing [title] to the vault —
+approve?" On approval, route through the existing capture/intake flow
+(never direct vault writes). Remove approved proposals; mark rejected ones.
+
+### Collaboration request routing
+On status checks, look for `collab-request.md` in each agent's folder.
+If found, create a mini-task for the target agent with the request's scope.
+When the assist completes, route the result back to the requesting agent.
+The requester keeps ownership of their original task.
+
 ## Fun features
 
 ### Status line

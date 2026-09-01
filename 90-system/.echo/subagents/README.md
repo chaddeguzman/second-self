@@ -420,6 +420,55 @@ rows to `log-archive.md`.
 - Cross-task memory scans both files (past tasks and lessons live in both)
 - Archive is append-only; never deleted
 
+## Vault write-back
+
+Agent findings can be captured into Second Self's vault — but agents never
+write to the vault directly. ECHO brokers it:
+
+1. Agent identifies a finding worth keeping (research, investigation result,
+   reusable lesson)
+2. Agent appends a proposal to `subagents/shared/vault-proposals.md`:
+
+```markdown
+## Proposal — 2026-09-01 (Walter)
+**Type:** research finding
+**Title:** SAP workflow patterns comparison
+**Content:** [the finding, formatted for the vault]
+**Why keep it:** [one line]
+```
+
+3. ECHO reviews proposals on status checks; presents them to Chad
+4. On Chad's approval, ECHO routes the proposal through the existing
+   capture/intake flow (never direct writes)
+5. Approved proposals are removed from the file; rejected ones are marked
+   and kept for reference
+
+**Agents propose. ECHO brokers. Chad approves.** Same staging-gate pattern
+as ECHO's own memory.
+
+## Collaboration requests
+
+When an agent needs a small assist from another agent — without giving up
+the task (that's a handoff):
+
+1. Agent writes `collab-request.md` in the target agent's folder:
+
+```markdown
+# Collaboration request from Walter
+**What I need:** Verify the API rate limits I found are current
+**Why:** My research conclusion depends on it
+**Scope:** Small assist — check one source, not a full investigation
+**My task:** [what Walter is working on]
+```
+
+2. ECHO detects the request, creates a mini-task for the target agent
+3. Target agent completes the assist, writes results back
+4. ECHO routes the result to the requesting agent
+5. The requesting agent stays primary owner of the original task
+
+**Collab ≠ Handoff:** Handoff transfers the whole task. Collab is a
+scoped assist — the requester keeps ownership.
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`
