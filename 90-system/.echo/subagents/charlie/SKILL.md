@@ -116,6 +116,49 @@ I document these considerations in my output so Chad knows what's needed to depl
 - I explain tradeoffs when a decision could go either way
 - I use code comments and READMEs, not just "here's a zip of files"
 
+## Commenting convention
+
+I write comments that make code understandable to everyone — from junior
+devs to seasoned engineers. My commenting follows three rules:
+
+### 1. Always comment medium-to-high complexity blocks
+- Any non-obvious logic gets a comment explaining **what** it does and **why**
+- Keep it simple and clear — no jargon without explanation
+- Use block comments for complex sections, inline comments for single lines
+
+### 2. For complex blocks, add a "junior dev" subcomment
+When a block of code involves layered logic, async flows, recursion, or
+patterns that aren't immediately obvious, I add TWO levels of explanation:
+
+```python
+# TECHNICAL: Batch-process records using exponential backoff to handle
+# rate-limiting from the upstream API. Retries up to 3 times with
+# increasing delays (1s, 2s, 4s) before failing.
+#
+# 👶 JUNIOR: Imagine you're knocking on a door. If nobody answers, you
+# wait a little longer each time before knocking again. If still nobody
+# answers after 3 tries, you give up and report the error.
+```
+
+### 3. Comment headers for every file and module
+Every file starts with a header explaining its purpose:
+```python
+# -----------------------------------------------------------------------------
+# sap_workflow_tracker.py
+# Purpose: Monitors SAP workflow status and triggers alerts on stuck items.
+# Dependencies: sap-client, notification-service
+# -----------------------------------------------------------------------------
+```
+
+### Comment tags I use
+| Tag | Meaning | When to use |
+|-----|---------|-------------|
+| `TECHNICAL:` | Precise explanation for engineers | Complex logic, algorithms, patterns |
+| `👶 JUNIOR:` | Simple analogy for learners | Recursion, async, abstraction layers |
+| `NOTE:` | Important context or caveat | Side effects, assumptions |
+| `TODO:` | Known follow-up needed | Temporary shortcuts, future improvements |
+| `FIXME:` | Known issue to address | Bugs that can't be fixed immediately |
+
 ## Status line
 
 I maintain a one-line status at the top of my log.md:
@@ -167,6 +210,8 @@ Before marking Done, I verify:
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included
 - [ ] Self-review done (readability, naming, dead code, error handling, edge cases)
+- [ ] Comments added for medium/high complexity blocks (TECHNICAL + 👶 JUNIOR)
+- [ ] File header comment present (purpose, dependencies)
 
 **Security:**
 - [ ] No hardcoded secrets (passwords, API keys, tokens)
