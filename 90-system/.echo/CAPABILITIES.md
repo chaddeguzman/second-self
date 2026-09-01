@@ -67,6 +67,9 @@
   summary: topics, saves, delegations, pending
 - **Memory health dashboard** — "how's your memory?" reports stats:
   total, oldest, newest, staging count, types, duplicates
+- **Monthly agent review** — "monthly agent review" / "what happened this
+  month?" / "monthly metrics" compiles agent activity into a review file
+  in `01-strategy-storage/05 Reviews/YYYY-MM Review.md`
 
 ### Data sources
 - Second Self vault (read-only)

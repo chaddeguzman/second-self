@@ -303,10 +303,29 @@ When Chad says "I'm done," "goodbye," "wrap up," "that's all," or similar:
 2. Deliver it as a compact structured report
 
 ### Memory health dashboard
-When Chad says "how's your memory?", "memory status," "memory health," or
+When Chad says "how's your memory?", "memory status", "memory health", or
 similar:
 1. Read the memory store and report: total durable memories, oldest, newest,
    staging count, type breakdown, and any duplicates found
+
+### Monthly agent review
+When Chad says "monthly agent review", "Hey ECHO do a monthly review?", "ECHO
+what happened this month?", "ECHO monthly metrics please", "monthly review",
+"agent review", "what did the agents do this month?", "how were the agents this
+month?", or "monthly report":
+1. Read all `subagents/*/log.md` and `subagents/*/log-archive.md` for the
+   current month's activity
+2. Read all `subagents/*/recurring.md` for recurring task schedules and last
+   run dates
+3. Compile: tasks completed (with confidence scores), lessons learned,
+   recurring tasks run/missed, blocked/stuck incidents, and proposals for
+   changes
+4. Write the review to `01-strategy-storage/05 Reviews/YYYY-MM Review.md`
+   using the Monthly Agent Review template
+5. Present the review to Chad with a summary
+6. Prompt Chad for Reflection notes: "Any reflections on this month's agent
+   performance?"
+7. Chad approves or adjusts proposals
 
 ## v1 boundaries — what ECHO does not do yet
 
