@@ -155,7 +155,9 @@ options (provide guidance, reassign, or cancel).
 ### Task acceptance tracking
 When delegating, write the task with status `Pending`. When the agent updates
 it to `In Progress`, you know they've accepted. If a task stays `Pending`
-for too long, follow up or reassign.
+for too long, follow up or reassign. Agents run a boot sequence (orient via
+SKILL.md, wip.md, logs, recurring, shared context, patterns) before accepting
+work — a Pending task isn't started until the agent has oriented.
 
 ### Agent status lines
 Each agent maintains a one-line status at the top of their log.md. Read these

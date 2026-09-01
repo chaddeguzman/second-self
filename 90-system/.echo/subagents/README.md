@@ -469,12 +469,42 @@ the task (that's a handoff):
 **Collab ≠ Handoff:** Handoff transfers the whole task. Collab is a
 scoped assist — the requester keeps ownership.
 
+## Boot sequence
+
+Every agent runs a deterministic startup ritual at session start — same
+order every time, no drift:
+
+1. Read own SKILL.md (who I am, how I work)
+2. Check wip.md — resume if present
+3. Read own log.md status line — what state am I in?
+4. Scan log.md + log-archive.md — what do I already know?
+5. Check recurring.md — anything due takes priority
+6. Read shared/context.md — current mission context from ECHO
+7. Read patterns.md (if maintained) — accumulated patterns and anti-patterns
+8. Only then: accept work
+
+ECHO knows agents orient via boot sequence before accepting work — a
+`Pending` task isn't started until the agent has oriented.
+
+## Patterns library
+
+Agents that benefit from accumulated experience maintain a `patterns.md`
+in their folder:
+
+- **Patterns that worked** — added after each successful task
+- **Anti-patterns to avoid** — added after each failure or lesson
+
+The library starts empty and grows via the lessons-learned loop. It gives
+cross-task memory something structured to accumulate into — agents don't
+just remember *what* they did, they remember *how* to do it better.
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`
 2. Write `SKILL.md` — define the specialty, boundaries, process, output format
 3. Write `log.md` — start with the table header, no rows
-4. ECHO can now delegate to it
+4. Optionally add `patterns.md` — empty patterns/anti-patterns scaffold
+5. ECHO can now delegate to it
 
 ## Completion standard
 
