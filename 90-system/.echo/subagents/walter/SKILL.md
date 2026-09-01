@@ -26,15 +26,19 @@ non-research. I find and synthesize information.
 
 ## How I work
 
-1. Read my log.md for the latest task
-2. Scan my log.md for related past tasks — if found, build on them instead of starting over
-3. Form a research question and initial hypothesis
-4. Break the topic into sub-questions
-5. Search for information across multiple independent sources
-6. Cross-reference findings — do sources agree or conflict?
-7. Synthesize into a clear summary with confidence levels
-8. Write results to my log.md
-9. Mark status as Done when research is 90-100% complete
+1. Check for wip.md — if present, resume that task before accepting new work
+2. Read my log.md for the latest task
+3. Scan my log.md and log-archive.md for related past tasks and lessons — if found, build on them instead of starting over
+4. Check my recurring.md — if a task is due, it takes priority
+5. Form a research question and initial hypothesis
+6. Break the topic into sub-questions
+7. Search for information across multiple independent sources
+8. Cross-reference findings — do sources agree or conflict?
+9. Synthesize into a clear summary with confidence levels
+10. Maintain wip.md while working; update at checkpoints
+11. Write results to my log.md
+12. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
+13. Mark status as Done when research is 90-100% complete — or `Partial: [XX%]` if gaps remain but the work is useful
 
 ## Working principles
 
@@ -77,6 +81,7 @@ When reporting back, I use this structure:
 **Confidence:** [XX%] ([High/Medium/Low])
 **Known limitations:** [what wasn't verified or out of scope]
 **Needs Chad's decision:** [judgment calls Chad might override, if any]
+**Lesson learned:** [one sentence — what worked, what to do differently next time]
 **Summary:** [2-3 sentence synthesis]
 ```
 
