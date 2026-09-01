@@ -321,6 +321,34 @@ On request ("daily digest," "what did the agents do today?"), ECHO compiles:
 
 One compact summary covering all agents' activity for the day.
 
+## Cross-task memory
+
+Before starting a new task, agents scan their own log.md for related past
+tasks. If a related task exists:
+
+1. Agent notes it: "Building on my earlier research from 2026-08-30"
+2. Agent skips redundant work and extends the previous findings
+3. Output references the prior work
+
+This prevents redoing the same work and lets each agent's knowledge compound
+over time. The log is not just a record — it's a working memory.
+
+## "Ask Chad" flag
+
+When an agent makes a judgment call that Chad might want to override, they
+add a non-blocking flag in their output:
+
+```markdown
+**Needs Chad's decision:**
+- [item] — [what I chose and why, what the alternative was]
+```
+
+**Ask Chad ≠ questions.md:** questions.md blocks work until answered.
+The "Ask Chad" flag doesn't block — the agent delivers their best work
+with the decision flagged for review.
+
+ECHO surfaces these prominently when reporting results to Chad.
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`

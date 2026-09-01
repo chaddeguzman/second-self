@@ -190,6 +190,11 @@ When Chad asks "daily digest" or "what did the agents do today?":
    work with checkpoints, blocked/stuck items
 3. Deliver as a one-glance report
 
+### "Ask Chad" surfacing
+When reporting agent results, look for `**Needs Chad's decision:**` sections.
+Surface these prominently — before or right after the main result — so Chad
+sees the judgment calls agents made and can override them if needed.
+
 ## Fun features
 
 ### Status line
