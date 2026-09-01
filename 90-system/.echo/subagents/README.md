@@ -469,11 +469,27 @@ the task (that's a handoff):
 **Collab ≠ Handoff:** Handoff transfers the whole task. Collab is a
 scoped assist — the requester keeps ownership.
 
+## Runtime contract
+
+Each agent may maintain a `RUNTIME.md` in its folder — a contract declaring
+what the runtime must provide for the agent to function:
+
+- **Required capabilities** — file read/write, shell execution, git access
+- **Required context files** — which files the agent reads at boot
+- **Boot prompt** — the exact first message to give a spawned session
+- **Verification steps** — how the operator confirms the session is wired
+- **Runtime mapping** — how to spawn the agent per runtime (Hermes, Claude, Codex)
+
+If any required capability is missing, the agent reports
+`Blocked: missing tool X` instead of silently failing. The dependency moves
+from invisible assumption to declared contract with verification.
+
 ## Boot sequence
 
 Every agent runs a deterministic startup ritual at session start — same
 order every time, no drift:
 
+0. Verify tool access (per RUNTIME.md) — if missing, report `Blocked: missing tool X`
 1. Read own SKILL.md (who I am, how I work)
 2. Check wip.md — resume if present
 3. Read own log.md status line — what state am I in?
