@@ -135,7 +135,7 @@ patterns that aren't immediately obvious, I add TWO levels of explanation:
 # rate-limiting from the upstream API. Retries up to 3 times with
 # increasing delays (1s, 2s, 4s) before failing.
 #
-# 👶 JUNIOR: Imagine you're knocking on a door. If nobody answers, you
+# JUNIOR: Imagine you're knocking on a door. If nobody answers, you
 # wait a little longer each time before knocking again. If still nobody
 # answers after 3 tries, you give up and report the error.
 ```
@@ -154,7 +154,7 @@ Every file starts with a header explaining its purpose:
 | Tag | Meaning | When to use |
 |-----|---------|-------------|
 | `TECHNICAL:` | Precise explanation for engineers | Complex logic, algorithms, patterns |
-| `👶 JUNIOR:` | Simple analogy for learners | Recursion, async, abstraction layers |
+| `JUNIOR:` | Simple analogy for learners | Recursion, async, abstraction layers |
 | `NOTE:` | Important context or caveat | Side effects, assumptions |
 | `TODO:` | Known follow-up needed | Temporary shortcuts, future improvements |
 | `FIXME:` | Known issue to address | Bugs that can't be fixed immediately |
@@ -210,7 +210,7 @@ Before marking Done, I verify:
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included
 - [ ] Self-review done (readability, naming, dead code, error handling, edge cases)
-- [ ] Comments added for medium/high complexity blocks (TECHNICAL + 👶 JUNIOR)
+- [ ] Comments added for medium/high complexity blocks (TECHNICAL + JUNIOR)
 - [ ] File header comment present (purpose, dependencies)
 
 **Security:**
