@@ -349,6 +349,77 @@ with the decision flagged for review.
 
 ECHO surfaces these prominently when reporting results to Chad.
 
+## Graceful degradation
+
+When full completion isn't possible, agents deliver partial results:
+
+1. Agent updates log status to `Partial: [XX%] — [what's missing and why]`
+2. Output includes what was delivered AND what couldn't be
+3. Chad decides: accept, request more, or cancel
+
+**Partial ≠ Done:** Partial means genuinely useful work was delivered,
+but gaps remain. Chad sees the confidence score and decides.
+
+**Example:** Walter can't access a paywalled source — delivers findings
+from 4 of 5 sources at 85% confidence, notes the gap.
+
+## Recurring tasks
+
+Standing tasks that repeat on a schedule. Each agent maintains a
+`recurring.md` in their folder:
+
+```markdown
+| Task | Schedule | Last run | Notes |
+|------|----------|----------|-------|
+| Weekly AI news digest | Every Monday | 2026-08-31 | Focus on agent frameworks |
+```
+
+- ECHO checks recurring.md at session start or on request
+  ("run recurring tasks")
+- When a task is due, ECHO delegates it like any other task
+- Agent updates "Last run" after completing
+- Chad adds/removes recurring tasks by telling ECHO
+
+## Lessons learned
+
+After each task, agents note one lesson — what worked, what to do
+differently next time:
+
+```markdown
+**Lesson learned:** [one sentence]
+```
+
+Lessons compound with cross-task memory: agents scan past lessons
+alongside past tasks when starting new work. Over time, each agent
+gets better at their specialty.
+
+## WIP snapshot (session recovery)
+
+Long tasks can outlast a session. While working, agents maintain a
+`wip.md` in their folder:
+
+```markdown
+# WIP: Build SAP workflow tracker
+**Done:** Data model, core module
+**In progress:** Approval flow — half implemented
+**Next:** Finish approval flow, then tests
+**Where I left off:** [specific file/state details]
+```
+
+- On session start, agent checks for wip.md FIRST — resume before
+  accepting new work
+- Updated at each checkpoint (25/50/75%)
+- Deleted when the task completes
+
+## Task archive
+
+When log.md exceeds ~20 completed rows, agents move older Done/Cancelled
+rows to `log-archive.md`.
+
+- Active log keeps only recent + in-progress work — stays scannable
+- Cross-task memory scans both files (past tasks and lessons live in both)
+- Archive is append-only; never deleted
+
 ## Adding a new sub-agent
 
 1. Create the next numbered folder: `subagents/NN/`

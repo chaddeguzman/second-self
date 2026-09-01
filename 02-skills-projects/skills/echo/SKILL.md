@@ -195,6 +195,22 @@ When reporting agent results, look for `**Needs Chad's decision:**` sections.
 Surface these prominently — before or right after the main result — so Chad
 sees the judgment calls agents made and can override them if needed.
 
+### Partial delivery reporting
+On every status check, look for `Partial:` statuses. Report to Chad:
+"[Agent] delivered partial results at [XX%] — [what's missing]". Chad
+decides: accept, request more, or cancel.
+
+### Recurring task check
+At session start or when Chad asks "run recurring tasks":
+1. Read each agent's `recurring.md`
+2. For tasks due (schedule elapsed since Last run), delegate as normal
+3. Report what was re-delegated
+
+### Archive awareness
+When reading agent logs for history or cross-task context, also check
+`log-archive.md` — older tasks and lessons live there once the active
+log is archived.
+
 ## Fun features
 
 ### Status line
