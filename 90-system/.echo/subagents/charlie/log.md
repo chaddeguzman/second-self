@@ -1,5 +1,7 @@
-# Charlie — Status: Pending (delegated by ECHO)
+# Charlie — Status: Done
 
 | Date | Time | Request | Status | Output/Summary |
 |------|------|---------|--------|----------------|
-| 2026-09-01 | 23:40 | Build ECHO Session Manager CLI (echo-session) | Pending | See shared/context.md — create, list, resume, archive, summary commands for session files |
+| 2026-09-01 | 23:40 | Build ECHO Session Manager CLI (echo-session) | Done | Script at 90-system/.echo/scripts/echo-session.py. Tests at 90-system/tests/test_echo_session.py (14/14 pass). Confidence: 90%. |
+| 2026-09-02 | 12:16 | | 25% checkpoint | Design phase complete. Standalone argparse script in scripts/. Session format follows SESSION-CONVENTION.md. |
+| 2026-09-02 | 12:30 | | Done | 14 tests pass. Self-review complete. First pattern added to patterns.md. |
