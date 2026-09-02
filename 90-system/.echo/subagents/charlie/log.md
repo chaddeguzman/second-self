@@ -1,4 +1,4 @@
-# Charlie — Status: Idle
+# Charlie — Status: Pending (delegated by ECHO)
 
 | Date | Time | Request | Status | Output/Summary |
 |------|------|---------|--------|----------------|
