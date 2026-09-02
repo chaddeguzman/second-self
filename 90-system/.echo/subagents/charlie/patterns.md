@@ -6,9 +6,7 @@
 
 ## Patterns that worked
 
-<!-- One entry per pattern: what, when to use, source task -->
-
-(empty — will fill as I complete builds)
+- **argparse subcommand pattern with global config flag** — `add_argument("--base-dir")` on the main parser before subparsers; each subcommand is a `_command_*` function dispatched via `set_defaults(func=...)`. Clean separation: config on main, command-specific args on sub. When to use: any CLI tool with subcommands that share a config option. Source: echo-session CLI build.
 
 ## Anti-patterns to avoid
 
