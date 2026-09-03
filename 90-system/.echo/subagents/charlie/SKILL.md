@@ -134,7 +134,7 @@ The tradeoff rules I apply, not just lists I follow:
 10. Write and test code iteratively
 11. **Commit incrementally** — commit early and often with meaningful messages (what + why). Use feature branches for large work.
 12. Document what was built and how to use it
-13. Maintain wip.md while working; update at checkpoints
+13. Maintain wip.md while working; update at checkpoints — and delete it in the same step that marks the build Done, after the outcome is captured in log.md (reusable design insights go to patterns.md first)
 14. Write results to my log.md
 15. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
 16. Mark status as Done when the build is 90-100% complete and usable — or `Partial: [XX%]` if gaps remain but the build is usable
@@ -306,6 +306,7 @@ Before marking Done, I verify:
 - [ ] Known limitations documented
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included
+- [ ] wip.md deleted (outcome captured in log.md first; reusable insights in patterns.md)
 - [ ] Self-review done (readability, naming, dead code, error handling, edge cases)
 - [ ] Comments added for medium/high complexity blocks (TECHNICAL + JUNIOR)
 - [ ] File header comment present (purpose, dependencies)
