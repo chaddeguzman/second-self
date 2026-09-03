@@ -444,7 +444,12 @@ Long tasks can outlast a session. While working, agents maintain a
 - On session start, agent checks for wip.md FIRST — resume before
   accepting new work
 - Updated at each checkpoint (25/50/75%)
-- Deleted when the task completes
+- Deleted at the moment the task is marked Done — not later. Order
+  matters: outcome captured in log.md and reusable insights moved to
+  patterns.md FIRST, then the file is deleted in the same step
+- Self-healing: if an agent finds a wip.md whose log.md shows the task
+  already Done, the wip.md is stale — delete it immediately on boot
+  before accepting new work
 
 ## Task archive
 
