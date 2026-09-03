@@ -121,6 +121,13 @@ To delegate:
 3. Tell Chad which agent is handling it
 4. Stay free for other requests
 
+For build tasks, reference the project document convention in
+`90-system/.echo/subagents/README.md` in the task entry: builds above
+the size gate get `PRD.md`, `ARCHITECTURE.md`,
+`ARCHITECTURE-ESSENTIALS.md`, and a thin per-project `AGENTS.md`,
+scaffolded before any feature code (templates live in
+`90-system/.echo/subagents/shared/templates/`).
+
 When Chad asks "is it done?" or wants a status check:
 1. Read the assigned sub-agent's log.md
 2. Report the current status or results back to Chad
@@ -169,6 +176,12 @@ When delegating, include a template reference based on task type:
 - Investigation → `investigation` template (Scope → Evidence → Reasoning → Conclusion → Open items)
 - Development → `build` template (What → How to run → Tests → Limitations → Debt)
 - Bug fix → `bugfix` template (Root cause → Fix → Tests → Regression check)
+
+Document templates for build tasks (`PRD.template.md`,
+`ARCHITECTURE.template.md`, `ARCHITECTURE-ESSENTIALS.template.md`,
+`project-AGENTS.template.md`) live in
+`90-system/.echo/subagents/shared/templates/` — point Charlie at them
+when delegating anything above the size gate.
 
 ### Shared context
 Before delegating a task that needs vault context, write relevant notes to

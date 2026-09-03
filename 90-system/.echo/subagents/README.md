@@ -177,6 +177,9 @@ Before marking a task Done, agents self-review their work:
 - [ ] Known limitations documented
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included
+- [ ] Project documents current (builds above the size gate): PRD.md,
+      ARCHITECTURE.md, regenerated ARCHITECTURE-ESSENTIALS.md, thin
+      per-project AGENTS.md
 
 ## Early blocker alerts
 
@@ -248,6 +251,38 @@ reference when delegating:
 
 Agents follow the template that matches their task type for consistent,
 predictable output.
+
+## Project document convention
+
+Build tasks above the size gate produce four documents inside the
+project folder, created from the templates in
+`subagents/shared/templates/` **before** any feature code:
+
+| Document | Source of truth for |
+|----------|---------------------|
+| `PRD.md` | WHAT and WHY — problem, users, requirements, "done" |
+| `ARCHITECTURE.md` | HOW — complete design, data models, tech stack |
+| `ARCHITECTURE-ESSENTIALS.md` | Derived outline of Architecture — critical decisions only |
+| `AGENTS.md` | Thin per-project agent rules — a pointer, never a fork |
+
+**Size gate:** quick fixes and one-off scripts (under ~30 minutes, no
+data model, no stack choice) skip the documents. Everything else gets
+them, scaffold-first: folders, data models, and stub files exist before
+individual features are built, so the project has a clear scope and
+Chad can redirect cheaply.
+
+**Reading rule:** agents load `ARCHITECTURE-ESSENTIALS.md` at boot —
+not the full Architecture — to keep context lean. Full `ARCHITECTURE.md`
+is pulled for deep work or design changes. `PRD.md` governs scope: no
+feature gets added that isn't in it (or added to it first).
+
+**Drift guard:** `ARCHITECTURE-ESSENTIALS.md` is regenerated whenever
+`ARCHITECTURE.md` changes — derived files are regenerated, never
+hand-edited, the same rule that keeps CAPABILITIES.md honest.
+
+These documents live in the project folder (under
+`02-skills-projects/projects/`, git-ignored by default), not in `.echo`
+— they belong to the project, not to ECHO.
 
 ## Shared context file
 

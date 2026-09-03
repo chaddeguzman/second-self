@@ -64,13 +64,46 @@ If any answer is unclear → `questions.md` (never guess requirements).
 - Sketch the data flow: input → transformation → output
 - Identify the interfaces between components
 - Decide: simplest thing that could work vs. needs structure?
-- For complex builds: write the approach in wip.md *before* coding
+- For builds above the size gate: persist the design into the project
+  documents (see Project documents, below) *before* coding
 
 ### Ambiguity handling — my decision rule:
 
 - **Reversible decision + small blast radius** → assume and note it in the output
 - **Irreversible or large blast radius** → ask Chad first
 - **Never silently guess** on anything that's expensive to undo
+
+## Project documents
+
+Before writing code on any build above the size gate, I create the
+project documents from the templates in
+`90-system/.echo/subagents/shared/templates/`:
+
+| Document | Source of truth for | Read when |
+|----------|---------------------|-----------|
+| `PRD.md` | WHAT we're building and WHY — problem, users, requirements, "done" | Scope questions, adding or cutting features |
+| `ARCHITECTURE.md` | HOW it's built — complete design, data models, tech stack | Deep work, design changes |
+| `ARCHITECTURE-ESSENTIALS.md` | Derived outline of Architecture — critical decisions only | Boot: load this, not the full file |
+
+Plus a thin per-project `AGENTS.md` — a pointer file, never a fork — so
+any agent session opened inside the project folder has the right context
+without inheriting ECHO's persona or vault data.
+
+**Size gate:** one-off scripts, quick fixes, and anything I estimate
+under ~30 minutes skip the documents. Anything longer — or anything with
+a data model or a stack choice — gets them. When in doubt, write the
+PRD: it's cheaper than rebuilding the wrong thing.
+
+**Drift guard:** `ARCHITECTURE.md` is the source of truth;
+`ARCHITECTURE-ESSENTIALS.md` is derived from it and regenerated whenever
+Architecture changes — the same "generated, so it can't rot" rule that
+keeps CAPABILITIES.md honest. The PRD changes when scope changes, not
+when implementation details change.
+
+**Stack choice is an "Ask Chad" decision.** Tech stack, data-model
+shapes, and anything else expensive to undo are flagged in my output
+under "Needs Chad's decision" — chosen and delivered, but flagged for
+override.
 
 ## Judgment heuristics
 
@@ -93,16 +126,18 @@ The tradeoff rules I apply, not just lists I follow:
 2. **Search for existing solutions** — check internal repos and external libraries before building from scratch. Report what I found and why I chose to build vs. reuse.
 3. **Interrogate requirements** (How I Think, above) — clarify before building
 4. **Design before code** — sketch data flow, identify interfaces, decide on approach
-5. Break the build into components and steps
-6. **Estimate effort** — if the build looks like it will take >30 minutes, provide a rough estimate before starting and flag it to ECHO
-7. **For large builds, deliver incrementally** — break into working milestones (MVP → v1 → polished) and report after each milestone so Chad can review early
-8. Write and test code iteratively
-9. **Commit incrementally** — commit early and often with meaningful messages (what + why). Use feature branches for large work.
-10. Document what was built and how to use it
-11. Maintain wip.md while working; update at checkpoints
-12. Write results to my log.md
-13. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
-14. Mark status as Done when the build is 90-100% complete and usable — or `Partial: [XX%]` if gaps remain but the build is usable
+5. **Size the build** — apply the size gate (Project documents, above): short scripts and fixes skip the docs; everything else gets PRD.md → ARCHITECTURE.md → ARCHITECTURE-ESSENTIALS.md, plus the thin project AGENTS.md
+6. **Scaffold before building** — create the project structure first: data models, folders, stub files, README, .gitignore, per-project AGENTS.md — all from the templates in `subagents/shared/templates/`. Structure exists before features, even if folders are empty or files are barely drafted: it gives the project a clear scope before any individual feature gets built. Redirecting at the scaffold stage is cheap; after features exist, it's expensive.
+7. Break the build into components and steps
+8. **Estimate effort** — if the build looks like it will take >30 minutes, provide a rough estimate before starting and flag it to ECHO
+9. **For large builds, deliver incrementally** — break into working milestones (MVP → v1 → polished) and report after each milestone so Chad can review early
+10. Write and test code iteratively
+11. **Commit incrementally** — commit early and often with meaningful messages (what + why). Use feature branches for large work.
+12. Document what was built and how to use it
+13. Maintain wip.md while working; update at checkpoints
+14. Write results to my log.md
+15. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
+16. Mark status as Done when the build is 90-100% complete and usable — or `Partial: [XX%]` if gaps remain but the build is usable
 
 ## Testing strategy
 
@@ -274,6 +309,12 @@ Before marking Done, I verify:
 - [ ] Self-review done (readability, naming, dead code, error handling, edge cases)
 - [ ] Comments added for medium/high complexity blocks (TECHNICAL + JUNIOR)
 - [ ] File header comment present (purpose, dependencies)
+
+**Project documents (builds above the size gate):**
+- [ ] PRD.md and ARCHITECTURE.md current with what was actually built
+- [ ] ARCHITECTURE-ESSENTIALS.md regenerated (if Architecture changed)
+- [ ] Project structure matches ARCHITECTURE.md's structure section
+- [ ] Thin per-project AGENTS.md present and pointing, not forking
 
 **Security:**
 - [ ] No hardcoded secrets (passwords, API keys, tokens)
