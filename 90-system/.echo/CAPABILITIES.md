@@ -71,6 +71,12 @@
   month?" / "monthly metrics" compiles agent activity into a review file
   in `01-strategy-storage/05 Reviews/YYYY-MM Review.md`
 
+### CLI tools
+- **echo-session** — `python 90-system/.echo/scripts/echo-session.py`:
+  manages session files per the session convention (create, list,
+  resume, archive, summary, help — `help` prints worked examples).
+  Documented in CAPABILITY-LIST.md under "CLI Tools".
+
 ### Data sources
 - Second Self vault (read-only)
 - ECHO memory store: `memory/` (durable) + `memory/staging/` (pending)

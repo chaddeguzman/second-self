@@ -11,6 +11,7 @@ Usage:
     echo-session resume <file>
     echo-session archive <file>
     echo-session summary [file]
+    echo-session help            <- worked examples for every command
 
 All paths default to 90-system/.echo/memory/ but can be overridden with
 --base-dir.
@@ -261,6 +262,41 @@ def cmd_summary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_help(args: argparse.Namespace) -> int:
+    """Print worked examples for every command (richer than --help)."""
+    print(
+        "echo-session — how to use it\n"
+        "\n"
+        "Sessions are one file each under 90-system/.echo/memory/sessions/,\n"
+        "named YYYY-MM-DDTHHMM.md. The active session is pointed to by\n"
+        "current-session.md. All commands accept --base-dir to override the\n"
+        "memory directory (useful for testing).\n"
+        "\n"
+        "Worked examples:\n"
+        "\n"
+        "  # Start a new session and point the current-session pointer at it\n"
+        '  echo-session create --summary "Debugging recall ranking"\n'
+        "\n"
+        "  # Show every session: name, turns, mode, which one is current\n"
+        "  echo-session list\n"
+        "\n"
+        "  # Restart from an existing session (updates the pointer)\n"
+        "  echo-session resume 2026-09-02T1215.md\n"
+        "\n"
+        "  # Preserve a session (renames to .archived; clears pointer if needed)\n"
+        "  echo-session archive 2026-09-02T1215.md\n"
+        "\n"
+        "  # Show the session-state header (defaults to the current session)\n"
+        "  echo-session summary\n"
+        "  echo-session summary 2026-09-02T1215.md\n"
+        "\n"
+        "See 90-system/.echo/memory/sessions/SESSION-CONVENTION.md for the\n"
+        "file format, and 90-system/.echo/CAPABILITY-LIST.md for the full\n"
+        "capability reference."
+    )
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # CLI setup
 # ---------------------------------------------------------------------------
@@ -295,6 +331,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_summary = sub.add_parser("summary", help="Show session state header")
     p_summary.add_argument("file", nargs="?", default=None, help="Session file name (default: current)")
     p_summary.set_defaults(func=cmd_summary)
+
+    p_help = sub.add_parser("help", help="Show worked examples for every command")
+    p_help.set_defaults(func=cmd_help)
 
     return parser
 
