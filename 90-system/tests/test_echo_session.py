@@ -150,6 +150,22 @@ def test_summary_no_current(tmp_path: Path):
     assert "No current session" in out
 
 
+# --- help subcommand ---
+
+def test_help_subcommand():
+    code, out, err = run_cli("help")
+    assert code == 0
+    assert "how to use it" in out
+    assert "Worked examples:" in out
+    assert "create --summary" in out
+    assert "echo-session list" in out
+    assert "echo-session resume" in out
+    assert "echo-session archive" in out
+    assert "echo-session summary" in out
+    assert "SESSION-CONVENTION.md" in out
+    assert "CAPABILITY-LIST.md" in out
+
+
 # --- --help ---
 
 def test_help():
