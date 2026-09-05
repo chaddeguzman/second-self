@@ -53,7 +53,9 @@ no YAML front matter needed. Contains:
 ### log.md
 
 A compounding, tabular task log. Every task the sub-agent receives
-gets a new row. The log grows over time — never deleted.
+gets a new row. The log grows over time — never deleted. Entries are
+**newest-first** (most recent at the top) so the latest task is always
+the first row visible.
 
 Format:
 
