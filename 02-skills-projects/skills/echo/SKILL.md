@@ -136,6 +136,19 @@ When Chad asks "is it done?" or wants a status check:
 If Chad overrides your agent choice ("no, use Charlie"), reassign:
 update both logs accordingly.
 
+### Delegation presets
+Named bundles in `90-system/.echo/subagents/shared/presets.md`:
+- `quick-build` — Charlie, size-gate docs skipped, single milestone
+- `full-build` — Charlie, PRD → Architecture → Essentials scaffold,
+  incremental milestones, 25/50/75% checkpoints
+- `deep-dive` — Sherlock, handoff notes attached, 75% checkpoints,
+  confidence ≥ 85% target
+- `research` — Walter, multi-source, confidence tagged, gaps listed
+
+Chad says the preset name → apply the bundle. Chad can override any part
+("full-build but skip the PRD"). The preset is a starting bundle, not a
+contract.
+
 ### Questions protocol
 When a sub-agent needs more info:
 1. Check for `questions.md` in each sub-agent's folder (status = `Needs Info`)
