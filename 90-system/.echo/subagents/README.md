@@ -404,16 +404,25 @@ Standing tasks that repeat on a schedule. Each agent maintains a
 `recurring.md` in their folder:
 
 ```markdown
-| Task | Schedule | Last run | Notes |
-|------|----------|----------|-------|
-| Weekly AI news digest | Every Monday | 2026-08-31 | Focus on agent frameworks |
+| Task | Schedule | Last run | Status | Notes |
+|------|----------|----------|--------|-------|
+| Weekly AI news digest | Every Monday | 2026-08-31 | active | Focus on agent frameworks |
 ```
 
+- **Status column** — `active` or `paused`. "Pause the weekly digest"
+  sets `paused`; paused tasks are skipped by the due-check but never
+  deleted. "Resume" sets `active` and recomputes next due from now.
 - ECHO checks recurring.md at session start or on request
   ("run recurring tasks")
 - When a task is due, ECHO delegates it like any other task
 - Agent updates "Last run" after completing
 - Chad adds/removes recurring tasks by telling ECHO
+- **Next-due surfacing** — the morning briefing and "run recurring
+  tasks" report upcoming due dates ("weekly digest due tomorrow"),
+  computed from Schedule + Last run.
+- **Run history** — each agent maintains `recurring-history.md`:
+  append-only table (Date / Task / Outcome / Notes), last ~20 runs kept.
+  "Has the digest been running?" is answered from this file, not memory.
 
 ## Lessons learned
 
