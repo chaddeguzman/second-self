@@ -60,6 +60,23 @@
 | Session wrap-up | "I'm done" / "goodbye" | Generates session summary: topics, saves, delegations, pending | Chad: "I'm done." → ECHO: "Session wrap-up: discussed X, saved 1 decision, delegated nothing, 2 pending in staging." |
 | Memory health | "how's your memory?" | Reports stats: total, oldest, newest, staging count, types, duplicates | Chad: "How's your memory?" → ECHO: "12 memories, oldest Mar 14, newest today, 2 in staging." |
 
+### CLI Tools
+
+| Tool | Command | Description | Example |
+|------|---------|-------------|---------|
+| echo-session | `python 90-system/.echo/scripts/echo-session.py create --summary "text"` | Start a new session file (`YYYY-MM-DDTHHMM.md`) and point `current-session.md` at it | Creates today's session with your summary |
+| echo-session | `... list` | Show all sessions: name, turns, mode, which is current | Table view of every session file |
+| echo-session | `... resume <file>` | Point the current-session pointer at an existing session (restart/recovery) | `... resume 2026-09-02T1215.md` |
+| echo-session | `... archive <file>` | Preserve a session (rename to `.archived`); clears the pointer if it was current | `... archive 2026-09-02T1215.md` |
+| echo-session | `... summary [file]` | Show a session's state header (turn_count, mode, summary); defaults to the current session | `... summary` |
+| echo-session | `... help` | Worked examples for every command, plus pointers to the session convention and this file | Run from the repo root |
+| echo-doctor | `python 90-system/.echo/scripts/echo-doctor.py` | Health check for ECHO's file convention: stable-block files, session pointer, staging queue, log status lines, stale wip.md, session filenames | One-line OK/WARN/FAIL per check + summary |
+| echo-doctor | `... --fix` | Apply safe fixes (removes stale wip.md files) | Cleans up completed-task WIP leftovers |
+| echo-doctor | `... --strict` | Exit 1 on any WARN or FAIL — for pre-commit gating | `... --strict` in CI or before commits |
+| echo-doctor | `... --json` | Machine-readable JSON output (paths redacted) | Piping into other tooling |
+
+> echo-session commands accept `--base-dir <path>` to override the memory directory; echo-doctor accepts `--base-dir` to override the `.echo` directory (both used by tests). Session file format is defined in `90-system/.echo/memory/sessions/SESSION-CONVENTION.md`.
+
 ---
 
 ## Sub-Agent Skills

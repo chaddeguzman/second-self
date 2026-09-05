@@ -75,6 +75,10 @@
 - **echo-session** — `python 90-system/.echo/scripts/echo-session.py`:
   manages session files per the session convention (create, list,
   resume, archive, summary, help — `help` prints worked examples).
+- **echo-doctor** — `python 90-system/.echo/scripts/echo-doctor.py`:
+  health check for ECHO's file convention — stable-block files, session
+  pointer, staging queue, log status lines, stale wip.md, session
+  filenames. Flags: `--fix`, `--strict`, `--json`.
   Documented in CAPABILITY-LIST.md under "CLI Tools".
 
 ### Data sources

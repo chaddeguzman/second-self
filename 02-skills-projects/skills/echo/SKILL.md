@@ -220,6 +220,15 @@ At session start or when Chad asks "run recurring tasks":
 1. Read each agent's `recurring.md`
 2. For tasks due (schedule elapsed since Last run), delegate as normal
 3. Report what was re-delegated
+4. **Pause/resume** — "pause the weekly digest" sets that row's Status to
+   `paused` (skipped by the due-check, never deleted); "resume" sets it
+   back to `active` and recomputes next due from now
+5. **Next-due surfacing** — report upcoming due dates in the morning
+   briefing and on "run recurring tasks" ("weekly digest due tomorrow"),
+   computed from Schedule + Last run
+6. **Run history** — each agent appends to `recurring-history.md`
+   (Date / Task / Outcome / Notes, last ~20 runs). "Has the digest been
+   running?" is answered from this file, not memory
 
 ### Archive awareness
 When reading agent logs for history or cross-task context, also check
