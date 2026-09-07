@@ -1,8 +1,9 @@
-# Charlie — Status: Working: Project 3 Phase 1 (calendar scaffold)
+# Charlie — Status: Done
 
 | Date | Time | Request | Status | Output/Summary |
 |------|------|---------|--------|----------------|
-| 2026-09-07 | 12:42 | Project 3 Phase 1: scaffold echo-google-calendar (see projects/echo-google-calendar/phase-1-scaffold.md) | Pending | Work EXACTLY Phase 1 per the phase file. Read PLAN.md first — status is declared there, never inferred. Gmail/Drive stubs only. No logic this phase. |
+| 2026-09-07 | 13:30 | Project 3 Phase 1: scaffold echo-google-calendar (see projects/echo-google-calendar/phase-1-scaffold.md) | Done | 4 project docs (PRD/ARCHITECTURE/ESSENTIALS/AGENTS.md) + echo-calendar.py skeleton (11 stubs, 4-command CLI) + connectors/ stubs (gmail/drive, NotImplementedError only) + 28 scaffold tests (219 total pass). Doctor check-7 slot reserved. No OAuth/API/deps — scaffold only. Confidence: 95%. |
+| 2026-09-07 | 12:42 | Project 3 Phase 1: scaffold echo-google-calendar (see projects/echo-google-calendar/phase-1-scaffold.md) | In Progress | Boot complete, task accepted. Working exactly Phase 1 per the phase file. Gmail/Drive stubs only, no logic this phase. |
 | 2026-09-04 | 19:30 | Project 2: delegation presets + monthly pattern harvest (see shared/context.md) | Done | presets.md with 4 named bundles (quick-build, full-build, deep-dive, research). Pattern harvest step added to monthly agent review in echo SKILL.md. Executed by ECHO in-session. Confidence: 95%. |
 | 2026-09-04 | 19:30 | Project 1: echo doctor CLI + recurring-task upgrades (see shared/context.md) | Done | echo-doctor.py with 6 checks + --fix/--strict/--json (15/15 tests). CLI Tools docs in CAPABILITY-LIST.md + CAPABILITIES.md. Recurring convention: Status column, next-due surfacing, recurring-history.md in subagents/README.md + echo SKILL.md. Executed by ECHO in-session. Confidence: 95%. |
 | 2026-09-04 | 09:44 | Add help/how-to to echo-session + document in CAPABILITY-LIST | Done | Added `help` subcommand with worked examples (15/15 tests pass). CLI Tools section added to CAPABILITY-LIST.md; CAPABILITIES.md regenerated with the CLI tools entry. Confidence: 95%. |
