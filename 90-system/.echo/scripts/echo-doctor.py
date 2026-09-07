@@ -289,6 +289,11 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     _check_stale_wip(base, results, fix=args.fix)
     _check_session_filenames(base, results)
 
+    # PHASE 5 (echo-google-calendar project): check 7 — calendar
+    # connector configured? Will import echo_calendar.run_doctor_check
+    # and append its result here when the connector exists (Phase 2+).
+    # Reserved per projects/echo-google-calendar/phase-5-integration.md.
+
     if args.json:
         # NOTE: Paths are already redacted inside check details; the base
         # directory itself is never emitted in JSON output.
