@@ -85,6 +85,8 @@ build/
 .obsidian/graph.json
 
 # Backups, archives, credentials, and temporary files.
+# Google OAuth client secret for echo-calendar (Project 3) — never commit.
+90-system/.echo/scripts/credentials.json
 backups/
 *.age
 *.tar
