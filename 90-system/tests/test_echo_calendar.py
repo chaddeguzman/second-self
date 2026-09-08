@@ -472,6 +472,7 @@ class FakeCreds:
 
 class FakeFlow:
     last_scopes: list[str] = []
+    last_run_kwargs: dict = {}
 
     def __init__(self) -> None:
         self.ran = False
@@ -481,8 +482,9 @@ class FakeFlow:
         FakeFlow.last_scopes = scopes
         return cls()
 
-    def run_local_server(self, port: int = 0) -> FakeCreds:
+    def run_local_server(self, port: int = 0, **kwargs: object) -> FakeCreds:
         self.ran = True
+        FakeFlow.last_run_kwargs = {"port": port, **kwargs}
         return FakeCreds()
 
 
@@ -502,6 +504,10 @@ class TestRunAuth:
         assert store == "keyring"
         assert record["refresh_token"] == "refresh-xyz"
         assert FakeFlow.last_scopes == [echo_calendar.OAUTH_SCOPE]
+        # prompt="consent" guarantees Google re-issues the refresh token
+        # on repeat visits (without it, a skipped consent screen returns
+        # no refresh_token and the storage layer would persist a dud).
+        assert FakeFlow.last_run_kwargs.get("prompt") == "consent"
         token, read_store = echo_calendar.load_token(sandbox)
         assert read_store == "keyring"
         assert token["client_id"] == TOKEN["client_id"]

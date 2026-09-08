@@ -28,10 +28,20 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
+
+# TECHNICAL: google-api-core emits a PQC/grpcio FutureWarning at import
+# time on every run; it is noise for a CLI, so filter it before the
+# google imports pull that module in.
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    module=r"google\.api_core\._python_package_support",
+)
 
 import keyring
 from google.oauth2.credentials import Credentials
@@ -378,7 +388,11 @@ def run_auth(base_dir: Path) -> tuple[dict[str, Any], str]:
     # server and opens the browser; the refresh token only ever lands in
     # save_token (keyring → local fallback), never in a tracked file.
     flow = InstalledAppFlow.from_client_secrets_file(str(creds_path), scopes=[OAUTH_SCOPE])
-    creds = flow.run_local_server(port=0)
+    # TECHNICAL: prompt="consent" forces Google to (re)issue a refresh
+    # token — on a repeat visit with an existing grant, the consent
+    # screen can be skipped and the response would carry no
+    # refresh_token, which this project's storage layer depends on.
+    creds = flow.run_local_server(port=0, prompt="consent")
     record = {
         "refresh_token": creds.refresh_token,
         "client_id": creds.client_id,
