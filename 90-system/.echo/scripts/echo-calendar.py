@@ -8,7 +8,7 @@ cache with offline fallback, and a health check consumed by echo-doctor.
 
 Usage:
     echo-calendar auth [--base-dir <path>]
-    echo-calendar fetch --period today|week [--json] [--base-dir <path>]
+    echo-calendar fetch --period today|week|month [--json] [--base-dir <path>]
     echo-calendar cache --refresh [--base-dir <path>]
     echo-calendar doctor-check [--json] [--base-dir <path>]
 
@@ -84,9 +84,10 @@ KEYRING_USER = "token"
 LOCAL_TOKEN_KEY = "echo_calendar_token"
 
 # Snapshot file names inside the cache directory (one file per period so
-# today/week staleness thresholds stay independent)
+# staleness thresholds stay independent)
 SNAPSHOT_TODAY = "snapshot-today.json"
 SNAPSHOT_WEEK = "snapshot-week.json"
+SNAPSHOT_MONTH = "snapshot-month.json"
 
 # Default calendar (PRD: single calendar for v1)
 DEFAULT_CALENDAR_ID = "primary"
@@ -104,6 +105,7 @@ TOKEN_REQUIRED_KEYS = (
 # staleness — the CLI always reports age when serving from cache.
 STALE_TODAY_HOURS = 6
 STALE_WEEK_HOURS = 12
+STALE_MONTH_HOURS = 48
 
 # Severity levels (mirror echo-doctor for doctor-check output)
 OK = "OK"
@@ -139,8 +141,12 @@ def _local_token_path(base_dir: Path) -> Path:
 
 
 def _snapshot_path(base_dir: Path, period: str) -> Path:
-    """Return the snapshot file for a period (today/week kept separate)."""
-    name = SNAPSHOT_TODAY if period == "today" else SNAPSHOT_WEEK
+    """Return the snapshot file for a period (one file per period)."""
+    name = {
+        "today": SNAPSHOT_TODAY,
+        "week": SNAPSHOT_WEEK,
+        "month": SNAPSHOT_MONTH,
+    }[period]
     return _cache_dir(base_dir) / name
 
 
@@ -257,14 +263,19 @@ def snapshot_age_hours(snapshot: dict[str, Any]) -> float:
 def is_stale(snapshot: dict[str, Any]) -> bool:
     """Return True when the snapshot is older than the period's threshold.
 
-    today → 6h, week → 12h. A snapshot with no parsable timestamp is
-    always stale: freshness must be provable, never assumed.
+    today → 6h, week → 12h, month → 48h. A snapshot with no parsable
+    timestamp is always stale: freshness must be provable, never assumed.
     """
     try:
         age = snapshot_age_hours(snapshot)
     except ValueError:
         return True
-    threshold = STALE_TODAY_HOURS if snapshot.get("period") == "today" else STALE_WEEK_HOURS
+    thresholds = {
+        "today": STALE_TODAY_HOURS,
+        "week": STALE_WEEK_HOURS,
+        "month": STALE_MONTH_HOURS,
+    }
+    threshold = thresholds.get(snapshot.get("period"), STALE_WEEK_HOURS)
     return age > threshold
 
 
@@ -278,20 +289,33 @@ def _now_shanghai() -> datetime:
 
 
 def _period_window(period: str, now: datetime) -> tuple[datetime, datetime]:
-    """Return the UTC [start, end) window for today or this week.
+    """Return the UTC [start, end) window for today, week, or month.
 
     TECHNICAL: windows are computed in Asia/Shanghai, then converted to
     UTC for the API. "today" = the local calendar day; "week" = the ISO
-    week (Monday 00:00 local → next Monday 00:00 local).
+    week (Monday 00:00 local → next Monday 00:00 local); "month" = the
+    calendar month (1st 00:00 local → 1st of next month 00:00 local).
     """
-    if period not in ("today", "week"):
+    if period not in ("today", "week", "month"):
         raise ValueError(f"unknown period: {period}")
     local_now = now.astimezone(ZoneInfo(CALENDAR_TIMEZONE))
     start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
     if period == "week":
         # JUNIOR: weekday() → Monday=0 … Sunday=6; step back to Monday.
         start -= timedelta(days=local_now.weekday())
-    days = 7 if period == "week" else 1
+        days = 7
+    elif period == "month":
+        # JUNIOR: step back to the 1st, then roll to the 1st of next
+        # month (after December that is January of the next year — the
+        # month % 12 + 1 trick handles both).
+        start = start.replace(day=1)
+        next_month = start.replace(
+            year=start.year + (start.month == 12),
+            month=start.month % 12 + 1,
+        )
+        return start.astimezone(timezone.utc), next_month.astimezone(timezone.utc)
+    else:
+        days = 1
     end = (start + timedelta(days=days)).astimezone(timezone.utc)
     return start.astimezone(timezone.utc), end
 
@@ -505,7 +529,13 @@ def _stale_notice(snapshot: dict[str, Any]) -> str | None:
         return "cached snapshot has no timestamp — treating as stale"
     if not is_stale(snapshot):
         return None
-    return f"cached snapshot is {age:.1f}h old (threshold {STALE_TODAY_HOURS if snapshot.get('period') == 'today' else STALE_WEEK_HOURS}h)"
+    thresholds = {
+        "today": STALE_TODAY_HOURS,
+        "week": STALE_WEEK_HOURS,
+        "month": STALE_MONTH_HOURS,
+    }
+    threshold = thresholds.get(snapshot.get("period"), STALE_WEEK_HOURS)
+    return f"cached snapshot is {age:.1f}h old (threshold {threshold}h)"
 
 
 # ---------------------------------------------------------------------------
@@ -541,7 +571,7 @@ def cmd_cache(args: argparse.Namespace) -> int:
     if not args.refresh:
         print("error: nothing to do — pass --refresh", file=sys.stderr)
         return 2
-    for period in ("today", "week"):
+    for period in ("today", "week", "month"):
         snapshot, _from_cache = fetch_events(base, period)
         print(f"Refreshed {period}: {len(snapshot.get('events', []))} event(s)")
     return 0
@@ -584,8 +614,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_fetch = sub.add_parser("fetch", help="Fetch events (live, cache fallback)")
     p_fetch.add_argument(
-        "--period", choices=["today", "week"], required=True,
-        help="Time window: today or this week",
+        "--period", choices=["today", "week", "month"], required=True,
+        help="Time window: today, this week, or this calendar month",
     )
     p_fetch.set_defaults(func=cmd_fetch)
 
