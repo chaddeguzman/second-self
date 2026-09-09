@@ -43,6 +43,19 @@ warnings.filterwarnings(
     module=r"google\.api_core\._python_package_support",
 )
 
+# TECHNICAL: corporate networks often run TLS inspection with a root CA
+# that Python's bundled CA list does not trust (SSL: self-signed
+# certificate in certificate chain). truststore makes Python validate
+# against the OS certificate store — Windows already trusts the
+# corporate root there. Optional: without the package, default SSL
+# behavior continues (fine on networks without TLS inspection).
+try:
+    import truststore
+
+    truststore.inject_into_ssl()
+except ImportError:
+    pass
+
 import keyring
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
