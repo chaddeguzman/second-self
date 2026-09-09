@@ -105,6 +105,7 @@ class TestConstants:
     def test_staleness_thresholds(self) -> None:
         assert echo_calendar.STALE_TODAY_HOURS == 6
         assert echo_calendar.STALE_WEEK_HOURS == 12
+        assert echo_calendar.STALE_MONTH_HOURS == 48
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +135,7 @@ class TestPaths:
         cache = tmp_path / ".second-self-cache" / "calendar"
         assert echo_calendar._snapshot_path(echo_dir, "today") == cache / "snapshot-today.json"
         assert echo_calendar._snapshot_path(echo_dir, "week") == cache / "snapshot-week.json"
+        assert echo_calendar._snapshot_path(echo_dir, "month") == cache / "snapshot-month.json"
 
 
 # ---------------------------------------------------------------------------
@@ -274,6 +276,10 @@ class TestSnapshotCache:
         assert echo_calendar.is_stale(_snapshot("week", 13.0)) is True
         assert echo_calendar.is_stale(_snapshot("week", 11.0)) is False
 
+    def test_stale_month_over_48h(self) -> None:
+        assert echo_calendar.is_stale(_snapshot("month", 49.0)) is True
+        assert echo_calendar.is_stale(_snapshot("month", 47.0)) is False
+
     def test_missing_timestamp_is_always_stale(self) -> None:
         # Freshness must be provable — never assumed.
         assert echo_calendar.is_stale({"period": "today", "events": []}) is True
@@ -310,9 +316,49 @@ class TestPeriodWindow:
         assert start == datetime(2026, 9, 6, 16, 0, tzinfo=timezone.utc)
         assert end == datetime(2026, 9, 13, 16, 0, tzinfo=timezone.utc)
 
+    def test_month_window_runs_first_to_first(self) -> None:
+        # Mid-month (Sep 15) → Sep 1 00:00 local → Oct 1 00:00 local.
+        now = datetime(2026, 9, 15, 18, 30, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        assert start == datetime(2026, 8, 31, 16, 0, tzinfo=timezone.utc)
+        assert end == datetime(2026, 9, 30, 16, 0, tzinfo=timezone.utc)
+
+    def test_month_window_on_31_day_month(self) -> None:
+        now = datetime(2026, 1, 31, 23, 0, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        assert start == datetime(2025, 12, 31, 16, 0, tzinfo=timezone.utc)
+        assert end == datetime(2026, 1, 31, 16, 0, tzinfo=timezone.utc)
+
+    def test_month_window_on_28_day_february(self) -> None:
+        # 2027 is not a leap year.
+        now = datetime(2027, 2, 14, 8, 0, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        assert start == datetime(2027, 1, 31, 16, 0, tzinfo=timezone.utc)
+        assert end == datetime(2027, 2, 28, 16, 0, tzinfo=timezone.utc)
+
+    def test_month_window_february_leap_year(self) -> None:
+        # 2028 is a leap year — February has 29 days.
+        now = datetime(2028, 2, 14, 8, 0, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        assert start == datetime(2028, 1, 31, 16, 0, tzinfo=timezone.utc)
+        assert end == datetime(2028, 2, 29, 16, 0, tzinfo=timezone.utc)
+
+    def test_month_window_december_rolls_to_next_year(self) -> None:
+        now = datetime(2026, 12, 25, 12, 0, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        assert start == datetime(2026, 11, 30, 16, 0, tzinfo=timezone.utc)
+        assert end == datetime(2026, 12, 31, 16, 0, tzinfo=timezone.utc)
+
+    def test_month_window_event_on_first_inside(self) -> None:
+        # An event on the 1st at 00:30 local is inside the window.
+        now = datetime(2026, 9, 9, 12, 0, tzinfo=SHANGHAI)
+        start, end = echo_calendar._period_window("month", now)
+        event = datetime(2026, 9, 1, 0, 30, tzinfo=SHANGHAI)
+        assert start <= event.astimezone(timezone.utc) < end
+
     def test_unknown_period_raises(self) -> None:
         with pytest.raises(ValueError):
-            echo_calendar._period_window("month", datetime(2026, 9, 8, tzinfo=SHANGHAI))
+            echo_calendar._period_window("year", datetime(2026, 9, 8, tzinfo=SHANGHAI))
 
     def test_event_at_2330_lands_inside_today_window(self) -> None:
         # The classic boundary: a 23:30 local event is 15:30Z — inside.
@@ -653,7 +699,7 @@ class TestCommands:
         monkeypatch.setattr(echo_calendar, "fetch_events", fake_fetch)
         args = self._args(["cache", "--refresh"])
         assert echo_calendar.cmd_cache(args) == 0
-        assert seen == ["today", "week"]
+        assert seen == ["today", "week", "month"]
 
     def test_cache_without_refresh_is_usage_error(self, capsys: pytest.CaptureFixture) -> None:
         args = self._args(["cache"])
@@ -705,17 +751,19 @@ class TestParser:
         with pytest.raises(SystemExit):
             parser.parse_args(["fetch"])
 
-    def test_fetch_accepts_today_and_week(self) -> None:
+    def test_fetch_accepts_today_week_month(self) -> None:
         parser = echo_calendar.build_parser()
         args = parser.parse_args(["fetch", "--period", "today"])
         assert args.period == "today"
         args = parser.parse_args(["fetch", "--period", "week"])
         assert args.period == "week"
+        args = parser.parse_args(["fetch", "--period", "month"])
+        assert args.period == "month"
 
     def test_period_rejects_unknown(self) -> None:
         parser = echo_calendar.build_parser()
         with pytest.raises(SystemExit):
-            parser.parse_args(["fetch", "--period", "month"])
+            parser.parse_args(["fetch", "--period", "year"])
 
     def test_cache_has_refresh_flag(self) -> None:
         parser = echo_calendar.build_parser()
