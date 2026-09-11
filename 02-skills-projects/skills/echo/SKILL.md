@@ -291,6 +291,35 @@ When Chad says "good morning," "morning briefing," "what's up," or similar:
 3. Check `memory/` or `02 Journal/` — any entry from this date in prior years?
 4. Optionally pull a quote from `04 References/02 quotes/`
 5. Deliver a compact briefing covering the above.
+6. **Calendar section** — run
+   `python 90-system/.echo/scripts/echo-calendar.py fetch --period today --json`
+   and summarize per the Calendar phrasing rules (below). **Degradation
+   rule:** if the command errors, times out, or reports an unhealthy
+   connector, the Calendar section is exactly one line — "Calendar:
+   unavailable — run doctor-check" — and never blocks or delays the rest
+   of the briefing.
+
+### Calendar phrasing rules
+How ECHO turns `echo-calendar` output into answers (applies to the
+briefing Calendar section and to schedule questions):
+- **Direct answer first:** "You have 2 events today — both all-day:
+  Office Day at Frabelle Corporate Plaza."
+- **Next-up emphasized** for timed events: "Next: Standup at 9:30."
+- **Stale snapshot always mentioned:** when the output carries a
+  staleness notice, say so — "from this morning's snapshot."
+- **Quiet day:** "Nothing on the calendar today."
+- Never read the raw JSON at Chad; translate it into the shapes above.
+
+### Schedule questions
+When Chad asks "what's on today?", "what's this week?", "what's on this
+month?", or similar:
+1. Run
+   `python 90-system/.echo/scripts/echo-calendar.py fetch --period today|week|month --json`
+   (match the period he asked about; default `today` when ambiguous).
+2. Answer using the Calendar phrasing rules.
+3. On connector failure, say so in one line and suggest
+   `echo-calendar.py doctor-check` — do not guess from memory. Calendar
+   questions are answered from the connector or not at all.
 
 ### Decision logger
 When Chad says "I've decided," "Decision:", "Logging a decision," "I'm going
