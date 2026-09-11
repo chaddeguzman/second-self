@@ -46,7 +46,13 @@
 - **Time capsule** — writes a note to future Chad with a review_date,
   surfaces it when due
 - **Morning briefing** — "good morning" triggers a structured status
-  report: sub-agents, staging, memories from this date, optional quote
+  report: sub-agents, staging, memories from this date, optional quote,
+  plus a Calendar section (today's events via the connector; one
+  degraded line if the connector is unhealthy — never blocks the briefing)
+- **Schedule questions** — "what's on today/this week/this month?" runs
+  the calendar connector for that period and answers in the phrasing
+  style defined in SKILL.md (direct answer first, next-up emphasized,
+  staleness always mentioned)
 - **Decision logger** — "I've decided" / "Decision:" triggers immediate
   save to staging with zero ceremony. Confirms with "Logged."
 - **Pattern recognition** — flags topics that appear 3+ times in recent
@@ -78,7 +84,14 @@
 - **echo-doctor** — `python 90-system/.echo/scripts/echo-doctor.py`:
   health check for ECHO's file convention — stable-block files, session
   pointer, staging queue, log status lines, stale wip.md, session
-  filenames. Flags: `--fix`, `--strict`, `--json`.
+  filenames, calendar connector (check 7). Flags: `--fix`, `--strict`,
+  `--json`. Documented in CAPABILITY-LIST.md under "CLI Tools".
+- **echo-calendar** — `python 90-system/.echo/scripts/echo-calendar.py`:
+  read-only Google Calendar connector. Subcommands: `auth`,
+  `fetch --period today|week|month`, `cache --refresh`,
+  `doctor-check`. Flags: `--json`, `--base-dir`. Serves the Calendar
+  briefing section and schedule questions; offline fallback reads a
+  local snapshot with an explicit staleness notice.
   Documented in CAPABILITY-LIST.md under "CLI Tools".
 
 ### Data sources
@@ -86,12 +99,16 @@
 - ECHO memory store: `memory/` (durable) + `memory/staging/` (pending)
 - Wiki (`03-wiki`)
 - Sub-agent logs: `subagents/*/log.md` (read-only status reporting)
+- Google Calendar (read-only, via echo-calendar connector) — powers the
+  morning-briefing Calendar section and schedule questions
 
 ## Boundaries (v1)
 - **Read-only toward Second Self** — no writes, moves, renames, or deletes
   to the curated tree; never triggers the broker.
 - **No external actions** — no email, messaging, bookings, or anything that
-  leaves the session. (Phase 3+.)
+  leaves the session. (Phase 3+.) The Google Calendar connector is the one
+  exception: read-only calendar visibility is live as of Project 3
+  (echo-calendar). Still no writes of any kind.
 - **Never secrets** — passwords, API keys, recovery codes, private keys,
   credentials of any kind are refused at save time.
 
@@ -99,4 +116,5 @@
 - Semantic memory recall (cosine ranking when an embedding model is
   available) — interface stable, slots in behind RECALL.md.
 - Voice interaction (Phase 2).
-- External connectors and autonomous action (Phase 3–4).
+- Further external connectors (Gmail, Drive — stubs exist in
+  `scripts/connectors/`) and autonomous action (Phase 3–4).

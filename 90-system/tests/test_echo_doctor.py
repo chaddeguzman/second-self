@@ -19,7 +19,13 @@ def run_cli(*args: str, base_dir: Path | None = None) -> tuple[int, str, str]:
 
 
 def make_base(tmp_path: Path) -> Path:
-    """Create a temp .echo layout that passes all checks."""
+    """Create a temp .echo layout that passes all checks.
+
+    The calendar-connector check is hermetic: a minimal stub
+    echo-calendar.py is written into the sandbox whose doctor-check
+    reports FAIL when no token exists in the sandbox's own local JSON
+    fallback — the machine's real keyring is never touched.
+    """
     (tmp_path / "subagents").mkdir()
     (tmp_path / "memory" / "sessions").mkdir(parents=True)
     (tmp_path / "memory" / "staging").mkdir(parents=True)
@@ -38,7 +44,45 @@ def make_base(tmp_path: Path) -> Path:
         "# Charlie \u2014 Status: Idle\n\n| Date |\n|------|\n",
         encoding="utf-8",
     )
+    _write_calendar_stub(tmp_path)
+    # Seed a sandbox token so the connector check reads OK by default —
+    # legacy tests keep their exit-0 expectations; check-7-specific tests
+    # override this explicitly.
+    (tmp_path / ".second-self.local.json").write_text(
+        '{"echo_calendar_token": {"refresh_token": "x"}}', encoding="utf-8"
+    )
     return tmp_path
+
+
+def _write_calendar_stub(tmp_path: Path) -> None:
+    """Write a dependency-free echo-calendar stub for sandboxed check 7.
+
+    The stub's run_doctor_check reads only the sandbox-local JSON file,
+    so tests are deterministic and never touch the OS keyring or the
+    google/keyring dependencies.
+    """
+    scripts = tmp_path / "scripts"
+    scripts.mkdir(exist_ok=True)
+    (scripts / "echo-calendar.py").write_text(
+        '"""\nSandbox stub of echo-calendar for echo-doctor tests.\n"""\n'
+        "import json\n"
+        "from pathlib import Path\n\n"
+        'LOCAL = Path(__file__).resolve().parent.parent / ".second-self.local.json"\n\n\n'
+        "def run_doctor_check(base_dir):\n"
+        "    token = None\n"
+        "    if LOCAL.exists():\n"
+        "        try:\n"
+        "            data = json.loads(LOCAL.read_text(encoding=\"utf-8\"))\n"
+        "            token = data.get(\"echo_calendar_token\")\n"
+        "        except (OSError, ValueError):\n"
+        "            token = None\n"
+        "    if token:\n"
+        "        return {\"check\": \"calendar-connector\", \"status\": \"OK\",\n"
+        "                \"detail\": \"token present (stub)\"}\n"
+        "    return {\"check\": \"calendar-connector\", \"status\": \"FAIL\",\n"
+        "            \"detail\": \"no token \\u2014 run `auth`\"}\n",
+        encoding="utf-8",
+    )
 
 
 # --- all-OK case ---
@@ -49,7 +93,8 @@ def test_all_ok(tmp_path: Path):
     assert code == 0
     assert "[FAIL]" not in out
     assert "[WARN]" not in out
-    assert "Summary: 6 OK" in out
+    assert "Summary: 7 OK, 0 WARN, 0 FAIL" in out
+    assert "[OK]   calendar-connector" in out
 
 
 # --- check 1: stable-block files ---
@@ -202,7 +247,7 @@ def test_json_output(tmp_path: Path):
     code, out, err = run_cli("--json", base_dir=base)
     assert code == 0
     data = json.loads(out)
-    assert len(data["results"]) == 6
+    assert len(data["results"]) == 7
     assert all(r["status"] == "OK" for r in data["results"])
 
 
@@ -210,3 +255,50 @@ def test_strict_all_ok_exits_0(tmp_path: Path):
     base = make_base(tmp_path)
     code, out, err = run_cli("--strict", base_dir=base)
     assert code == 0
+
+
+# --- check 7: calendar connector ---
+
+def test_connector_ok_with_local_token(tmp_path: Path):
+    base = make_base(tmp_path)
+    local = base / ".second-self.local.json"
+    local.write_text(
+        '{"echo_calendar_token": {"refresh_token": "x"}}', encoding="utf-8"
+    )
+    code, out, err = run_cli(base_dir=base)
+    assert code == 0
+    assert "[OK]   calendar-connector" in out
+    assert "token present (stub)" in out
+
+
+def test_connector_fail_without_token(tmp_path: Path):
+    base = make_base(tmp_path)
+    (base / ".second-self.local.json").unlink()
+    code, out, err = run_cli(base_dir=base)
+    assert code == 2
+    assert "[FAIL] calendar-connector" in out
+    assert "no token" in out
+
+
+def test_connector_warn_when_script_missing(tmp_path: Path):
+    base = make_base(tmp_path)
+    (base / "scripts" / "echo-calendar.py").unlink()
+    code, out, err = run_cli(base_dir=base)
+    assert code == 0  # WARN degrades, does not fail the run
+    assert "[WARN] calendar-connector" in out
+    assert "missing or unloadable" in out
+
+
+def test_connector_json_included(tmp_path: Path):
+    base = make_base(tmp_path)
+    local = base / ".second-self.local.json"
+    local.write_text(
+        '{"echo_calendar_token": {"refresh_token": "x"}}', encoding="utf-8"
+    )
+    code, out, err = run_cli("--json", base_dir=base)
+    assert code == 0
+    data = json.loads(out)
+    assert len(data["results"]) == 7
+    connector = [r for r in data["results"] if r["check"] == "calendar-connector"]
+    assert len(connector) == 1
+    assert connector[0]["status"] == "OK"

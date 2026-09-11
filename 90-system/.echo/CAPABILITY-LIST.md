@@ -40,7 +40,8 @@
 | Status line | Session start | Updates one-line status in IDENTITY.md reflecting current system state | "Charlie building something. I'm free." |
 | Entertain | "entertain me" / "I'm bored" / "quote me" | Shares a saved quote, tells a dry joke, or surfaces a random memory | Chad: "Entertain me." → ECHO shares a quote from vault with citation. |
 | Time capsule | "time capsule" / "note to future me" | Writes to staging with review_date; surfaces it when due | Chad: "Time capsule: review this in 6 months." → ECHO saves with review_date. |
-| Morning briefing | "good morning" / "what's up" | Delivers structured report: sub-agents, staging, memories from this date | Chad: "Good morning." → ECHO reports agent status, pending staging, memory from this date. |
+| Morning briefing | "good morning" / "what's up" | Delivers structured report: sub-agents, staging, memories from this date, plus a Calendar section (one line if the connector is down — never blocks the briefing) | Chad: "Good morning." → ECHO reports agent status, pending staging, memory from this date, and today's calendar. |
+| Schedule questions | "what's on today / this week / this month?" | Runs the calendar connector for the requested period and answers in the approved phrasing style | Chad: "What's on this month?" → ECHO: "You have 4 events this month…." |
 | Decision logger | "I've decided" / "Decision:" | Immediately saves to staging, confirms with "Logged." | Chad: "I've decided to postpone SAP until Q2." → ECHO: "Logged." |
 | Pattern recognition | (proactive) | Flags topics appearing 3+ times, suggests tracking note | ECHO: "This is the third time you've mentioned SAP. Want me to create a tracking note?" |
 
@@ -70,12 +71,17 @@
 | echo-session | `... archive <file>` | Preserve a session (rename to `.archived`); clears the pointer if it was current | `... archive 2026-09-02T1215.md` |
 | echo-session | `... summary [file]` | Show a session's state header (turn_count, mode, summary); defaults to the current session | `... summary` |
 | echo-session | `... help` | Worked examples for every command, plus pointers to the session convention and this file | Run from the repo root |
-| echo-doctor | `python 90-system/.echo/scripts/echo-doctor.py` | Health check for ECHO's file convention: stable-block files, session pointer, staging queue, log status lines, stale wip.md, session filenames | One-line OK/WARN/FAIL per check + summary |
+| echo-doctor | `python 90-system/.echo/scripts/echo-doctor.py` | Health check for ECHO's file convention: stable-block files, session pointer, staging queue, log status lines, stale wip.md, session filenames, calendar connector (7 checks) | One-line OK/WARN/FAIL per check + summary |
 | echo-doctor | `... --fix` | Apply safe fixes (removes stale wip.md files) | Cleans up completed-task WIP leftovers |
 | echo-doctor | `... --strict` | Exit 1 on any WARN or FAIL — for pre-commit gating | `... --strict` in CI or before commits |
 | echo-doctor | `... --json` | Machine-readable JSON output (paths redacted) | Piping into other tooling |
+| echo-calendar | `python 90-system/.echo/scripts/echo-calendar.py auth` | Run the Google OAuth consent flow; store the refresh token in Windows Credential Manager (local-JSON fallback) | One-time setup — Phase 3 already ran it |
+| echo-calendar | `... fetch --period today\|week\|month` | Fetch read-only calendar events for today, this ISO week (Mon–Sun), or this calendar month; falls back to the cached snapshot when offline (exit 1 + explicit staleness notice) | Powers the briefing Calendar section and schedule questions |
+| echo-calendar | `... cache --refresh` | Refresh all three period snapshots from live data | Prefetch before going offline |
+| echo-calendar | `... doctor-check` | Connector health: token, credentials.json, snapshot age/staleness | Also surfaced as echo-doctor check 7 |
+| echo-calendar | `... --json` | Machine-readable JSON output for any subcommand | ECHO parses this for briefings |
 
-> echo-session commands accept `--base-dir <path>` to override the memory directory; echo-doctor accepts `--base-dir` to override the `.echo` directory (both used by tests). Session file format is defined in `90-system/.echo/memory/sessions/SESSION-CONVENTION.md`.
+> echo-session commands accept `--base-dir <path>` to override the memory directory; echo-doctor accepts `--base-dir` to override the `.echo` directory (both used by tests); echo-calendar accepts `--base-dir` the same way. Session file format is defined in `90-system/.echo/memory/sessions/SESSION-CONVENTION.md`. Calendar data is read-only (`calendar.readonly`); the refresh token lives in the OS keyring, never in Git.
 
 ---
 
@@ -127,7 +133,7 @@
 ## Boundaries (What ECHO Does NOT Do)
 
 - **Read-only toward Second Self** — no writes, moves, renames, or deletes to the curated tree. Never triggers the broker.
-- **No external actions** — no email, messaging, bookings, or anything that leaves the session. (Phase 3+.)
+- **No external actions** — no email, messaging, bookings, or anything that leaves the session. (Phase 3+.) The Google Calendar connector is the one exception: read-only calendar visibility is live (echo-calendar). Still no writes of any kind.
 - **Never secrets** — passwords, API keys, recovery codes, private keys, credentials of any kind are refused at save time.
 - **Sub-agents receive only** — raw task description + Chad's preferences. No vault access, no ECHO persona, no Second Self data.
 
@@ -141,3 +147,4 @@
 | ECHO memory store (`memory/` durable + `memory/staging/` pending) | Read/write (staging only) |
 | Wiki (`03-wiki`) | Read-only |
 | Sub-agent logs (`subagents/*/log.md`) | Read-only (status reporting) |
+| Google Calendar (via echo-calendar, `calendar.readonly`) | Read-only (`auth` → keyring; token never in Git) |

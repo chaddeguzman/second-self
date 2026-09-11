@@ -22,6 +22,7 @@ All paths default to 90-system/.echo/ but can be overridden with
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import sys
@@ -217,6 +218,55 @@ def _check_stale_wip(
         )
 
 
+def _load_echo_calendar(base_dir: Path):
+    """Load echo-calendar.py relative to base_dir, or None if missing/broken.
+
+    TECHNICAL: resolved from base_dir (not __file__), mirroring how the
+    doctor resolves everything else from --base-dir — sandboxed tests get
+    the repo copy and never read the machine's real keyring.
+    """
+    script = base_dir / "scripts" / "echo-calendar.py"
+    if not script.exists():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("echo_calendar_doctor", script)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+    except Exception:
+        # TECHNICAL: deliberately broad — any load failure (syntax,
+        # missing dependency like `keyring`/`google.*`) degrades to a
+        # WARN instead of breaking the other six checks.
+        return None
+
+
+def _check_calendar_connector(base_dir: Path, results: list[dict[str, str]]) -> None:
+    """Check 7: calendar connector configured and healthy?
+
+    Delegates to echo-calendar's own doctor-check (same OK/WARN/FAIL
+    vocabulary), so one source of truth defines connector health.
+    """
+    module = _load_echo_calendar(base_dir)
+    if module is None:
+        _add_result(
+            results,
+            "calendar-connector",
+            WARN,
+            "echo-calendar.py missing or unloadable — check skipped",
+        )
+        return
+    try:
+        result = module.run_doctor_check(base_dir)
+    except Exception as exc:
+        # TECHNICAL: connector-level crash (corrupt local JSON, bad
+        # keyring payload, ...) is a connector problem, not a doctor one.
+        _add_result(results, "calendar-connector", WARN, f"check failed: {exc}")
+        return
+    _add_result(results, result["check"], result["status"], result["detail"])
+
+
 def _check_session_filenames(base_dir: Path, results: list[dict[str, str]]) -> None:
     """Check 6: session files match the convention; .archived noted separately."""
     sessions = base_dir / "memory" / "sessions"
@@ -288,11 +338,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     _check_log_status_lines(base, results)
     _check_stale_wip(base, results, fix=args.fix)
     _check_session_filenames(base, results)
-
-    # PHASE 5 (echo-google-calendar project): check 7 — calendar
-    # connector configured? Will import echo_calendar.run_doctor_check
-    # and append its result here when the connector exists (Phase 2+).
-    # Reserved per projects/echo-google-calendar/phase-5-integration.md.
+    _check_calendar_connector(base, results)
 
     if args.json:
         # NOTE: Paths are already redacted inside check details; the base
