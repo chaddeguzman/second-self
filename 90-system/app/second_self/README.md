@@ -8,7 +8,7 @@ tell which module does what.
 
 | File / Folder | Purpose |
 |---|---|
-| `cli.py` | Argparse CLI. Wires every subcommand (`capture`, `journal`, `search`, `recall`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
+| `cli.py` | Argparse CLI. Wires every subcommand (`doctor`, `capture`, `journal`, `search`, `recall`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
 | `web.py` | Flask app for the local dashboard: routes, templates, static assets, Markdown preview rendering, server launcher. |
 | `__main__.py` | Allows `python -m second_self`. |
 | `templates/` | Jinja HTML templates used by `web.py`. |
@@ -76,6 +76,35 @@ Low-level utilities almost every module depends on.
 | `validation.py` | Privacy + tracked-file validation (`second-self validate`). |
 | `link_check.py` | Wikilink integrity checker for Layer 1 notes; builds `link_fix` broker proposals. |
 | `tag_audit.py` | Tag vocabulary audit against `Tag Registry.md`; builds `edit` broker proposals for near-duplicates. |
+
+### `health/` — Shared health contracts
+
+| Module | Purpose |
+|---|---|
+| `registry.py` | Ordered health-check registry, redacted failure containment, stable text/JSON rendering, and 0/1/2 exit semantics. |
+
+## Health commands
+
+Use `second-self doctor [--strict] [--json]` for the public, read-only health
+surface. It runs the standalone command's seven ECHO checks plus seven
+Second Self readiness checks, emits no resolved roots, and has no repair option.
+Exit 0 means no failures (and WARN is allowed normally), exit 1 means `--strict`
+found a WARN, and exit 2 means FAIL.
+
+| Second Self-only check | Severity rule |
+|---|---|
+| Private-path resolution | `FAIL` when local configuration is missing/invalid or its data root is unavailable |
+| Active Second Self vault | `FAIL` unless the approved vault markers are present |
+| Git main alignment | `FAIL` for detached/non-main, divergent, or unverifiable state |
+| Privacy validator | `FAIL` when the required validator entry point is missing |
+| Ollama readiness | `WARN` when the optional loopback service is unavailable or malformed |
+| Evaluation state | `WARN` when optional baseline state is absent or invalid |
+| Scheduler state | `WARN` when optional job state is absent or invalid |
+
+`90-system/.echo/scripts/echo-doctor.py` remains the maintenance-compatible
+entry point. It preserves `--fix` and `--base-dir` in addition to `--strict` and
+`--json`; those extra controls are intentionally not exposed by `second-self`,
+and it retains its original seven-check scope.
 
 ## Import conventions
 

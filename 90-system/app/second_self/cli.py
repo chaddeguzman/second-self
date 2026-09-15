@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -11,8 +12,10 @@ from .broker.broker import (
     propose,
     recover_wiki_transactions,
 )
-from .core.paths import CONFIG_PATH, load_paths, write_config
+from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
+from .health import HealthRegistry, SystemHealthContext, build_system_health_registry
+from .health.registry import exit_code, render_json, render_text
 from .ingest.ingest import ingest
 from .maintenance.indexes import generate_indexes
 from .maintenance.link_check import build_link_fix_proposal
@@ -79,6 +82,43 @@ def _command_validate(args: argparse.Namespace) -> int:
     else:
         _print({"valid": True})
     return 0
+
+
+def _load_echo_health_registry(repo_root: Path) -> HealthRegistry:
+    """Load the canonical seven-check ECHO registry without duplicating checks."""
+    script = repo_root / "90-system" / ".echo" / "scripts" / "echo-doctor.py"
+    if not script.is_file():
+        raise FileNotFoundError("ECHO doctor compatibility script is unavailable.")
+    try:
+        spec = importlib.util.spec_from_file_location("second_self_echo_doctor", script)
+        if spec is None or spec.loader is None:
+            raise ImportError("loader unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        registry = module.build_registry(script.parent.parent)
+    except Exception:
+        # NOTE: The underlying import error is deliberately hidden because it
+        # can include an absolute repository path or connector configuration.
+        raise RuntimeError("ECHO health registry could not be loaded.") from None
+    if not isinstance(registry, HealthRegistry):
+        raise RuntimeError("ECHO health registry returned an invalid result.")
+    return registry
+
+
+def _command_doctor(args: argparse.Namespace) -> int:
+    """Run the shared ECHO health registry through the Second Self CLI."""
+    registry = _load_echo_health_registry(REPO_ROOT)
+    system_registry = build_system_health_registry(
+        SystemHealthContext(repo_root=REPO_ROOT, config_path=CONFIG_PATH)
+    )
+    for check in system_registry:
+        registry.register(check)
+    results = registry.run(fix=False)
+    if args.json:
+        print(render_json(results))
+    else:
+        print(render_text(results, heading="second-self doctor — system health check"))
+    return exit_code(results, strict=args.strict)
 
 
 def _command_capture(args: argparse.Namespace) -> int:
@@ -286,6 +326,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="audit tags against the Tag Registry for unused or near-duplicate tags",
     )
     check.set_defaults(func=_command_validate)
+
+    doctor = sub.add_parser(
+        "doctor",
+        help="run redacted Second Self and ECHO health checks",
+    )
+    doctor.add_argument(
+        "--strict",
+        action="store_true",
+        help="exit 1 when any check reports WARN",
+    )
+    doctor.add_argument(
+        "--json",
+        action="store_true",
+        help="emit the stable machine-readable result shape",
+    )
+    doctor.set_defaults(func=_command_doctor)
 
     capture = sub.add_parser("capture")
     capture.add_argument("--title", required=True)
