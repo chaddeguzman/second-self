@@ -11,8 +11,17 @@ from .contracts import (
     RouteOutcome,
     RouteReason,
     RouteRequest,
+    SanitizationAttestation,
     Sensitivity,
     diagnose_route,
+)
+from .policy import diagnose_policy, evaluate_policy
+from .private_draft import (
+    DraftCitation,
+    DraftProposal,
+    DraftResult,
+    DraftStatus,
+    draft_sensitive_recall,
 )
 
 __all__ = [
@@ -26,6 +35,14 @@ __all__ = [
     "RouteOutcome",
     "RouteReason",
     "RouteRequest",
+    "SanitizationAttestation",
     "Sensitivity",
     "diagnose_route",
+    "diagnose_policy",
+    "evaluate_policy",
+    "DraftCitation",
+    "DraftProposal",
+    "DraftResult",
+    "DraftStatus",
+    "draft_sensitive_recall",
 ]

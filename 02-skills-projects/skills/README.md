@@ -140,6 +140,11 @@ consequential claims. If evidence is missing or contradictory, the skill
 states what was searched and asks. Unrelated journals or history are not
 loaded.
 
+For trusted internal callers, cited Memory, Journal, or Strategy results may be
+passed to `draft_sensitive_recall` for optional local-only drafting. Policy runs
+before Ollama inference. The returned text remains untrusted, review-required,
+in-memory data; this internal boundary does not apply or broker a change.
+
 ### second-self-restore
 
 **When to use:** A new workstation, recovery test, or explicit disaster

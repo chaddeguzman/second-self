@@ -112,14 +112,34 @@ and it retains its original seven-check scope.
 validates provider-neutral routing metadata without invoking a provider. LEVEL
 is exactly `public`, `ordinary_private`, `sensitive`, or `prohibited`.
 `--dry-run` is required. The diagnostic intentionally supplies no provider
-capability, so valid non-prohibited requests deny with `no_capable_provider`;
-prohibited requests deny with `prohibited_data`, and unknown/malformed metadata
+capability. Private or sensitive requests therefore deny with
+`local_provider_unavailable`; public requests deny with `no_capable_provider`;
+prohibited requests deny with `prohibited_data`; and unknown/malformed metadata
 denies with `invalid_request`. A denial exits 2.
 
 The internal routing contract stores only stable operation/origin metadata and
-optional SHA-256 approval binding. Raw payloads are not accepted, persisted, or
-rendered. Provider capability objects contain descriptive metadata only and
-have no invocation callable in this phase.
+optional SHA-256 approval or trusted-sanitization binding. Raw payloads are not
+accepted, persisted, or rendered. The policy chooses available local Ollama
+first. A cloud capability is only marked eligible when a trusted sanitization
+attestation matches the exact payload digest or an unexpired exact-payload
+approval matches it. Eligibility is metadata only and never invokes cloud.
+Memory, Journal, and Strategy origins require `sensitive`; external content
+cannot set origin, sensitivity, capability, or approval metadata.
+
+### Sensitive recall drafting
+
+`draft_sensitive_recall(...)` is the narrow internal boundary between existing
+read-only `recall_layer1` results and optional local drafting. It accepts only
+cited Memory, Journal, or Strategy recall results, derives trusted origins from
+their relative paths, evaluates policy, and invokes only an available local
+Ollama capability. It returns a frozen, explicitly untrusted in-memory proposal
+with the original citations and `review_required` status.
+
+The boundary has no CLI, file, tool, approval, or broker-apply method. Discarding
+a draft is therefore a no-op. Policy denial, unavailable Ollama, timeouts, and
+malformed output return redacted failures and preserve all evidence. Prompt and
+response bodies are never logged; model text cannot supply routing metadata or
+approve itself.
 
 ### Ollama provider
 
