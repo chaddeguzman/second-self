@@ -5,29 +5,20 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
+from ..providers import (
+    OllamaProvider,
+    ProviderError,
+    ProviderHealth,
+    ProviderHealthStatus,
+)
 from .registry import FAIL, OK, WARN, HealthCheck, HealthRegistry, HealthResult
 
-
-class HttpResponse(Protocol):
-    """Minimum response surface required by the bounded Ollama probe."""
-
-    status: int
-
-    def read(self, amount: int = -1) -> bytes: ...
-
-    def __enter__(self) -> HttpResponse: ...
-
-    def __exit__(self, *args: object) -> None: ...
-
-
 GitRunner = Callable[[Sequence[str], Path], subprocess.CompletedProcess[str]]
-OllamaProbe = Callable[[str, float], HttpResponse]
+OllamaHealth = Callable[[Path], ProviderHealth]
 
 
 def _run_git(arguments: Sequence[str], repo_root: Path) -> subprocess.CompletedProcess[str]:
@@ -42,9 +33,15 @@ def _run_git(arguments: Sequence[str], repo_root: Path) -> subprocess.CompletedP
     )
 
 
-def _probe_ollama(url: str, timeout: float) -> HttpResponse:
-    """Open Ollama's model-list endpoint without sending inference content."""
-    return urllib.request.urlopen(url, timeout=timeout)
+def _ollama_health(config_path: Path) -> ProviderHealth:
+    """Use the provider API as the sole implementation of Ollama readiness."""
+    try:
+        return OllamaProvider.from_config(config_path).health()
+    except ProviderError:
+        return ProviderHealth(
+            ProviderHealthStatus.MISCONFIGURED,
+            "optional Ollama provider is not configured",
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,7 +51,7 @@ class SystemHealthContext:
     repo_root: Path
     config_path: Path
     git_runner: GitRunner = _run_git
-    ollama_probe: OllamaProbe = _probe_ollama
+    ollama_health: OllamaHealth = _ollama_health
 
     @property
     def cache_root(self) -> Path:
@@ -154,17 +151,16 @@ def check_privacy_validator(context: SystemHealthContext) -> HealthResult:
 
 
 def check_ollama_readiness(context: SystemHealthContext) -> HealthResult:
-    """Probe only Ollama's loopback model-list endpoint with a short timeout."""
+    """Map the provider health API into the shared doctor vocabulary."""
     try:
-        with context.ollama_probe("http://127.0.0.1:11434/api/tags", 1.0) as response:
-            payload = json.loads(response.read(1_048_576).decode("utf-8"))
-            if response.status != 200 or not isinstance(payload.get("models"), list):
-                raise ValueError("unexpected response")
+        health = context.ollama_health(context.config_path)
     except Exception:
         return HealthResult(
-            "ollama-readiness", WARN, "optional Ollama service is unavailable"
+            "ollama-readiness", WARN, "optional Ollama provider unavailable"
         )
-    return HealthResult("ollama-readiness", OK, "Ollama service ready")
+    if not health.ready:
+        return HealthResult("ollama-readiness", WARN, health.detail)
+    return HealthResult("ollama-readiness", OK, health.detail)
 
 
 def _check_optional_json_state(

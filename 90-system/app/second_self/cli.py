@@ -27,6 +27,7 @@ from .reads.due import due_items
 from .reads.recall import recall_layer1
 from .reads.recent import recent_items
 from .reads.search import search_layer1
+from .routing import DataOrigin, DataOriginKind, diagnose_route
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
@@ -119,6 +120,24 @@ def _command_doctor(args: argparse.Namespace) -> int:
     else:
         print(render_text(results, heading="second-self doctor — system health check"))
     return exit_code(results, strict=args.strict)
+
+
+def _command_route(args: argparse.Namespace) -> int:
+    """Explain a fail-closed route decision without invoking a provider."""
+    decision = diagnose_route(
+        operation=args.operation,
+        sensitivity=args.sensitivity,
+        origins=(DataOrigin(DataOriginKind.EXTERNAL_UNTRUSTED, "cli-diagnostic"),),
+    )
+    if args.json:
+        _print(decision.as_dict())
+    else:
+        provider = decision.provider or "none"
+        print(f"route: {decision.outcome.value.upper()}")
+        print(f"reason: {decision.reason.value}")
+        print(f"provider: {provider}")
+        print(f"detail: {decision.explanation}")
+    return 0 if decision.provider is not None else 2
 
 
 def _command_capture(args: argparse.Namespace) -> int:
@@ -342,6 +361,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit the stable machine-readable result shape",
     )
     doctor.set_defaults(func=_command_doctor)
+
+    route = sub.add_parser(
+        "route",
+        help="explain a model route without invoking a provider",
+    )
+    route.add_argument("--operation", required=True)
+    route.add_argument("--sensitivity", required=True)
+    route.add_argument(
+        "--dry-run",
+        action="store_true",
+        required=True,
+        help="required safety marker; no provider is invoked",
+    )
+    route.add_argument("--json", action="store_true")
+    route.set_defaults(func=_command_route)
 
     capture = sub.add_parser("capture")
     capture.add_argument("--title", required=True)
