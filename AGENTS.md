@@ -1,17 +1,40 @@
 # Second Self Agent Rules
 
+This is the portable operating contract for Second Self. Hermes remains the
+first-class ECHO runtime, while Codex CLI, Codex in VS Code, Codex Desktop,
+Claude Code, Cline, and other local agents use the same public rules.
+
+## Runtime Order And Instruction Precedence
+
+1. **Hermes first:** ECHO's canonical identity and behavior live in
+   `90-system/.echo/IDENTITY.md` and the ECHO skill. The Hermes-ready bundle is
+   generated output, not a second source of truth.
+2. **Shared contract:** every runtime starts with this `AGENTS.md`, then reads
+   the relevant system docs and skill instructions.
+3. **Adapter layer:** `CLAUDE.md`, `.codex/`, editor settings, and launchers
+   add integration behavior only. They must not redefine privacy, evidence,
+   approval, or Git rules.
+4. **Portable fallback:** if a client does not load a hook, skill, or adapter,
+   follow this file and run the documented commands directly. No safety rule
+   depends on a hook being present.
+
+When instructions conflict, follow the user's current request, then this file,
+then the applicable skill, then adapter-specific convenience guidance.
+
 ## Universal Entry Point
 
-This file is the canonical startup guide for **any coding agent** (Claude Code,
-Cline, Cursor, Deepseek, Windsurf, or any other LLM-powered agent).
+This file is the canonical startup guide for **any coding agent** (Hermes,
+Codex CLI, Codex in VS Code, Codex Desktop, Claude Code, Cline, Cursor,
+Deepseek, Windsurf, or any other local LLM-powered agent).
 
 If you are an agent reading this for the first time:
 
 1. Read `01-strategy-storage/00 Memory/00 Second Self Context.md` for the system's
    purpose, architecture, privacy model, and shared human-agent context.
-2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
-   immediate task permits, ask one focused question from an incomplete memory
-   topic and save only a user-confirmed summary.
+2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md` if it
+   exists. Public clones may contain only the `.gitkeep` scaffold. When the
+   guide is present and the immediate task permits, ask one focused question
+   from an incomplete memory topic and save only a user-confirmed summary.
 3. Read `90-system/docs/OPERATING-MODEL.md` and `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
 5. Browse `02-skills-projects/skills/` to discover available skills. Each skill has a
@@ -30,9 +53,8 @@ If you are an agent reading this for the first time:
    identity, hobbies, interests — and the first retrieval location
    specifically for identity or values questions. For most other personal
    recall, `04 References` is the first retrieval location.
-2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md`. When the
-   immediate task permits, ask one focused question from an incomplete memory
-   topic and save only a user-confirmed summary.
+2. Read `01-strategy-storage/00 Memory/00 Memory Interview Guide.md` if it
+   exists. Do not treat its absence in a public clone as an error.
 3. Read `90-system/docs/OPERATING-MODEL.md` and
    `90-system/docs/SECURITY.md`.
 4. Resolve private paths through `.second-self.local.json`; never hard-code them.
@@ -186,10 +208,31 @@ If you are an agent reading this for the first time:
 - Treat this as a standing rule for every future task and plan, not a
   per-task request.
 
+## Codex, Editor, And Desktop Operation
+
+- Start Codex CLI, Codex in VS Code, or Codex Desktop with the repository root
+  open as the workspace. Opening only a nested project can hide this contract.
+- Codex skills are discovered under `02-skills-projects/skills/`. When semantic
+  skill activation is unavailable, read the matching `SKILL.md` directly.
+- `.codex/hooks.json` is a Codex integration convenience. It provides the
+  protected-edit check and ECHO prompt enrichment when the host supports
+  repository hooks. It is not the privacy boundary and is not required for
+  ordinary recall, validation, or broker commands.
+- Codex CLI, VS Code, and Desktop may expose different tools or approval
+  prompts. Use ordinary repository operations (`rg`, PowerShell, Python, and
+  `git`) and do not assume Claude-only tool names such as `use_skill`, `Edit`,
+  or `Write` exist.
+- At the start of a session, verify the workspace with
+  `git rev-parse --show-toplevel`, `git branch --show-current`, and
+  `git status --short --branch`.
+- If a client reports that a hook is unavailable, continue with this policy,
+  run `.\90-system\automation\scripts\second-self.ps1 validate --privacy --tracked-only`
+  and `python -m pytest`, and do not weaken the broker or Git workflow.
+
 ## Agent Tool Hygiene
 
-These rules reduce tool-call failures across agent adapters (Cline, Claude
-Code, Cursor, Codex, Windsurf). A tool call that errors with *"missing required
+These rules reduce tool-call failures across agent adapters (Hermes, Codex,
+Claude Code, Cline, Cursor, Windsurf). A tool call that errors with *"missing required
 parameter"* is almost always an adapter-side truncation or malformed payload,
 not a Second Self defect. Apply the following habits:
 
@@ -203,10 +246,10 @@ not a Second Self defect. Apply the following habits:
   or targeted search plus summary — instead of loading them wholesale. Keeping
   context lean preserves headroom for large tool calls and reduces the
   probability of truncation.
-- Do not register `90-system/automation/hooks/pre_tool_use.py` with Cline or
-  other agents. It is a Claude Code PreToolUse hook that reads JSON on stdin and
-  writes a block decision to stdout; other adapters do not understand its event
-  schema.
+- Do not manually register `90-system/automation/hooks/pre_tool_use.py` with
+  clients that do not implement the repository's hook protocol. Codex uses the
+  checked-in `.codex/hooks.json`; other clients should use the portable policy
+  and broker instead of guessing at the JSON event schema.
 
 ## Verification
 

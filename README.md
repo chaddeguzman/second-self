@@ -180,6 +180,8 @@ evidence but do not silently replace it.
 
 - [Quick Start](<Quick Start.md>) covers prerequisites, installation, everyday
   commands, and working with independent project repositories.
+- [Codex Setup Guide](90-system/docs/CODEX-SETUP-GUIDE.md) covers Codex CLI,
+  VS Code, Desktop, hooks, and portable fallbacks.
 - [Frequently Asked Questions](FAQ.md) covers privacy, platform support,
   storage, and backups.
 
