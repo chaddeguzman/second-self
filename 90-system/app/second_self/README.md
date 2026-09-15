@@ -8,7 +8,7 @@ tell which module does what.
 
 | File / Folder | Purpose |
 |---|---|
-| `cli.py` | Argparse CLI. Wires every subcommand (`doctor`, `capture`, `journal`, `search`, `recall`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
+| `cli.py` | Argparse CLI. Wires every subcommand (`doctor`, `route`, `capture`, `journal`, `search`, `recall`, `broker`, `wiki`, `tags`, `tag-rename`, `web`, etc.). Define new commands here. |
 | `web.py` | Flask app for the local dashboard: routes, templates, static assets, Markdown preview rendering, server launcher. |
 | `__main__.py` | Allows `python -m second_self`. |
 | `templates/` | Jinja HTML templates used by `web.py`. |
@@ -97,7 +97,7 @@ found a WARN, and exit 2 means FAIL.
 | Active Second Self vault | `FAIL` unless the approved vault markers are present |
 | Git main alignment | `FAIL` for detached/non-main, divergent, or unverifiable state |
 | Privacy validator | `FAIL` when the required validator entry point is missing |
-| Ollama readiness | `WARN` when the optional loopback service is unavailable or malformed |
+| Ollama readiness | `WARN` when optional configuration/service/model readiness is missing or invalid |
 | Evaluation state | `WARN` when optional baseline state is absent or invalid |
 | Scheduler state | `WARN` when optional job state is absent or invalid |
 
@@ -105,6 +105,35 @@ found a WARN, and exit 2 means FAIL.
 entry point. It preserves `--fix` and `--base-dir` in addition to `--strict` and
 `--json`; those extra controls are intentionally not exposed by `second-self`,
 and it retains its original seven-check scope.
+
+## Routing diagnostic
+
+`second-self route --operation NAME --sensitivity LEVEL --dry-run [--json]`
+validates provider-neutral routing metadata without invoking a provider. LEVEL
+is exactly `public`, `ordinary_private`, `sensitive`, or `prohibited`.
+`--dry-run` is required. The diagnostic intentionally supplies no provider
+capability, so valid non-prohibited requests deny with `no_capable_provider`;
+prohibited requests deny with `prohibited_data`, and unknown/malformed metadata
+denies with `invalid_request`. A denial exits 2.
+
+The internal routing contract stores only stable operation/origin metadata and
+optional SHA-256 approval binding. Raw payloads are not accepted, persisted, or
+rendered. Provider capability objects contain descriptive metadata only and
+have no invocation callable in this phase.
+
+### Ollama provider
+
+`second_self.providers.ModelProvider` defines replaceable capability, health,
+and inference methods. `OllamaProvider` is the first implementation. It reads
+its loopback endpoint and model from ignored local configuration, supports only
+non-streaming `generate`, and never falls back to another provider. Requests use
+a two-second connection timeout, 60-second total timeout, 256 KiB prompt limit,
+and 1 MiB response limit by default. Local configuration may tune the timeouts
+and response limit within validated bounds.
+
+Doctor readiness calls this provider's health API. Missing configuration,
+offline Ollama, malformed responses, or a missing configured model remain a
+redacted optional `WARN`; doctor never submits a prompt.
 
 ## Import conventions
 

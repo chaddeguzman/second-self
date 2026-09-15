@@ -20,23 +20,7 @@ from second_self.health.system import (
     check_private_path_resolution,
     check_scheduler_state,
 )
-
-
-class Response:
-    """Small context-managed HTTP response test double."""
-
-    def __init__(self, payload: object, status: int = 200) -> None:
-        self.status = status
-        self._body = json.dumps(payload).encode()
-
-    def read(self, _amount: int = -1) -> bytes:
-        return self._body
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args: object) -> None:
-        return None
+from second_self.providers import ProviderHealth, ProviderHealthStatus
 
 
 def completed(stdout: str = "", returncode: int = 0):
@@ -50,7 +34,9 @@ def make_context(tmp_path: Path, **overrides) -> SystemHealthContext:
         "git_runner": lambda args, _cwd: completed(
             "main\n" if args[0] == "symbolic-ref" else "0\t0\n"
         ),
-        "ollama_probe": lambda _url, _timeout: Response({"models": []}),
+        "ollama_health": lambda _config: ProviderHealth(
+            ProviderHealthStatus.READY, "Ollama provider ready"
+        ),
     }
     values.update(overrides)
     return SystemHealthContext(**values)
@@ -139,10 +125,10 @@ def test_ollama_ready_and_offline_are_bounded(tmp_path):
     ready = make_context(tmp_path)
     assert check_ollama_readiness(ready).status == OK
 
-    def offline(_url, _timeout):
+    def offline(_config):
         raise OSError(f"offline at {tmp_path}")
 
-    result = check_ollama_readiness(make_context(tmp_path, ollama_probe=offline))
+    result = check_ollama_readiness(make_context(tmp_path, ollama_health=offline))
     assert result.status == WARN
     assert str(tmp_path) not in result.detail
 
