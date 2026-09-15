@@ -27,16 +27,18 @@ Use an appropriate credential manager instead.
 
 ## Agent Trust
 
-Only trusted local agent sessions (Claude Code, Cline, Cursor, Deepseek,
-Windsurf, or any other LLM-powered agent configured to work with Second Self)
-may search the full Second Self context.
+Only trusted local agent sessions (Hermes, Codex CLI, Codex in VS Code, Codex
+Desktop, Claude Code, Cline, Cursor, Deepseek, Windsurf, or another explicitly
+configured local agent) may search the full Second Self context.
 
 Project registration installs local, Git-ignored adapters. Remote automation,
 CI, and public repository workflows receive synthetic fixtures only.
 
-Client hooks (Claude Code `pre_tool_use`) and the edit broker reduce accidental
-protected changes. They are not an operating-system security boundary and can be
-bypassed by direct filesystem access.
+Client hooks, including Codex's `.codex/hooks.json` integration, and the edit
+broker reduce accidental protected changes. They are not an operating-system
+security boundary and can be bypassed by direct filesystem access. The broker,
+privacy validation, and Git review workflow remain authoritative when hooks are
+unavailable.
 
 ## Protected Operations
 

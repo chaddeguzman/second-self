@@ -1,5 +1,14 @@
 # Operating Model
 
+## Runtime Model
+
+Hermes is the first ECHO runtime. Its canonical behavior is defined by
+`90-system/.echo/IDENTITY.md` and the ECHO skill; Hermes-ready files are
+generated outputs. Codex CLI, Codex in VS Code, Codex Desktop, Claude Code,
+Cline, and other local agents use the same `AGENTS.md`, skills, broker, and
+validation commands. Runtime hooks can improve ergonomics, but no workflow may
+require a hook that one of the supported clients does not implement.
+
 ## Purpose
 
 Second Self supports reliable personal recall and action aligned with Chad's

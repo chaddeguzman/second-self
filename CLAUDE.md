@@ -1,7 +1,8 @@
 # Second Self — Agent Instructions
 
 First read [AGENTS.md](AGENTS.md) — it is the canonical startup guide for any
-agent. The sections below add Claude/Cline-specific notes.
+agent. The sections below add Claude/Cline-specific notes only; they do not
+override the Hermes-first, runtime-neutral contract.
 
 ## Startup
 
@@ -9,18 +10,17 @@ AGENTS.md already covers the full startup sequence. After completing it:
 
 - If this is a Claude Code session, the `pre_tool_use hook` in
   `90-system/automation/hooks/pre_tool_use.py` may block accidental protected
-  changes. Other agents (Cline, Deepseek, Cursor, Windsurf) do not use this
-  hook. Do not manually register this hook with Cline or other agents — it
-  reads Claude Code's PreToolUse event schema (JSON on stdin, block decision
-  on stdout) and other adapters do not understand that schema.
+  changes. Codex uses the same policy through `.codex/hooks.json` when its host
+  supports repository hooks. Cline and other clients should use the portable
+  policy and broker rather than manually registering this JSON event hook.
 - Resolve private paths through `.second-self.local.json`; never hard-code them.
 
 ## Skills
 
 Browse `02-skills-projects/skills/` to discover available skills. Each skill
-has a `SKILL.md` with instructions. Use `use_skill` when a task matches a
-skill's description. If `use_skill` is unavailable, read the SKILL.md directly
-and follow the instructions manually.
+has a `SKILL.md` with instructions. Use the host's skill activation when it is
+available. Otherwise, read the matching `SKILL.md` directly and follow the
+instructions manually.
 
 ## Personal Recall
 
