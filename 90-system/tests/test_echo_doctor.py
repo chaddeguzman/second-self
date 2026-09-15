@@ -97,6 +97,28 @@ def test_all_ok(tmp_path: Path):
     assert "[OK]   calendar-connector" in out
 
 
+def test_all_ok_text_output_is_characterized(tmp_path: Path):
+    base = make_base(tmp_path)
+
+    code, out, err = run_cli(base_dir=base)
+
+    assert code == 0
+    assert err == ""
+    assert out.splitlines() == [
+        "echo-doctor — ECHO system health check (.)",
+        "=" * 60,
+        "[OK]   stable-block-files   all 7 files present",
+        "[OK]   session-pointer      no pointer file (fresh state)",
+        "[OK]   staging-queue        0 files pending",
+        "[OK]   log-status-lines     1 log(s) well-formed",
+        "[OK]   stale-wip            no stale wip.md files",
+        "[OK]   session-filenames    all conforming",
+        "[OK]   calendar-connector   token present (stub)",
+        "-" * 60,
+        "Summary: 7 OK, 0 WARN, 0 FAIL",
+    ]
+
+
 # --- check 1: stable-block files ---
 
 def test_missing_stable_block_file_fails(tmp_path: Path):
@@ -249,6 +271,28 @@ def test_json_output(tmp_path: Path):
     data = json.loads(out)
     assert len(data["results"]) == 7
     assert all(r["status"] == "OK" for r in data["results"])
+
+
+def test_json_output_preserves_schema_and_check_order(tmp_path: Path):
+    base = make_base(tmp_path)
+
+    code, out, err = run_cli("--json", base_dir=base)
+
+    assert code == 0
+    assert err == ""
+    results = json.loads(out)["results"]
+    assert [list(result) for result in results] == [
+        ["check", "status", "detail"]
+    ] * 7
+    assert [result["check"] for result in results] == [
+        "stable-block-files",
+        "session-pointer",
+        "staging-queue",
+        "log-status-lines",
+        "stale-wip",
+        "session-filenames",
+        "calendar-connector",
+    ]
 
 
 def test_strict_all_ok_exits_0(tmp_path: Path):

@@ -23,10 +23,13 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
-import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
+
+from second_self.health import FAIL, OK, WARN, HealthCheck, HealthRegistry, HealthResult
+from second_self.health.registry import exit_code, render_json, render_text
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -48,12 +51,6 @@ STABLE_BLOCK_FILES = [
     "CAPABILITY-LIST.md",
     "subagents/README.md",
 ]
-
-# Severity levels
-OK = "OK"
-WARN = "WARN"
-FAIL = "FAIL"
-
 
 # ---------------------------------------------------------------------------
 # Path resolution
@@ -297,30 +294,71 @@ def _check_session_filenames(base_dir: Path, results: list[dict[str, str]]) -> N
 
 
 # ---------------------------------------------------------------------------
+# Registry
+# ---------------------------------------------------------------------------
+
+def _registered_runner(
+    check: Callable[..., None], base_dir: Path
+) -> Callable[[bool], HealthResult]:
+    """Adapt one existing check to the shared registry result contract."""
+    def run(fix: bool) -> HealthResult:
+        legacy_results: list[dict[str, str]] = []
+        if check is _check_stale_wip:
+            check(base_dir, legacy_results, fix)
+        else:
+            check(base_dir, legacy_results)
+        if len(legacy_results) != 1:
+            raise ValueError("registered health check must return exactly one result")
+        result = legacy_results[0]
+        return HealthResult(
+            check=result["check"],
+            status=result["status"],
+            detail=result["detail"],
+        )
+
+    return run
+
+
+def build_registry(base_dir: Path) -> HealthRegistry:
+    """Build the seven-check ECHO registry in its historical output order."""
+    registry = HealthRegistry()
+    checks = (
+        ("stable-block-files", _check_stable_block, False),
+        ("session-pointer", _check_session_pointer, False),
+        ("staging-queue", _check_staging_queue, False),
+        ("log-status-lines", _check_log_status_lines, False),
+        ("stale-wip", _check_stale_wip, True),
+        ("session-filenames", _check_session_filenames, False),
+        ("calendar-connector", _check_calendar_connector, False),
+    )
+    for name, check, supports_fix in checks:
+        registry.register(
+            HealthCheck(
+                name=name,
+                runner=_registered_runner(check, base_dir),
+                supports_fix=supports_fix,
+            )
+        )
+    return registry
+
+
+# ---------------------------------------------------------------------------
 # Reporting
 # ---------------------------------------------------------------------------
 
-def _print_report(results: list[dict[str, str]], base_dir: Path) -> None:
+def _print_report(results: list[HealthResult], base_dir: Path) -> None:
     """Print the human-readable health report."""
-    print(f"echo-doctor — ECHO system health check ({_redact(base_dir, base_dir)})")
-    print("=" * 60)
-    for r in results:
-        marker = {OK: "[OK]  ", WARN: "[WARN]", FAIL: "[FAIL]"}[r["status"]]
-        print(f"{marker} {r['check']:<20} {r['detail']}")
-    counts = {s: sum(1 for r in results if r["status"] == s) for s in (OK, WARN, FAIL)}
-    print("-" * 60)
     print(
-        f"Summary: {counts[OK]} OK, {counts[WARN]} WARN, {counts[FAIL]} FAIL"
+        render_text(
+            results,
+            heading=f"echo-doctor — ECHO system health check ({_redact(base_dir, base_dir)})",
+        )
     )
 
 
-def _exit_code(results: list[dict[str, str]], strict: bool) -> int:
+def _exit_code(results: list[HealthResult], strict: bool) -> int:
     """Compute the exit code: 2 on any FAIL, 1 on WARN with --strict, else 0."""
-    if any(r["status"] == FAIL for r in results):
-        return 2
-    if strict and any(r["status"] == WARN for r in results):
-        return 1
-    return 0
+    return exit_code(results, strict=strict)
 
 
 # ---------------------------------------------------------------------------
@@ -330,20 +368,12 @@ def _exit_code(results: list[dict[str, str]], strict: bool) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Run all health checks and report."""
     base = Path(args.base_dir) if args.base_dir else _default_base_dir()
-    results: list[dict[str, str]] = []
-
-    _check_stable_block(base, results)
-    _check_session_pointer(base, results)
-    _check_staging_queue(base, results)
-    _check_log_status_lines(base, results)
-    _check_stale_wip(base, results, fix=args.fix)
-    _check_session_filenames(base, results)
-    _check_calendar_connector(base, results)
+    results = build_registry(base).run(fix=args.fix)
 
     if args.json:
         # NOTE: Paths are already redacted inside check details; the base
         # directory itself is never emitted in JSON output.
-        print(json.dumps({"results": results}, indent=2))
+        print(render_json(results))
     else:
         _print_report(results, base)
 
