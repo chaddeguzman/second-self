@@ -42,6 +42,13 @@
 - **Status check** — when Chad asks "is it done?" read the assigned
   sub-agent's log.md and report current status or results.
 
+### Evaluation
+- **Synthetic harness** — `second-self eval [suite] [--json]` lists or runs
+  deterministic registered synthetic suites with isolated cases, stable
+  versioned reports, and redacted values, paths, and errors. It reports only;
+  the fictional `recall` suite measures retrieval and evidence representation.
+  Safety metrics and regression baselines are not active yet.
+
 ### Fun features
 - **Status line** — dynamic one-line status in IDENTITY.md reflecting
   current system state (sub-agents, staging, conflicts)
