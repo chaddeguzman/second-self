@@ -1,4 +1,4 @@
-# Agent 02 — Task Log
+# Sherlock — Status: Idle
 
 | Date | Time | Request | Status | Output/Summary |
 |------|------|---------|--------|----------------|

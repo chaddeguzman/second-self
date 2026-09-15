@@ -1,77 +1,53 @@
-# ECHO — Stable Block (cacheable)
+# ECHO — Stable and Dynamic Context
 
-> The stable block is everything that must be present in full on every turn:
-> persona, operating rules, core knowledge, capabilities. It changes only when
-> a human edits its source files. The dynamic block — current time, per-turn
-> recall results, session state — is never part of this file; it arrives as
-> fresh tool output every turn.
+`ECHO_CONTEXT_V1` is assembled afresh for every matched Codex prompt by
+`90-system/.echo/runtime/prompt.py`. The assembler is deterministic and
+provider-neutral; `.codex/echo_prompt_hook.py` only translates the Codex hook
+protocol.
 
-## Assembly order (load verbatim, in this order)
+## Stable block
 
-1. **Persona** — `90-system/.echo/IDENTITY.md`, in full. It is the single
-   source of persona truth; never inline a copy of it here, so a mid-run edit
-   keeps taking effect on ECHO's very next response.
-2. **Operating rules** — `02-skills-projects/skills/echo/SKILL.md`, in full
-   (what ECHO is, fragment-first behavior, interaction pattern, v1
-   boundaries, examples), plus `90-system/.echo/RECALL.md` (Tier 6:
-   memory-store recall — keyword-first ranking, derived rebuildable index,
-   graceful degradation) and `90-system/.echo/MEMORY-TOOLS.md` (Tier 7:
-   save/recall/forget — staging gate, save discipline, never-secrets rule,
-   manual extractor).
-3. **Core knowledge** — `90-system/.echo/CORE_KNOWLEDGE.md`
-   *(Tier 3 — active; private, git-ignored, human-curated)*. Load it in full
-   when present; if a section is still `(fill in)`, skip that section — never
-   substitute guesses for its content. ECHO never rewrites this file.
-4. **Capabilities** — `90-system/.echo/CAPABILITIES.md`
-   *(Tier 8 — active; generated capability summary)*. Loaded as the source
-   of truth for what ECHO can actually do; the generation rule guarantees
-   truthfulness (if it's not loaded, it's not claimed). When the toolset
-   changes, regenerate CAPABILITIES.md.
-5. **Sub-agent convention** — `90-system/.echo/subagents/README.md`
-   *(active; the sub-agent system convention)*. Read when delegating tasks
-   or checking sub-agent status. Defines the folder structure, log format,
-   context model, and delegation protocol.
-6. **Fun features** — status line, entertain me, time capsule, morning
-   briefing, decision logger, pattern recognition. Defined in SKILL.md's
-   "Fun features" section. No separate file; behavior lives in the rules.
-7. **Sub-agent upgrades** — roster, delegation memory, handoff notes.
-   Defined in SKILL.md's "Sub-agent upgrades" section.
-8. **Quality of life** — quick capture, session wrap-up, memory health
-   dashboard. Defined in SKILL.md's "Quality of life" section.
-9. **Capability reference** — `90-system/.echo/CAPABILITY-LIST.md`
-   (curated human-readable reference; not loaded by the runtime,
-   linked from docs for quick lookup).
+The stable block contains, in this exact order:
 
-## Cache marking
+1. the complete canonical `90-system/.echo/IDENTITY.md`;
+2. the complete canonical `02-skills-projects/skills/echo/SKILL.md`;
+3. explicit markers stating that Tier 3 core knowledge and Tier 8 generated
+   capabilities are not loaded in this cycle.
 
-The stable block is cache-stable within a session: treat it as the cacheable
-prefix. Only a change to its source files (IDENTITY.md, SKILL.md, or the
-Tier 3 / Tier 8 files once they exist) invalidates it.
+The assembler computes a SHA-256 fingerprint over the stable block bytes. The
+block and fingerprint remain identical until a canonical source changes. Both
+sources are read again on every matched turn, so an edit is visible without a
+process or session restart.
 
-## Dynamic block (never cached)
+## Dynamic block
 
-Injected fresh each turn, as tool output:
+The dynamic suffix contains the Asia/Shanghai timestamp, activation reason,
+and a statement that recall results must be retrieved for the current request.
+It may change every turn and is excluded from the stable fingerprint.
 
-- **Current time** — from the runtime, each turn.
-- **Recall results** — `second-self-recall` (or the ECHO recall path) run
-  per message; results are cited, tagged `[confirmed]` / `[inferred]` /
-  `[not found]`, and never written back into the stable block.
-- **Drift-check injection** — per `90-system/.echo/DRIFT-CHECK.md` (Tier 9):
-  after the turn threshold (10 text / 6 voice), a silent self-audit is
-  injected before the next response, checking the draft against
-  `IDENTITY.md` for length and voice. Fails silently; the draft is tightened
-  before sending, never apologized for after.
-- **Per-turn state** — anything transient the runtime exposes.
+The complete envelope is limited to 8,000 UTF-8 bytes to remain below Codex's
+approximate 2,500-token model-visible hook-output ceiling. Assembly failures
+produce a short privacy-safe context: ECHO is not loaded, the prompt continues,
+and no absolute or private path is exposed.
 
-## Runtime mapping
+## Codex activation
 
-| Runtime | Stable block loads via | Dynamic block arrives via |
-| --- | --- | --- |
-| Hermes (primary) | Rules/instructions file loaded into the system prompt each session, following this manifest's assembly order | Tool result per message |
-| Claude Code | System prompt assembled from IDENTITY.md + SKILL.md | Tool result per message |
-| Codex | Rules/instructions file, same sources | Tool result per message |
-| Cline | Rules file under `90-system/.echo/` (a root `.clinerules/` thin pointer only if Cline demands root placement to auto-load) | Tool result per message |
+`.codex/hooks.json` registers a `UserPromptSubmit` hook. It injects the envelope
+as `hookSpecificOutput.additionalContext` for explicit ECHO invocations and
+conservative personal-recall cues. It emits nothing for ordinary prompts,
+shell `echo` commands, or identifiers that merely contain “echo.” The
+repo-local `.agents/skills/echo/SKILL.md` provides discovery and a render
+fallback when semantic skill activation falls outside those hook patterns.
 
-The two-block split is a file convention, not engineered machinery:
-**stable block = rules files, dynamic block = tool output.** If
-`second-self-recall` becomes an MCP server, the split falls out for free.
+## Runtime certification
+
+| Runtime | Tier 1–2 status |
+| --- | --- |
+| Codex Desktop | Tier 1–2 certified 2026-09-15 by automated checks and a disposable-repository live session |
+| Cline | Documented, not certified in this cycle |
+| Claude Code | Documented, not certified in this cycle |
+| Hermes | Bundle refreshed from canonical files, not certified in this cycle |
+
+The certification observed nonzero `cached_input_tokens`, including 30,976 on
+the resumed BETA turn. This records one run; provider-side caching is never
+required or promised.
