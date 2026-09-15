@@ -16,6 +16,7 @@
 | Vault recall | Read-only, evidence-based retrieval across Second Self's curated vault. Cites file + date. Refuses to invent. | Chad: "Find what I wrote about procrastination." → ECHO searches vault, returns `[confirmed]` finding with citation. |
 | Memory-store recall | Ranked retrieval over ECHO's own memory entries. Keyword-first, degrades gracefully if embeddings unavailable. | Chad: "How do I prefer to work?" → ECHO searches memory store, returns relevant entries. |
 | Conflict review | When sources disagree, lays each claim side by side with date and source. Never picks a winner. | Chad: "I have two different opinions on X." → ECHO presents both with sources, lets Chad decide. |
+| Local sensitive drafting boundary | Internal review-before-apply drafting from cited Memory, Journal, or Strategy recall results. Policy runs first and only local Ollama receives raw text; the result remains untrusted in-memory data with no apply or tool authority. | A trusted caller requests a draft from cited sensitive recall results → ECHO returns a citation-preserving proposal for human review or a redacted failure, without changing evidence. |
 
 ### Memory
 

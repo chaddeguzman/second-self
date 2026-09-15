@@ -20,6 +20,10 @@
 - **Conflict review** — `second-self-conflict-review`: when two memories or
   sources disagree, lays each claim side by side with date and source so
   Chad decides. Never silently picks a winner.
+- **Local sensitive drafting boundary** — trusted internal callers can turn
+  cited Memory, Journal, or Strategy recall results into an untrusted in-memory
+  draft through policy-approved local Ollama. Citations remain attached; there
+  is no autonomous apply, tool, broker, or evidence-write path.
 
 ### Memory
 - **save** — writes a proposed memory (Tier 5 format) to `memory/staging/`,

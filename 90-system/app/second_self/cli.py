@@ -27,7 +27,7 @@ from .reads.due import due_items
 from .reads.recall import recall_layer1
 from .reads.recent import recent_items
 from .reads.search import search_layer1
-from .routing import DataOrigin, DataOriginKind, diagnose_route
+from .routing import DataOrigin, DataOriginKind, diagnose_policy
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
@@ -124,7 +124,7 @@ def _command_doctor(args: argparse.Namespace) -> int:
 
 def _command_route(args: argparse.Namespace) -> int:
     """Explain a fail-closed route decision without invoking a provider."""
-    decision = diagnose_route(
+    decision = diagnose_policy(
         operation=args.operation,
         sensitivity=args.sensitivity,
         origins=(DataOrigin(DataOriginKind.EXTERNAL_UNTRUSTED, "cli-diagnostic"),),

@@ -2,7 +2,8 @@
 
 These types carry metadata only. Raw prompts and responses are deliberately not
 part of the contract, so dry-run diagnostics cannot persist or display them.
-Provider invocation and routing policy belong to later phases.
+Provider invocation is deliberately separate; the policy consumes these
+trusted metadata objects without carrying prompt or response content.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import hmac
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -59,6 +61,14 @@ class RouteReason(StrEnum):
     NO_CAPABLE_PROVIDER = "no_capable_provider"
     APPROVAL_METADATA_INVALID = "approval_metadata_invalid"
     APPROVAL_PAYLOAD_MISMATCH = "approval_payload_mismatch"
+    APPROVAL_EXPIRED = "approval_expired"
+    SANITIZATION_INVALID = "sanitization_invalid"
+    SENSITIVITY_ORIGIN_MISMATCH = "sensitivity_origin_mismatch"
+    LOCAL_PROVIDER_SELECTED = "local_provider_selected"
+    LOCAL_PROVIDER_UNAVAILABLE = "local_provider_unavailable"
+    CLOUD_ELIGIBLE_SANITIZED = "cloud_eligible_sanitized"
+    CLOUD_ELIGIBLE_APPROVED = "cloud_eligible_approved"
+    CLOUD_NOT_ELIGIBLE = "cloud_not_eligible"
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,12 +95,32 @@ class ExactPayloadApproval:
 
     payload_sha256: str
     approved: bool
+    expires_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if not SHA256_RE.fullmatch(self.payload_sha256):
             raise ValueError("approval payload digest must be lowercase SHA-256")
         if not isinstance(self.approved, bool):
             raise ValueError("approval state must be boolean")
+        if self.expires_at is not None and (
+            not isinstance(self.expires_at, datetime)
+            or self.expires_at.utcoffset() is None
+        ):
+            raise ValueError("approval expiration must include a timezone")
+
+
+@dataclass(frozen=True, slots=True)
+class SanitizationAttestation:
+    """Trusted transformation metadata bound to its exact sanitized output."""
+
+    payload_sha256: str
+    transform_id: str
+
+    def __post_init__(self) -> None:
+        if not SHA256_RE.fullmatch(self.payload_sha256):
+            raise ValueError("sanitized payload digest must be lowercase SHA-256")
+        if not OPERATION_RE.fullmatch(self.transform_id):
+            raise ValueError("sanitization transform ID is invalid")
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,9 +170,9 @@ class RouteRequest:
     operation: str
     sensitivity: Sensitivity
     origins: tuple[DataOrigin, ...]
-    sanitized: bool = False
     payload_sha256: str | None = None
     approval: ExactPayloadApproval | None = None
+    sanitization: SanitizationAttestation | None = None
 
     def __post_init__(self) -> None:
         if not OPERATION_RE.fullmatch(self.operation):
@@ -155,12 +185,14 @@ class RouteRequest:
             not isinstance(origin, DataOrigin) for origin in self.origins
         ):
             raise ValueError("data origins are invalid")
-        if not isinstance(self.sanitized, bool):
-            raise ValueError("sanitization state must be boolean")
         if self.approval is not None and not isinstance(
             self.approval, ExactPayloadApproval
         ):
             raise ValueError("approval metadata is invalid")
+        if self.sanitization is not None and not isinstance(
+            self.sanitization, SanitizationAttestation
+        ):
+            raise ValueError("sanitization metadata is invalid")
         if self.payload_sha256 is not None and not SHA256_RE.fullmatch(
             self.payload_sha256
         ):
@@ -191,11 +223,16 @@ class RouteDecision:
         return cls(RouteOutcome.DENY, reason, explanation, denial=denial)
 
     @classmethod
-    def allowed(cls, provider: str) -> RouteDecision:
+    def allowed(
+        cls,
+        provider: str,
+        reason: RouteReason = RouteReason.CAPABLE_PROVIDER,
+        explanation: str = "request may use the selected provider",
+    ) -> RouteDecision:
         return cls(
             RouteOutcome.ALLOW,
-            RouteReason.CAPABLE_PROVIDER,
-            "request may use the selected provider",
+            reason,
+            explanation,
             provider=provider,
         )
 

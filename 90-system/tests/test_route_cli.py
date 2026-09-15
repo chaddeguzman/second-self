@@ -48,9 +48,9 @@ def test_route_json_is_payload_free_and_provider_free(capsys):
     assert code == 2
     assert output == {
         "outcome": "deny",
-        "reason": "no_capable_provider",
+        "reason": "local_provider_unavailable",
         "provider": None,
-        "explanation": "no available provider advertises this operation",
+        "explanation": "required local provider is unavailable",
     }
     assert "payload" not in output
     assert "origin" not in output
