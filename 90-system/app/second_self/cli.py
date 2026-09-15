@@ -14,6 +14,10 @@ from .broker.broker import (
 )
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
+from .evaluation import discover_suites
+from .evaluation import render_json as render_eval_json
+from .evaluation import render_text as render_eval_text
+from .evaluation import run_suite
 from .health import HealthRegistry, SystemHealthContext, build_system_health_registry
 from .health.registry import exit_code, render_json, render_text
 from .ingest.ingest import ingest
@@ -138,6 +142,39 @@ def _command_route(args: argparse.Namespace) -> int:
         print(f"provider: {provider}")
         print(f"detail: {decision.explanation}")
     return 0 if decision.provider is not None else 2
+
+
+def _command_eval(args: argparse.Namespace) -> int:
+    """List or run deterministic built-in synthetic evaluation suites."""
+    suites = discover_suites()
+    if args.suite is None:
+        names = [suite.name for suite in suites]
+        if args.json:
+            _print({"version": "evaluation-suite-list/v1", "suites": names})
+        else:
+            print("Available evaluation suites:")
+            for name in names:
+                print(f"- {name}")
+        return 0
+    selected = next((suite for suite in suites if suite.name == args.suite), None)
+    if selected is None:
+        if args.json:
+            _print(
+                {
+                    "version": "evaluation-suite-list/v1",
+                    "error": "unknown_suite",
+                }
+            )
+        else:
+            print("error: unknown evaluation suite", file=sys.stderr)
+        return 2
+    paths = load_paths()
+    report = run_suite(
+        selected,
+        private_roots=(paths.layer1, paths.projects, paths.wiki),
+    )
+    print(render_eval_json(report) if args.json else render_eval_text(report))
+    return 0 if report.passed else 1
 
 
 def _command_capture(args: argparse.Namespace) -> int:
@@ -376,6 +413,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     route.add_argument("--json", action="store_true")
     route.set_defaults(func=_command_route)
+
+    evaluation = sub.add_parser(
+        "eval",
+        help="list or run deterministic synthetic evaluation suites",
+    )
+    evaluation.add_argument("suite", nargs="?")
+    evaluation.add_argument(
+        "--json",
+        action="store_true",
+        help="emit the stable versioned machine-readable report",
+    )
+    evaluation.set_defaults(func=_command_eval)
 
     capture = sub.add_parser("capture")
     capture.add_argument("--title", required=True)

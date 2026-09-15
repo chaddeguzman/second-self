@@ -81,6 +81,7 @@
 | echo-calendar | `... cache --refresh` | Refresh all three period snapshots from live data | Prefetch before going offline |
 | echo-calendar | `... doctor-check` | Connector health: token, credentials.json, snapshot age/staleness | Also surfaced as echo-doctor check 7 |
 | echo-calendar | `... --json` | Machine-readable JSON output for any subcommand | ECHO parses this for briefings |
+| second-self eval | `python -m second_self eval [suite] [--json]` | List or run deterministic synthetic-only evaluation suites. The fictional `recall` suite measures precision, coverage, attribution, evidence labels, missing evidence, contradictions, and ranking without changing recall behavior. Reports omit fixture values, private paths, and exception text. | `python -m second_self eval recall --json` runs the passing recall suite; `smoke` exercises pass, assertion-failure, and isolated-error reporting and exits nonzero by design. |
 
 > echo-session commands accept `--base-dir <path>` to override the memory directory; echo-doctor accepts `--base-dir` to override the `.echo` directory (both used by tests); echo-calendar accepts `--base-dir` the same way. Session file format is defined in `90-system/.echo/memory/sessions/SESSION-CONVENTION.md`. Calendar data is read-only (`calendar.readonly`); the refresh token lives in the OS keyring, never in Git.
 
