@@ -57,6 +57,9 @@ class SystemHealthContext:
 
     @property
     def cache_root(self) -> Path:
+        private_root = _read_private_root(self)
+        if private_root is not None:
+            return private_root / ".second-self-cache"
         return self.repo_root / ".second-self-cache"
 
 
@@ -158,11 +161,17 @@ def check_ollama_readiness(context: SystemHealthContext) -> HealthResult:
         health = context.ollama_health(context.config_path)
     except Exception:
         return HealthResult(
-            "ollama-readiness", WARN, "optional Ollama provider unavailable"
+            "ollama-readiness",
+            WARN,
+            "routing policy ready; optional Ollama provider unavailable",
         )
     if not health.ready:
-        return HealthResult("ollama-readiness", WARN, health.detail)
-    return HealthResult("ollama-readiness", OK, health.detail)
+        return HealthResult(
+            "ollama-readiness", WARN, f"routing policy ready; {health.detail}"
+        )
+    return HealthResult(
+        "ollama-readiness", OK, f"routing policy ready; {health.detail}"
+    )
 
 
 def _check_optional_json_state(
