@@ -9,6 +9,7 @@ from typing import Any, Literal, cast
 
 from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
+from ..foundation import foundation_summary
 from ..wiki.wiki import wiki_status
 
 
@@ -55,6 +56,7 @@ class DashboardSnapshot:
     scan_errors: int
     scanned_files: int
     wiki: dict[str, Any]
+    foundation: dict[str, object]
     legacy: tuple[dict[str, str], ...] = ()
     layer1: tuple[DashboardItem, ...] = ()
     projects: tuple[DashboardItem, ...] = ()
@@ -409,6 +411,7 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         scan_errors=result.errors + int(root_error) + raw_scan_errors,
         scanned_files=result.scanned,
         wiki=wiki_status(paths),
+        foundation=foundation_summary(paths),
         layer1=tuple(layer1),
         projects=tuple(result.projects),
     )

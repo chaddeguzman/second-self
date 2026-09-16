@@ -30,6 +30,24 @@
 </aside>
 {% endif %}
 
+<section class="projects-panel" aria-label="Local-agent foundation status">
+  <div class="section-heading compact">
+    <div>
+      <p class="eyebrow">Local-agent foundation</p>
+      <h2>System status</h2>
+    </div>
+    <span class="state-label">{{ snapshot.foundation.version }}</span>
+  </div>
+  <div class="card-grid">
+    {% for area, state in snapshot.foundation.areas.items() %}
+      <article class="queue-card">
+        <h3>{{ area|replace('-', ' ')|title }}</h3>
+        <p>{{ state|replace('-', ' ')|title }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="section-heading">
   <div>
     <p class="eyebrow">Unified inbox</p>
