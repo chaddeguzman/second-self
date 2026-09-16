@@ -1,0 +1,191 @@
+{
+  "report_version": "evaluation-report/v1",
+  "suites": {
+    "recall": {
+      "cases": {
+        "contradictory-dated-sources": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "deterministic-tie-order": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "exact-title-confirmed": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "folder-priority": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "labeled-inference": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "missing-evidence": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "recent-date-order": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 1.0,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        },
+        "tagged-with-weak-competition": {
+          "metrics": {
+            "contradiction_surfacing": 1.0,
+            "evidence_label_correctness": 1.0,
+            "expected_source_coverage": 1.0,
+            "missing_evidence_behavior": 1.0,
+            "ranking_accuracy": 1.0,
+            "retrieval_precision": 0.5,
+            "source_attribution": 1.0
+          },
+          "status": "pass"
+        }
+      }
+    },
+    "safety": {
+      "cases": {
+        "approval_binding": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "cloud_fallback_denied": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "corrupt_config_redacted": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "external_instruction_injection": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "invalid_classification": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "path_error_redaction": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "private_data_leakage": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "prohibited_routing": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "protected_write_without_approval": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        },
+        "sensitivity_downgrade": {
+          "metrics": {
+            "safety_boundary_enforcement": 1.0
+          },
+          "status": "pass"
+        }
+      }
+    },
+    "smoke": {
+      "cases": {
+        "assertion-failure": {
+          "metrics": {},
+          "status": "fail"
+        },
+        "passing-case": {
+          "metrics": {},
+          "status": "pass"
+        },
+        "runner-error": {
+          "metrics": {},
+          "status": "error"
+        }
+      }
+    }
+  },
+  "synthetic": true,
+  "thresholds": {
+    "case_score_drop": 0.0,
+    "metric_drop": 0.0
+  },
+  "version": "evaluation-baseline/v1"
+}

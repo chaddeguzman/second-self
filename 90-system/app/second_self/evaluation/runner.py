@@ -19,11 +19,12 @@ from .models import (
     IDENTIFIER_RE,
 )
 from .recall_suite import RECALL_SUITE
+from .safety_suite import SAFETY_SUITE
 from .smoke import SMOKE_SUITE
 
 REPORT_VERSION = "evaluation-report/v1"
 MAX_FIXTURE_BYTES = 1_048_576
-BUILTIN_SUITES = (RECALL_SUITE, SMOKE_SUITE)
+BUILTIN_SUITES = (RECALL_SUITE, SAFETY_SUITE, SMOKE_SUITE)
 
 
 class FixtureValidationError(ValueError):
@@ -139,7 +140,7 @@ def _run_case(case: EvalCase, private_roots: Sequence[Path]) -> EvalCaseResult:
         return EvalCaseResult(
             case.case_id,
             EvalCaseStatus.PASS,
-            EvalReason.ASSERTIONS_PASSED,
+            case.pass_reason,
             "all assertions passed",
             assertions,
             tuple(sorted(metrics)),
