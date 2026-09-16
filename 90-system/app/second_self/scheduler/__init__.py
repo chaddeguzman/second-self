@@ -8,6 +8,7 @@ from .models import (
     SchedulerState,
 )
 from .store import JobStore, SchedulerStateError
+from .adapters import ADAPTERS, initial_job_definitions
 
 __all__ = [
     "JobDefinition",
@@ -17,4 +18,6 @@ __all__ = [
     "Schedule",
     "SchedulerState",
     "SchedulerStateError",
+    "ADAPTERS",
+    "initial_job_definitions",
 ]
