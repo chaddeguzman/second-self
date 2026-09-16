@@ -9,6 +9,8 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..evaluation import discover_suites
+from ..evaluation.reporting import BaselineError, baseline_compatibility, load_baseline
 from ..providers import (
     OllamaProvider,
     ProviderError,
@@ -181,11 +183,19 @@ def _check_optional_json_state(
 
 
 def check_evaluation_state(context: SystemHealthContext) -> HealthResult:
-    """Inspect the planned evaluation baseline without running evaluations."""
-    return _check_optional_json_state(
-        context.cache_root / "evaluations" / "baseline.json",
-        check="evaluation-state",
-        label="evaluation",
+    """Validate tracked baseline compatibility without running evaluations."""
+    baseline_path = context.repo_root / "90-system" / "evaluation-baseline.json"
+    try:
+        baseline = load_baseline(baseline_path)
+        baseline_compatibility(
+            baseline, [suite.name for suite in discover_suites()]
+        )
+    except BaselineError:
+        return HealthResult(
+            "evaluation-state", WARN, "evaluation baseline is unavailable"
+        )
+    return HealthResult(
+        "evaluation-state", OK, "evaluation baseline is compatible"
     )
 
 

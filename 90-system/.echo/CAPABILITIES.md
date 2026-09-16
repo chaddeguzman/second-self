@@ -46,8 +46,12 @@
 - **Synthetic harness** — `second-self eval [suite] [--json]` lists or runs
   deterministic registered synthetic suites with isolated cases, stable
   versioned reports, and redacted values, paths, and errors. It reports only;
-  the fictional `recall` suite measures retrieval and evidence representation.
-  Safety metrics and regression baselines are not active yet.
+  the fictional `recall` suite measures retrieval and evidence representation;
+  the `safety` suite runs ten synthetic attacks against routing, private-draft,
+  approval, and redaction boundaries using fakes and temporary sandboxes. Suite
+  runs compare with a tracked synthetic-only baseline and report added, removed,
+  improved, and regressed IDs. Baseline refresh is explicit, deterministic, and
+  writes only the tracked baseline file.
 
 ### Fun features
 - **Status line** — dynamic one-line status in IDENTITY.md reflecting

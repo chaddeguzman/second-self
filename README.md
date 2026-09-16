@@ -185,6 +185,28 @@ evidence but do not silently replace it.
 - [Frequently Asked Questions](FAQ.md) covers privacy, platform support,
   storage, and backups.
 
+## Synthetic Evaluation Gates
+
+Run a deterministic synthetic suite and compare it with the reviewed tracked
+baseline:
+
+```powershell
+python -m second_self eval recall
+python -m second_self eval safety --json
+```
+
+Exit 0 means the suite passes without regression, exit 1 means a current failure
+or regression, and exit 2 means the suite or baseline is unavailable or
+incompatible. Baseline replacement is deliberately explicit and reviewable:
+
+```powershell
+python -m second_self eval --refresh-baseline --json
+```
+
+Refresh runs every registered synthetic suite and changes only
+`90-system/evaluation-baseline.json`. Review that diff before committing; the
+command does not update prompts, skills, routing policy, or personal evidence.
+
 ## Essential Guidelines
 
 - **Protect privacy.** Enable BitLocker or Windows device encryption because

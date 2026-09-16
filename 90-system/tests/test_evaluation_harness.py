@@ -20,6 +20,7 @@ from second_self.evaluation import (
     render_text,
     run_suite,
 )
+from second_self.evaluation.reporting import write_baseline
 
 
 def evaluator(fixture):
@@ -218,7 +219,8 @@ def test_eval_help_and_list_behavior(capsys):
     assert main(["eval", "--json"]) == 0
     assert json.loads(capsys.readouterr().out) == {
         "version": "evaluation-suite-list/v1",
-        "suites": ["recall", "smoke"],
+        "suites": ["recall", "safety", "smoke"],
+        "baseline": "compatible",
     }
 
 
@@ -245,9 +247,12 @@ def test_eval_smoke_reports_failure_and_error_with_nonzero_exit(capsys):
     }
 
 
-def test_eval_cli_returns_zero_for_a_passing_suite(monkeypatch, capsys):
+def test_eval_cli_returns_zero_for_a_passing_suite(monkeypatch, capsys, tmp_path):
     passing = EvalSuite("passing", (case("only-case"),))
     monkeypatch.setattr("second_self.cli.discover_suites", lambda: (passing,))
+    baseline_path = tmp_path / "baseline.json"
+    write_baseline(baseline_path, (run_suite(passing, private_roots=()),))
+    monkeypatch.setattr("second_self.cli.EVALUATION_BASELINE_PATH", baseline_path)
 
     assert main(["eval", "passing"]) == 0
     assert "result: PASS" in capsys.readouterr().out

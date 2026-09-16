@@ -15,9 +15,17 @@ from .broker.broker import (
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
 from .evaluation import discover_suites
-from .evaluation import render_json as render_eval_json
 from .evaluation import render_text as render_eval_text
 from .evaluation import run_suite
+from .evaluation.reporting import (
+    BASELINE_VERSION,
+    BaselineError,
+    baseline_compatibility,
+    compare_report,
+    load_baseline,
+    render_comparison_text,
+    write_baseline,
+)
 from .health import HealthRegistry, SystemHealthContext, build_system_health_registry
 from .health.registry import exit_code, render_json, render_text
 from .ingest.ingest import ingest
@@ -36,6 +44,8 @@ from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
 from .writes.tag_rename import build_tag_rename_proposal
+
+EVALUATION_BASELINE_PATH = REPO_ROOT / "90-system" / "evaluation-baseline.json"
 
 
 def _print(value: object) -> None:
@@ -147,14 +157,62 @@ def _command_route(args: argparse.Namespace) -> int:
 def _command_eval(args: argparse.Namespace) -> int:
     """List or run deterministic built-in synthetic evaluation suites."""
     suites = discover_suites()
+    paths = load_paths()
+    private_roots = (paths.layer1, paths.projects, paths.wiki)
+    if args.refresh_baseline:
+        if args.suite is not None:
+            if args.json:
+                _print({"version": BASELINE_VERSION, "error": "invalid_refresh"})
+            else:
+                print("error: baseline refresh does not accept a suite", file=sys.stderr)
+            return 2
+        reports = tuple(
+            run_suite(suite, private_roots=private_roots) for suite in suites
+        )
+        try:
+            write_baseline(EVALUATION_BASELINE_PATH, reports)
+        except BaselineError:
+            if args.json:
+                _print({"version": BASELINE_VERSION, "error": "refresh_failed"})
+            else:
+                print("error: baseline refresh failed", file=sys.stderr)
+            return 2
+        if args.json:
+            _print(
+                {
+                    "version": BASELINE_VERSION,
+                    "status": "refreshed",
+                    "suites": [suite.name for suite in suites],
+                }
+            )
+        else:
+            print(f"baseline refreshed: {len(suites)} suites")
+        return 0
+
+    try:
+        baseline = load_baseline(EVALUATION_BASELINE_PATH)
+        baseline_compatibility(baseline, [suite.name for suite in suites])
+    except BaselineError:
+        if args.json:
+            _print({"version": BASELINE_VERSION, "error": "baseline_unavailable"})
+        else:
+            print("error: evaluation baseline is unavailable", file=sys.stderr)
+        return 2
     if args.suite is None:
         names = [suite.name for suite in suites]
         if args.json:
-            _print({"version": "evaluation-suite-list/v1", "suites": names})
+            _print(
+                {
+                    "version": "evaluation-suite-list/v1",
+                    "suites": names,
+                    "baseline": "compatible",
+                }
+            )
         else:
             print("Available evaluation suites:")
             for name in names:
                 print(f"- {name}")
+            print("baseline: compatible")
         return 0
     selected = next((suite for suite in suites if suite.name == args.suite), None)
     if selected is None:
@@ -168,13 +226,25 @@ def _command_eval(args: argparse.Namespace) -> int:
         else:
             print("error: unknown evaluation suite", file=sys.stderr)
         return 2
-    paths = load_paths()
     report = run_suite(
         selected,
-        private_roots=(paths.layer1, paths.projects, paths.wiki),
+        private_roots=private_roots,
     )
-    print(render_eval_json(report) if args.json else render_eval_text(report))
-    return 0 if report.passed else 1
+    try:
+        comparison = compare_report(report, baseline)
+    except BaselineError:
+        if args.json:
+            _print({"version": BASELINE_VERSION, "error": "baseline_incompatible"})
+        else:
+            print("error: evaluation baseline is incompatible", file=sys.stderr)
+        return 2
+    if args.json:
+        output = report.as_dict()
+        output["baseline"] = comparison.as_dict()
+        _print(output)
+    else:
+        print(f"{render_eval_text(report)}\n{render_comparison_text(comparison)}")
+    return 0 if report.passed and comparison.passed else 1
 
 
 def _command_capture(args: argparse.Namespace) -> int:
@@ -423,6 +493,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="emit the stable versioned machine-readable report",
+    )
+    evaluation.add_argument(
+        "--refresh-baseline",
+        action="store_true",
+        help="explicitly replace the tracked synthetic baseline for every suite",
     )
     evaluation.set_defaults(func=_command_eval)
 

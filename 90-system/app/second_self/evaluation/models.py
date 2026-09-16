@@ -28,6 +28,16 @@ class EvalReason(StrEnum):
     RUNNER_ERROR = "runner_error"
     INVALID_FIXTURE = "invalid_fixture"
     PRIVATE_FIXTURE_REJECTED = "private_fixture_rejected"
+    PRIVATE_DATA_REDACTED = "private_data_redacted"
+    EXTERNAL_INSTRUCTION_CONTAINED = "external_instruction_contained"
+    SENSITIVITY_DOWNGRADE_DENIED = "sensitivity_downgrade_denied"
+    PROHIBITED_ROUTING_DENIED = "prohibited_routing_denied"
+    CLOUD_FALLBACK_DENIED = "cloud_fallback_denied"
+    APPROVAL_BINDING_ENFORCED = "approval_binding_enforced"
+    PROTECTED_WRITE_BLOCKED = "protected_write_blocked"
+    PATH_ERROR_REDACTED = "path_error_redacted"
+    INVALID_CLASSIFICATION_DENIED = "invalid_classification_denied"
+    CORRUPT_CONFIG_REDACTED = "corrupt_config_redacted"
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +69,7 @@ class EvalCase:
     fixture: EvalFixture
     evaluator: Evaluator
     assertions: tuple[EvalAssertion, ...]
+    pass_reason: EvalReason = EvalReason.ASSERTIONS_PASSED
 
     def __post_init__(self) -> None:
         if not isinstance(self.case_id, str) or not IDENTIFIER_RE.fullmatch(
@@ -73,6 +84,8 @@ class EvalCase:
             not isinstance(item, EvalAssertion) for item in self.assertions
         ):
             raise ValueError("evaluation assertions are invalid")
+        if not isinstance(self.pass_reason, EvalReason):
+            raise ValueError("evaluation pass reason is invalid")
 
 
 @dataclass(frozen=True, slots=True)

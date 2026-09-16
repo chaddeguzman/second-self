@@ -136,7 +136,6 @@ def test_ollama_ready_and_offline_are_bounded(tmp_path):
 @pytest.mark.parametrize(
     ("checker", "relative"),
     [
-        (check_evaluation_state, Path("evaluations/baseline.json")),
         (check_scheduler_state, Path("scheduler/jobs.json")),
     ],
 )
@@ -153,6 +152,24 @@ def test_optional_state_absent_invalid_and_valid(tmp_path, checker, relative):
 
     state.write_text('{"schema_version": 1}', encoding="utf-8")
     assert checker(context).status == OK
+
+
+def test_evaluation_state_requires_a_compatible_tracked_baseline(tmp_path):
+    context = make_context(tmp_path)
+    baseline = tmp_path / "90-system" / "evaluation-baseline.json"
+    assert check_evaluation_state(context).status == WARN
+
+    baseline.parent.mkdir(parents=True)
+    baseline.write_text("invalid private path details", encoding="utf-8")
+    invalid = check_evaluation_state(context)
+    assert invalid.status == WARN
+    assert str(tmp_path) not in invalid.detail
+
+    source = Path("90-system/evaluation-baseline.json")
+    baseline.write_bytes(source.read_bytes())
+    valid = check_evaluation_state(context)
+    assert valid.status == OK
+    assert valid.detail == "evaluation baseline is compatible"
 
 
 def test_system_registry_has_exact_order_and_read_only_fix_behavior(tmp_path):
