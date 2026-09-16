@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import importlib.util
 import json
 import sys
@@ -40,6 +41,9 @@ from .reads.recall import recall_layer1
 from .reads.recent import recent_items
 from .reads.search import search_layer1
 from .routing import DataOrigin, DataOriginKind, diagnose_policy
+from .scheduler import JobStore, SchedulerStateError
+from .scheduler.due import run_due
+from .scheduler.lock import SchedulerLock, SchedulerLockError
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
@@ -245,6 +249,71 @@ def _command_eval(args: argparse.Namespace) -> int:
     else:
         print(f"{render_eval_text(report)}\n{render_comparison_text(comparison)}")
     return 0 if report.passed and comparison.passed else 1
+
+
+def _scheduler_store() -> JobStore:
+    paths = load_paths(require_config=True)
+    return JobStore(paths.cache / "scheduler" / "jobs.json")
+
+
+def _command_schedule(args: argparse.Namespace) -> int:
+    """Read scheduler definitions and redacted run metadata only."""
+    try:
+        state = _scheduler_store().read()
+    except SchedulerStateError:
+        if args.json:
+            _print({"version": "schedule-view/v1", "error": "scheduler_state_unavailable"})
+        else:
+            print("error: scheduler state is unavailable", file=sys.stderr)
+        return 2
+    if args.schedule_command == "list":
+        jobs = [
+            {"job_id": job.job_id, "adapter": job.adapter, "enabled": job.enabled,
+             "time_zone": job.time_zone, "schedule": job.schedule.as_dict()}
+            for job in state.jobs
+        ]
+        payload = {"version": "schedule-list/v1", "jobs": jobs}
+        if args.json:
+            _print(payload)
+        else:
+            print("Scheduled jobs:")
+            for job in jobs:
+                print(f"- {job['job_id']} ({job['adapter']}, {'enabled' if job['enabled'] else 'disabled'})")
+            if not jobs:
+                print("(none)")
+        return 0
+    runs = [run.as_dict() for run in state.runs]
+    payload = {"version": "schedule-status/v1", "job_count": len(state.jobs), "run_count": len(runs), "runs": runs}
+    if args.json:
+        _print(payload)
+    else:
+        print(f"Scheduler status: {len(state.jobs)} job(s), {len(runs)} run(s)")
+    return 0
+
+
+def _command_schedule_run_due(args: argparse.Namespace) -> int:
+    try:
+        paths = load_paths(require_config=True)
+        store = JobStore(paths.cache / "scheduler" / "jobs.json")
+        result = run_due(
+            store,
+            SchedulerLock(paths.cache / "scheduler" / "run-due.lock"),
+            now=datetime.now(timezone.utc),
+        )
+    except (SchedulerStateError, SchedulerLockError):
+        result = None
+    if result is None:
+        payload = {"version": "schedule-run/v1", "outcome": "state-failure", "reason": "scheduler_state_unavailable"}
+        if args.json:
+            _print(payload)
+        else:
+            print("scheduler run failed: state unavailable", file=sys.stderr)
+        return 2
+    if args.json:
+        _print(result.as_dict())
+    else:
+        print(f"scheduler run: {result.outcome} ({result.succeeded} succeeded, {result.failed} failed)")
+    return {"no-work": 0, "success": 0, "partial-failure": 1, "lock-contention": 2, "state-failure": 2}.get(result.outcome, 2)
 
 
 def _command_capture(args: argparse.Namespace) -> int:
@@ -500,6 +569,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="explicitly replace the tracked synthetic baseline for every suite",
     )
     evaluation.set_defaults(func=_command_eval)
+
+    schedule = sub.add_parser("schedule", help="inspect local scheduler state")
+    schedule_sub = schedule.add_subparsers(dest="schedule_command", required=True)
+    schedule_list = schedule_sub.add_parser("list", help="list job definitions")
+    schedule_list.add_argument("--json", action="store_true")
+    schedule_status = schedule_sub.add_parser("status", help="show redacted run history status")
+    schedule_status.add_argument("--json", action="store_true")
+    schedule_run = schedule_sub.add_parser("run-due", help="run due test-only jobs")
+    schedule_run.add_argument("--json", action="store_true")
+    schedule.set_defaults(func=_command_schedule)
+    schedule_run.set_defaults(func=_command_schedule_run_due)
 
     capture = sub.add_parser("capture")
     capture.add_argument("--title", required=True)
