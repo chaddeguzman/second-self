@@ -44,6 +44,12 @@ from .routing import DataOrigin, DataOriginKind, diagnose_policy
 from .scheduler import JobStore, SchedulerStateError
 from .scheduler.due import run_due
 from .scheduler.lock import SchedulerLock, SchedulerLockError
+from .scheduler.launcher import (
+    WindowsTaskScheduler,
+    install_launcher,
+    launcher_status,
+    remove_launcher,
+)
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
@@ -258,6 +264,27 @@ def _scheduler_store() -> JobStore:
 
 def _command_schedule(args: argparse.Namespace) -> int:
     """Read scheduler definitions and redacted run metadata only."""
+    if args.schedule_command == "status" and getattr(args, "launcher", False):
+        payload = launcher_status(WindowsTaskScheduler())
+        if args.json:
+            _print(payload)
+        else:
+            print(f"launcher: {'installed' if payload['installed'] else 'not installed'}")
+        return 0
+    if args.schedule_command == "install":
+        payload = install_launcher(WindowsTaskScheduler(), confirmed=args.confirm)
+        if args.json:
+            _print(payload)
+        else:
+            print(json.dumps(payload, indent=2))
+        return 0 if payload.get("changed") or payload.get("reason") == "confirmation_required" else 2
+    if args.schedule_command == "remove":
+        payload = remove_launcher(WindowsTaskScheduler(), confirmed=args.confirm)
+        if args.json:
+            _print(payload)
+        else:
+            print(json.dumps(payload, indent=2))
+        return 0 if payload.get("changed") or payload.get("reason") == "confirmation_required" else 2
     try:
         state = _scheduler_store().read()
     except SchedulerStateError:
@@ -576,8 +603,15 @@ def build_parser() -> argparse.ArgumentParser:
     schedule_list.add_argument("--json", action="store_true")
     schedule_status = schedule_sub.add_parser("status", help="show redacted run history status")
     schedule_status.add_argument("--json", action="store_true")
+    schedule_status.add_argument("--launcher", action="store_true", help="show Task Scheduler state")
     schedule_run = schedule_sub.add_parser("run-due", help="run due test-only jobs")
     schedule_run.add_argument("--json", action="store_true")
+    schedule_install = schedule_sub.add_parser("install", help="preview or install the fixed launcher")
+    schedule_install.add_argument("--confirm", action="store_true", help="confirm the OS task mutation")
+    schedule_install.add_argument("--json", action="store_true")
+    schedule_remove = schedule_sub.add_parser("remove", help="preview or remove the fixed launcher")
+    schedule_remove.add_argument("--confirm", action="store_true", help="confirm the OS task mutation")
+    schedule_remove.add_argument("--json", action="store_true")
     schedule.set_defaults(func=_command_schedule)
     schedule_run.set_defaults(func=_command_schedule_run_due)
 

@@ -22,6 +22,10 @@ from second_self.scheduler import (
 )
 from second_self.scheduler.due import due_jobs, run_due
 from second_self.scheduler.lock import SchedulerLock
+from second_self.scheduler.adapters import ADAPTERS, initial_job_definitions
+from second_self.scheduler.launcher import (
+    TASK_NAME, TaskSpec, install_launcher, launcher_status, remove_launcher,
+)
 from second_self.scheduler.models import ScheduleKind
 
 
@@ -153,3 +157,41 @@ def test_lock_contention_and_stale_recovery(tmp_path: Path) -> None:
     path.write_text('{"owner":"old","acquired_at":100}', encoding="utf-8")
     assert second.acquire(now=100 + 15 * 60 + 1)
     second.release()
+
+
+def test_phase_16_has_five_disabled_safe_adapters() -> None:
+    jobs = initial_job_definitions()
+    assert len(ADAPTERS) == 5
+    assert {job.adapter for job in jobs} == set(ADAPTERS)
+    assert all(not job.enabled for job in jobs)
+    assert all(job.adapter in {"calendar-snapshot", "time-capsule-reminder", "review-reminder", "backup-due-reminder", "memory-health-check"} for job in jobs)
+
+
+class FakeTaskBackend:
+    def __init__(self) -> None:
+        self.installed = False
+
+    def query(self, _name: str) -> bool:
+        return self.installed
+
+    def create(self, spec: TaskSpec) -> bool:
+        assert spec.name == TASK_NAME
+        self.installed = True
+        return True
+
+    def remove(self, _name: str) -> bool:
+        self.installed = False
+        return True
+
+
+def test_launcher_requires_confirmation_and_verifies_actions(monkeypatch: pytest.MonkeyPatch) -> None:
+    backend = FakeTaskBackend()
+    monkeypatch.setattr("second_self.scheduler.launcher.os.name", "nt")
+    preview = install_launcher(backend, confirmed=False)
+    assert preview["reason"] == "confirmation_required"
+    assert not backend.installed
+    installed = install_launcher(backend, confirmed=True)
+    assert installed["verified"] is True
+    assert launcher_status(backend)["installed"] is True
+    removed = remove_launcher(backend, confirmed=True)
+    assert removed["verified"] is True

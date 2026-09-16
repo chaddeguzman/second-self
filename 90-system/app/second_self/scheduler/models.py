@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 SCHEMA_VERSION = "scheduler-state/v1"
 _ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
-ALLOWED_ADAPTERS = frozenset({"notification", "read-only", "test-noop"})
+ALLOWED_ADAPTERS = frozenset({"notification", "read-only", "test-noop", "calendar-snapshot", "time-capsule-reminder", "review-reminder", "backup-due-reminder", "memory-health-check"})
 OUTCOMES = frozenset({"pending", "running", "succeeded", "failed", "skipped"})
 _FORBIDDEN_PARAMETER_KEYS = frozenset({"args", "body", "command", "content", "path", "payload", "prompt", "text"})
 
