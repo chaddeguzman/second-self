@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 
 from second_self.cli import main
+import second_self.cli as cli_module
+from second_self.core.paths import SecondSelfPaths
 from second_self.scheduler import (
     JobDefinition,
     JobRun,
@@ -106,8 +108,13 @@ def test_corrupt_state_is_preserved_and_redacted(tmp_path: Path) -> None:
     assert path.read_text(encoding="utf-8").startswith('{"private_path"')
 
 
-def test_empty_schedule_cli_is_stable_and_read_only(capsys: pytest.CaptureFixture[str]) -> None:
-    # The configured local cache is operational state; this only reads it.
+def test_empty_schedule_cli_is_stable_and_read_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # A synthetic operational root keeps CI independent of private config.
+    monkeypatch.setattr(
+        cli_module, "load_paths", lambda require_config=False: SecondSelfPaths(tmp_path, tmp_path / "data")
+    )
     assert main(["schedule", "list", "--json"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output == {"version": "schedule-list/v1", "jobs": []}
