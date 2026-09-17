@@ -204,10 +204,10 @@ def _run_hook(prompt: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_hook_emits_nothing_for_unmatched_prompt() -> None:
+def test_hook_explicitly_allows_unmatched_prompt() -> None:
     result = _run_hook("Please fix the parser")
     assert result.returncode == 0
-    assert result.stdout == ""
+    assert json.loads(result.stdout) == {"continue": True}
     assert result.stderr == ""
 
 
