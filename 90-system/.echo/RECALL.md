@@ -49,15 +49,17 @@ can be rebuilt from scratch at any time. The files are always the source of
 truth; the index is never the only copy. If the index and the files
 disagree, the files win — rebuild the index.
 
-## Semantic path (deferred, interface unchanged)
+## Semantic path (optional, interface unchanged)
 
-When an embedding model becomes available: embed the query and each memory's
-hook + body, rank by cosine similarity, and merge with keyword scores. A
-paraphrased question ("something about why I stall on identity-tied tasks")
-then finds the right memory even when it shares no keywords with the hook.
-Until then — and automatically whenever the model is missing or down —
-keyword ranking is the path. Recall never fails because a vector service is
-unavailable.
+When the optional embedded model is installed, semantic recall embeds the
+query and each durable memory's hook + body, ranks by cosine similarity, and
+merges with keyword scores. A paraphrased question ("something about why I
+stall on identity-tied tasks") can then find the right memory even when it
+shares no keywords with the hook. The derived SQLite index lives in the
+ignored private cache and is always rebuildable from the Markdown sources.
+Until the model and index are ready — and automatically whenever the model is
+missing or down — keyword ranking remains the path. Recall never fails because
+semantic dependencies are unavailable.
 
 ## Provenance discipline
 

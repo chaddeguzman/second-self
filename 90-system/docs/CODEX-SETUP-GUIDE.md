@@ -51,6 +51,47 @@ Do not manually register the Claude-style JSON hook with a client that does not
 support that event protocol. Continue with `AGENTS.md`, the broker, privacy
 validation, and the protected Git workflow.
 
+## Operational readiness
+
+Use the unified doctor as the live source of truth after setup or when a
+subsystem behaves unexpectedly:
+
+```powershell
+python -m second_self doctor --json
+python -m second_self eval --json
+python -m second_self schedule status --json
+```
+
+To enable local semantic ranking, install the optional semantic extra and then
+build the private index:
+
+```powershell
+python -m pip install -e ".[semantic]"
+python -m second_self recall-index rebuild
+```
+
+The first rebuild downloads the pinned small CPU embedding model. Model files
+and vectors stay outside Git in local caches; a missing model leaves keyword
+recall available.
+
+Interpret the results as follows:
+
+- A missing Ollama service is an expected optional warning. Sensitive local
+  drafting remains denied and must not fall back to a cloud provider.
+- Calendar problems degrade only Calendar output. Refresh its read-only
+  snapshots with the installed `echo-calendar.py` command when credentials and
+  connectivity are available; stale cached results must remain labeled.
+- Missing or corrupt scheduler state must be reported, not overwritten.
+  `schedule run-due --json` is the manual recovery path; installing or removing
+  the Windows launcher requires explicit confirmation.
+- Evaluation regressions fail closed. Do not refresh the tracked baseline to
+  hide a regression; investigate the reported case first.
+
+The dashboard is a concise status view, not a replacement for these commands.
+It must never display raw prompts, private paths, credentials, or private
+payloads. When a host lacks hooks, these commands and the repository policy
+remain the authoritative fallback.
+
 ## ECHO portability
 
 ECHO's source of truth remains:

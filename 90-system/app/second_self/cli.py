@@ -37,7 +37,8 @@ from .maintenance.validation import validate
 from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
 from .reads.due import due_items
-from .reads.recall import recall_layer1
+from .reads.recall import hybrid_recall_layer1
+from .reads.semantic import FastEmbedder, SemanticError, SemanticIndex, layer1_documents, memory_store_documents
 from .reads.recent import recent_items
 from .reads.search import search_layer1
 from .routing import DataOrigin, DataOriginKind, diagnose_policy
@@ -365,16 +366,36 @@ def _command_search(args: argparse.Namespace) -> int:
 
 def _command_recall(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
+    semantic_index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
     _print(
         {
-            "results": recall_layer1(
+            "results": hybrid_recall_layer1(
                 paths,
                 args.query,
+                semantic_index=semantic_index,
+                embedder=FastEmbedder(),
                 max_results=args.max_results,
                 min_score=args.min_score,
             )
         }
     )
+    return 0
+
+
+def _command_recall_index(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
+    if args.recall_index_command == "status":
+        _print({"count": index.count(), "path": "private semantic index"})
+        return 0
+    try:
+        embedder = FastEmbedder()
+        documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)
+        indexed = index.refresh(documents, embedder)
+    except SemanticError:
+        _print({"error": "embedded semantic model unavailable"})
+        return 2
+    _print({"indexed": indexed, "sources": len(documents)})
     return 0
 
 
@@ -635,6 +656,17 @@ def build_parser() -> argparse.ArgumentParser:
     recall.add_argument("--max-results", type=int, default=50)
     recall.add_argument("--min-score", type=int, default=0)
     recall.set_defaults(func=_command_recall)
+
+    recall_index = sub.add_parser(
+        "recall-index", help="inspect or rebuild the private semantic index"
+    )
+    recall_index_sub = recall_index.add_subparsers(
+        dest="recall_index_command", required=True
+    )
+    recall_index_status = recall_index_sub.add_parser("status")
+    recall_index_status.set_defaults(func=_command_recall_index)
+    recall_index_rebuild = recall_index_sub.add_parser("rebuild")
+    recall_index_rebuild.set_defaults(func=_command_recall_index)
 
     due = sub.add_parser("due")
     due.add_argument("--overdue-only", action="store_true")

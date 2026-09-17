@@ -17,6 +17,9 @@
   ECHO's own long-term memory entries in `memory/`. Returns file paths so
   answers cite their memory source. Falls back to keyword matching if
   embeddings are unavailable — never fails to recall.
+- **Semantic recall** — optional local embedded-model ranking over durable ECHO
+  memory and Layer 1 notes. Uses a rebuildable private SQLite index and falls
+  back to keyword ranking when the model or index is unavailable.
 - **Conflict review** — `second-self-conflict-review`: when two memories or
   sources disagree, lays each claim side by side with date and source so
   Chad decides. Never silently picks a winner.
@@ -107,6 +110,9 @@
   `doctor-check`. Flags: `--json`, `--base-dir`. Serves the Calendar
   briefing section and schedule questions; offline fallback reads a
   local snapshot with an explicit staleness notice.
+- **semantic index** — `python -m second_self recall-index status|rebuild`:
+  inspects or rebuilds the private semantic index from durable sources. The
+  source Markdown remains authoritative; rebuild failures are redacted.
   Documented in CAPABILITY-LIST.md under "CLI Tools".
 
 ### Data sources
@@ -128,8 +134,6 @@
   credentials of any kind are refused at save time.
 
 ## Planned (not yet wired)
-- Semantic memory recall (cosine ranking when an embedding model is
-  available) — interface stable, slots in behind RECALL.md.
 - Voice interaction (Phase 2).
 - Further external connectors (Gmail, Drive — stubs exist in
   `scripts/connectors/`) and autonomous action (Phase 3–4).

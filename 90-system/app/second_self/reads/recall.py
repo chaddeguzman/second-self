@@ -14,6 +14,7 @@ from typing import Any
 
 from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
+from .semantic import Embedder, SemanticError, SemanticIndex
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 SNIPPET_RADIUS = 60
@@ -220,4 +221,84 @@ def recall_layer1(
         key=lambda entry: (entry["score"], str(entry["title"]).casefold()),
         reverse=True,
     )
+    return results[:max_results]
+
+
+def hybrid_recall_layer1(
+    paths: SecondSelfPaths,
+    query: str,
+    *,
+    semantic_index: SemanticIndex | None = None,
+    embedder: Embedder | None = None,
+    max_results: int = 50,
+    min_score: int = 0,
+    today: date | None = None,
+) -> list[dict[str, Any]]:
+    """Combine keyword recall with optional semantic index results.
+
+    The keyword path remains authoritative when semantic dependencies are
+    unavailable.  Semantic-only results are metadata-only until callers read
+    the cited source through the normal evidence workflow.
+    """
+    keyword_results = recall_layer1(
+        paths,
+        query,
+        max_results=max_results,
+        min_score=min_score,
+        today=today,
+    )
+    if semantic_index is None or embedder is None or not query.strip():
+        return keyword_results
+    try:
+        semantic_matches = semantic_index.search(
+            embedder.embed(query), min_score=0.35
+        )
+    except (SemanticError, ValueError, TypeError):
+        return keyword_results
+
+    by_path = {str(item["path"]): item for item in keyword_results}
+    current = today or date.today()
+    for match in semantic_matches:
+        if match.source != "layer1" or not match.path.startswith("layer1/"):
+            continue
+        path = match.path.removeprefix("layer1/")
+        public_path = f"01-strategy-storage/{path}"
+        existing = by_path.get(public_path)
+        semantic_boost = max(0, round(match.score * 100))
+        if existing is not None:
+            existing["semantic_score"] = round(match.score, 6)
+            existing["score"] = int(existing["score"]) + semantic_boost
+            existing["retrieval"] = "hybrid"
+            continue
+        source_path = paths.layer1 / Path(path)
+        try:
+            metadata, _body = read_note(source_path)
+        except (OSError, UnicodeError, ValueError):
+            continue
+        created = metadata.get("created")
+        if isinstance(created, str):
+            try:
+                created = date.fromisoformat(created[:10])
+            except ValueError:
+                created = None
+        recency = _recency_score(created if isinstance(created, date) else None, current)
+        folder = _folder_priority(path)
+        by_path[public_path] = {
+            "path": public_path,
+            "title": Path(path).stem,
+            "score": folder + recency + semantic_boost,
+            "score_breakdown": {
+                "folder": folder,
+                "recency": recency,
+                "tag": 0,
+                "title": 0,
+                "semantic": semantic_boost,
+            },
+            "semantic_score": round(match.score, 6),
+            "retrieval": "semantic",
+            "snippet": "",
+            "matched": "",
+        }
+    results = list(by_path.values())
+    results.sort(key=lambda entry: (int(entry["score"]), str(entry["title"]).casefold()), reverse=True)
     return results[:max_results]

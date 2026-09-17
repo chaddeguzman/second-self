@@ -3,39 +3,25 @@
 > Written by ECHO before delegating. Fresh per task; stale context is replaced,
 > not accumulated. All sub-agents read this at task start.
 
-## Current Task: Project 3, Phase 1 only — echo-google-calendar scaffold
+## Current Task: None
 
-**Read first:** `02-skills-projects/projects/echo-google-calendar/PLAN.md`
-(master status + hard rules), then
-`02-skills-projects/projects/echo-google-calendar/phase-1-scaffold.md`
-(the exact scope).
+The previously active Calendar scaffold task is complete. Do not dispatch work
+from this file until ECHO writes a fresh task-specific context.
 
-**Mission:** create the project documents (PRD, ARCHITECTURE,
-ARCHITECTURE-ESSENTIALS, per-project AGENTS.md) in
-`02-skills-projects/projects/echo-google-calendar/` and the code
-skeleton (`echo-calendar.py` stubs, connector stubs, test scaffold) per
-the phase file. Templates live in
-`90-system/.echo/subagents/shared/templates/`.
+**Current project snapshot:**
+- `echo-google-calendar/PLAN.md`: all 5 phases Done; read-only Calendar is integrated.
+- `echo-local-agent-foundation/PLAN.md`: all 17 phases Done; foundation is complete.
+- Next planned cycle: reconcile operational status and harden readiness before
+  beginning semantic memory work.
 
-**Locked decisions (from brainstorm with Chad — do not re-litigate):**
-- Token storage: keyring primary, `.second-self.local.json` fallback
-- Stack: official `google-api-python-client` + `google-auth-oauthlib`
-- Fetch: live + snapshot fallback; scope today + week, single calendar,
-  `calendar.readonly`
-- Gmail/Drive: `NotImplementedError` stub interfaces ONLY — zero working code
-
-**Hard boundaries:** Phase 1 is scaffold only — no OAuth code, no API
-calls, no deps, no integration. Work EXACTLY this phase. Update the
-phase file header, PLAN.md table, and your log together at completion.
+**Current boundaries:** Calendar remains read-only; Gmail and Drive remain
+stubs; future tasks must write a fresh exact scope before delegation.
 
 ## Background (why this exists)
 
-OpenJarvis comparison review (2026-09-07): OpenJarvis's `jarvis connect
-gdrive` covers Gmail/Calendar via one OAuth flow. ECHO's Phase 3 roadmap
-includes read-only email/calendar. Chad chose a Calendar-first probe
-(Gmail/Drive later as stubs), executed as five small phases so future
-sessions never guess what's done. Phase 3 has a built-in human wall
-(Chad's Google Cloud console setup) — Blocked status there is correct.
+OpenJarvis comparison review (2026-09-07) led to a Calendar-first probe.
+Calendar is now integrated as a read-only connector; Gmail and Drive remain
+stubs by design.
 
 ## Related files
 
