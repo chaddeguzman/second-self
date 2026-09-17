@@ -241,9 +241,13 @@ def compare_report(
         assert isinstance(old_metrics, dict)
         new_metrics = dict(current.metrics)
         for name in sorted(set(old_metrics) | set(new_metrics)):
+            # A metric is meaningful only for cases that define it in both
+            # reports. Missing metrics are not failed measurements.
+            if name not in old_metrics or name not in new_metrics:
+                continue
             identifier = f"{case_id}.{name}"
-            old_value = float(old_metrics.get(name, 0.0))
-            new_value = float(new_metrics.get(name, 0.0))
+            old_value = float(old_metrics[name])
+            new_value = float(new_metrics[name])
             metric_delta = new_value - old_value
             if metric_delta < -metric_drop:
                 regressed_metrics.append(identifier)

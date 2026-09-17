@@ -14,7 +14,14 @@ Layer 1 documents use `layer1/<relative path>` and ECHO durable memory uses
 The index stores path, source, SHA-256 content hash, model identifier, and
 packed vector. It never stores source text. `status()` compares supplied
 current documents to indexed metadata and returns only aggregate counts and
-model readiness. `refresh()` is explicit, atomic, and removes deleted paths.
+model readiness. It does not create a database or run embedding work.
+`refresh()` is explicit, atomic, and removes deleted paths. Its
+`fallback_reason` is one of `semantic-index-ready`, `semantic-index-empty`,
+`semantic-index-stale`, `semantic-model-mismatch`, or
+`semantic-index-corrupt`.
+
+The doctor command adds model availability and keyword-fallback state to the
+same aggregate, with no source text, vectors, or filesystem paths.
 
 ## Recall contract
 
@@ -29,8 +36,9 @@ recall.
 Keyword and semantic scores are normalized to bounded components. Strong exact
 keyword evidence outranks weak semantic similarity; strong paraphrase evidence
 can outrank weak keyword coincidence. Ties are deterministic. A conservative
-claim parser compares returned preference/action claims for opposing objects
-or polarity, while conflict-oriented paths remain flagged as well. Conflicting
+claim parser compares returned preference/action claims for normalized polarity
+and a bounded set of opposing objects, while conflict-oriented paths remain
+flagged as well. Conflicting
 evidence remains visible with a review flag and is never silently resolved.
 
 ## Privacy and compatibility

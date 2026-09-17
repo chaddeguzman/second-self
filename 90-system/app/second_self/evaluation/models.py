@@ -159,14 +159,15 @@ class EvalReport:
         }
         names = sorted({name for case in self.cases for name, _value in case.metrics})
         if names:
-            metrics["quality"] = {
-                name: round(
-                    sum(dict(case.metrics).get(name, 0.0) for case in self.cases)
-                    / len(self.cases),
-                    6,
-                )
-                for name in names
-            }
+            quality: dict[str, float] = {}
+            for name in names:
+                values = [
+                    dict(case.metrics)[name]
+                    for case in self.cases
+                    if name in dict(case.metrics)
+                ]
+                quality[name] = round(sum(values) / len(values), 6)
+            metrics["quality"] = quality
         return metrics
 
     def as_dict(self) -> dict[str, object]:
