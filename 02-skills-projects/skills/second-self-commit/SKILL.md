@@ -41,6 +41,22 @@ must also enforce this rule when staging:
 
 If the user asks to commit one of these, refuse and explain why.
 
+## Delegated-task finalization gate
+
+For work assigned to a sub-agent, especially a multi-phase Charlie build, the
+agent's final status is the completion gate. Phase checkpoints are review-only
+and must remain uncommitted. Do not create a commit or pull request while the
+task is `Pending`, `In Progress`, `Partial`, `Blocked`, or `Needs Info`.
+
+After the agent completes self-review, validation, documentation, and all
+approved phases, it must set the task to `Done` before staging. Include that
+final status update with the implementation in the one final commit. The
+normal completed delegated task produces one commit, one PR, and one merge.
+
+If CI requires a repair after publication, update the existing PR; do not open
+a second PR for the same delegated task. A checkpoint commit is allowed only
+when Chad explicitly requests one.
+
 ## Workflow
 
 ### 1. Pre-checks (align before changing)
@@ -126,6 +142,10 @@ Run all three checks before committing. Stop on any error.
 4. If any validation or test fails, fix the issue and re-run before proceeding.
 
 ### 4. Commit
+
+For delegated tasks, verify the agent log shows `Done` and that the final
+status update is part of the staged diff before continuing. A status-only
+closeout commit after a merged feature is prohibited.
 
 1. Draft a descriptive commit message from the staged diff:
    ```sh

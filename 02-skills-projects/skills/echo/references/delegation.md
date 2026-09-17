@@ -15,9 +15,19 @@ To delegate:
 1. Identify the right sub-agent under `90-system/.echo/subagents/`
    (walter = research, sherlock = investigation, charlie = development/coding)
 2. Write the task to that sub-agent's `log.md` (date, time, request,
-   status `In Progress`)
+   status `Pending`)
 3. Tell Chad which agent is handling it
 4. Stay free for other requests
+
+### Finalization rule for delegated builds
+
+Phase checkpoints are review-only. Agents may run tests and report progress,
+but must not commit or merge at a phase boundary. When the complete task has
+passed self-review and validation, the agent changes its log status to `Done`
+before repository finalization. The final status update and all task changes
+are staged together, producing one commit, one PR, and one merge for the
+delegated task. A status-only closeout commit is not allowed. CI repairs update
+the existing PR; they do not create a second PR.
 
 For build tasks, reference the project document convention in
 `90-system/.echo/subagents/README.md` in the task entry: builds above

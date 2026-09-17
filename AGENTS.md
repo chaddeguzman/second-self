@@ -159,6 +159,11 @@ If you are an agent reading this for the first time:
 - Completed tracked changes must not be left uncommitted. Validate privacy and
   tests, commit on local `main`, and let the post-commit hook publish to the
   workflow-only `automation/main` branch.
+- For delegated multi-phase work, phase checkpoints remain uncommitted. The
+  assigned agent must set its task status to `Done` before final staging, and
+  the final status update must be committed with the implementation. Use one
+  final commit, one PR, and one merge per delegated task; never create a
+  status-only closeout PR. CI repairs update the existing PR.
 - After required checks pass, merge the automated pull request with **Create a
   merge commit**, pull in VS Code, and verify that the working tree is clean and
   `main...origin/main` is again `0 0` before starting another change.
