@@ -107,6 +107,18 @@ def test_zero_drop_metric_threshold_detects_regression_and_improvement() -> None
     assert regressed.passed is False
 
 
+def test_quality_averages_only_cases_that_define_metric() -> None:
+    report = _report(
+        _case("defined", metric=1.0),
+        EvalCaseResult(
+            "undefined", EvalCaseStatus.PASS, EvalReason.ASSERTIONS_PASSED,
+            "synthetic result",
+        ),
+    )
+
+    assert report.metrics["quality"] == {"quality": 1.0}
+
+
 def test_case_status_order_distinguishes_error_fail_and_pass() -> None:
     failed_baseline = build_baseline(
         (_report(_case("one", EvalCaseStatus.FAIL)),)

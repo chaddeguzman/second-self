@@ -12,6 +12,7 @@ import math
 import os
 import sqlite3
 import struct
+import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,6 +67,7 @@ class SemanticIndexStatus:
     changed: int
     missing: int
     model_mismatch: bool
+    fallback_reason: str = "semantic-index-ready"
 
     @property
     def ready(self) -> bool:
@@ -75,7 +77,19 @@ class SemanticIndexStatus:
             and self.changed == 0
             and self.missing == 0
             and not self.model_mismatch
+            and self.fallback_reason == "semantic-index-ready"
         )
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "indexed": self.indexed,
+            "expected": self.expected,
+            "changed": self.changed,
+            "missing": self.missing,
+            "model_mismatch": self.model_mismatch,
+            "ready": self.ready,
+            "fallback_reason": self.fallback_reason,
+        }
 
 
 def _pack_vector(vector: Sequence[float]) -> bytes:
@@ -112,7 +126,11 @@ class SemanticIndex:
     def _connect(self) -> sqlite3.Connection:
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         connection = sqlite3.connect(self.database_path)
-        connection.execute("PRAGMA journal_mode = WAL")
+        self._initialize(connection)
+        return connection
+
+    @staticmethod
+    def _initialize(connection: sqlite3.Connection) -> None:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS semantic_documents (
@@ -125,7 +143,24 @@ class SemanticIndex:
             """
         )
         connection.commit()
-        return connection
+
+    def _read_connection(self) -> sqlite3.Connection | None:
+        """Open existing state without creating or modifying it."""
+        if not self.database_path.is_file():
+            return None
+        connection: sqlite3.Connection | None = None
+        try:
+            connection = sqlite3.connect(
+                f"file:{self.database_path.as_posix()}?mode=ro", uri=True
+            )
+            connection.execute(
+                "SELECT path, content_hash, model_id FROM semantic_documents LIMIT 0"
+            )
+            return connection
+        except sqlite3.Error:
+            if connection is not None:
+                connection.close()
+            raise SemanticError("semantic index is corrupt") from None
 
     def refresh(
         self, documents: Iterable[SemanticDocument], embedder: Embedder
@@ -138,8 +173,17 @@ class SemanticIndex:
         if len(paths) != len(set(paths)):
             raise SemanticError("semantic document paths are duplicated")
 
-        connection = self._connect()
+        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = tempfile.NamedTemporaryFile(
+            prefix=f"{self.database_path.stem}-", suffix=".sqlite3", dir=self.database_path.parent,
+            delete=False,
+        )
+        temporary_path = Path(temporary.name)
+        temporary.close()
+        connection = sqlite3.connect(temporary_path)
+        failed = False
         try:
+            self._initialize(connection)
             with connection:
                 for document in materialized:
                     vector = _pack_vector(embedder.embed(document.text))
@@ -170,10 +214,18 @@ class SemanticIndex:
                     )
                 else:
                     connection.execute("DELETE FROM semantic_documents")
-        except (sqlite3.Error, TypeError, ValueError, SemanticError):
-            raise SemanticError("semantic index refresh failed") from None
+        except Exception:
+            failed = True
         finally:
             connection.close()
+        if failed:
+            temporary_path.unlink(missing_ok=True)
+            raise SemanticError("semantic index refresh failed") from None
+        try:
+            os.replace(temporary_path, self.database_path)
+        except OSError:
+            temporary_path.unlink(missing_ok=True)
+            raise SemanticError("semantic index replacement failed") from None
         return len(materialized)
 
     def search(
@@ -187,7 +239,9 @@ class SemanticIndex:
         if max_results < 1:
             return []
         query = tuple(float(value) for value in query_vector)
-        connection = self._connect()
+        connection = self._read_connection()
+        if connection is None:
+            return []
         try:
             rows = connection.execute(
                 "SELECT path, source, vector FROM semantic_documents"
@@ -229,13 +283,39 @@ class SemanticIndex:
         """Compare current source hashes to the private index by aggregate only."""
         expected = tuple(documents)
         current = {document.path: document for document in expected}
-        connection = self._connect()
+        try:
+            connection = self._read_connection()
+        except SemanticError:
+            return SemanticIndexStatus(
+                indexed=0,
+                expected=len(current),
+                changed=0,
+                missing=len(current),
+                model_mismatch=False,
+                fallback_reason="semantic-index-corrupt",
+            )
+        if connection is None:
+            return SemanticIndexStatus(
+                indexed=0,
+                expected=len(current),
+                changed=0,
+                missing=len(current),
+                model_mismatch=False,
+                fallback_reason="semantic-index-empty",
+            )
         try:
             rows = connection.execute(
                 "SELECT path, content_hash, model_id FROM semantic_documents"
             ).fetchall()
         except sqlite3.Error:
-            raise SemanticError("semantic index status failed") from None
+            return SemanticIndexStatus(
+                indexed=0,
+                expected=len(current),
+                changed=0,
+                missing=len(current),
+                model_mismatch=False,
+                fallback_reason="semantic-index-corrupt",
+            )
         finally:
             connection.close()
 
@@ -245,18 +325,26 @@ class SemanticIndex:
             for path, document in current.items()
             if path in indexed and indexed[path][0] != document.content_hash
         )
-        missing = sum(1 for path in indexed if path not in current)
+        missing = sum(1 for path in current if path not in indexed)
         model_mismatch = bool(
             model_id
             and indexed
             and any(index_model != model_id for _hash, index_model in indexed.values())
         )
+        reason = "semantic-index-ready"
+        if model_mismatch:
+            reason = "semantic-model-mismatch"
+        elif changed or missing or len(indexed) != len(current):
+            reason = "semantic-index-stale"
+        elif not indexed:
+            reason = "semantic-index-empty"
         return SemanticIndexStatus(
             indexed=len(indexed),
             expected=len(current),
             changed=changed,
             missing=missing,
             model_mismatch=model_mismatch,
+            fallback_reason=reason,
         )
 
 

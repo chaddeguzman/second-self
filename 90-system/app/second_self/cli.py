@@ -387,18 +387,15 @@ def _command_recall_index(args: argparse.Namespace) -> int:
     index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
     if args.recall_index_command == "status":
         documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)
-        status = index.status(documents, model_id=FastEmbedder().model_id)
-        _print(
-            {
-                "count": status.indexed,
-                "expected": status.expected,
-                "changed": status.changed,
-                "missing": status.missing,
-                "model_mismatch": status.model_mismatch,
-                "ready": status.ready,
-                "path": "private semantic index",
-            }
-        )
+        try:
+            status = index.status(documents, model_id=FastEmbedder().model_id)
+            _print(status.as_dict())
+        except SemanticError:
+            _print({
+                "indexed": 0, "expected": len(documents), "changed": 0,
+                "missing": len(documents), "model_mismatch": False,
+                "ready": False, "fallback_reason": "semantic-index-corrupt",
+            })
         return 0
     try:
         embedder = FastEmbedder()

@@ -55,6 +55,15 @@ _CLAIM_RE = re.compile(
     r"(?P<object>[^.!?\n]+)",
     re.IGNORECASE,
 )
+_CLAIM_STOPWORDS = {"a", "an", "the", "my", "our", "to", "for", "with"}
+_OPPOSITES = {
+    frozenset(("morning", "night")),
+    frozenset(("morning", "evening")),
+    frozenset(("day", "night")),
+    frozenset(("start", "stop")),
+    frozenset(("accept", "reject")),
+    frozenset(("yes", "no")),
+}
 
 
 def _folder_priority(relative_path: str) -> int:
@@ -114,9 +123,28 @@ def _claim_profiles(text: str) -> list[tuple[str, bool, str]]:
     """Extract conservative preference/action claims for conflict flagging."""
     profiles: list[tuple[str, bool, str]] = []
     for match in _CLAIM_RE.finditer(text):
-        obj = " ".join(match.group("object").casefold().split())
+        words = []
+        for word in re.findall(r"[a-z0-9-]+", match.group("object").casefold()):
+            if word in _CLAIM_STOPWORDS:
+                continue
+            if word.endswith("ies") and len(word) > 4:
+                word = word[:-3] + "y"
+            elif word.endswith("s") and len(word) > 3:
+                word = word[:-1]
+            words.append(word)
+        obj = " ".join(words)
         profiles.append((match.group("verb").casefold(), bool(match.group("neg")), obj))
     return profiles
+
+
+def _opposite_objects(left: str, right: str) -> bool:
+    left_words = left.split()
+    right_words = right.split()
+    if not left_words or not right_words:
+        return False
+    if left_words[:-1] != right_words[:-1]:
+        return False
+    return frozenset((left_words[-1], right_words[-1])) in _OPPOSITES
 
 
 def _mark_conflicts(paths: SecondSelfPaths, results: list[dict[str, Any]]) -> None:
@@ -149,9 +177,10 @@ def _mark_conflicts(paths: SecondSelfPaths, results: list[dict[str, Any]]) -> No
                 for right_verb, right_neg, right_object in right_claims:
                     if left_verb != right_verb:
                         continue
-                    objects_conflict = left_object != right_object
-                    polarity_conflict = left_object == right_object and left_neg != right_neg
-                    if objects_conflict or polarity_conflict:
+                    same_object = left_object == right_object
+                    opposite_object = _opposite_objects(left_object, right_object)
+                    polarity_conflict = same_object and left_neg != right_neg
+                    if polarity_conflict or opposite_object:
                         conflict_paths.update((left_path, right_path))
     for entry in results:
         if str(entry.get("path", "")) in conflict_paths:
@@ -275,6 +304,7 @@ def recall_layer1(
         results.append(
             {
                 "path": f"01-strategy-storage/{relative}",
+                "provenance": "layer1",
                 "title": Path(relative).stem,
                 "score": score,
                 "score_breakdown": {
@@ -380,6 +410,7 @@ def hybrid_recall_layer1(
             "retrieval": "semantic",
             "snippet": "",
             "matched": "",
+            "provenance": "layer1",
         }
     results = list(by_path.values())
     for entry in results:

@@ -146,8 +146,9 @@ def _evaluate_index_health(fixture: Mapping[str, object]) -> Mapping[str, object
         return {
             "stale_detected": stale.changed == 1,
             "corrupt_safe": corrupt_safe,
-            "status_safe": set(stale.__dataclass_fields__) == {
-                "indexed", "expected", "changed", "missing", "model_mismatch"
+            "status_safe": set(stale.as_dict()) == {
+                "indexed", "expected", "changed", "missing", "model_mismatch",
+                "ready", "fallback_reason",
             },
             "_metrics": {
                 "stale_detection": float(stale.changed == 1),

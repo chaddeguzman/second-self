@@ -17,7 +17,14 @@ from ..providers import (
     ProviderHealth,
     ProviderHealthStatus,
 )
-from ..reads.semantic import SemanticError, SemanticIndex
+from ..core.paths import SecondSelfPaths
+from ..reads.semantic import (
+    FastEmbedder,
+    SemanticError,
+    SemanticIndex,
+    layer1_documents,
+    memory_store_documents,
+)
 from .registry import FAIL, OK, WARN, HealthCheck, HealthRegistry, HealthResult
 
 GitRunner = Callable[[Sequence[str], Path], subprocess.CompletedProcess[str]]
@@ -176,30 +183,39 @@ def check_ollama_readiness(context: SystemHealthContext) -> HealthResult:
 
 
 def check_semantic_readiness(context: SystemHealthContext) -> HealthResult:
-    """Report optional semantic index readiness without loading private text."""
+    """Report aggregate semantic readiness without exposing private details."""
     try:
         import importlib.util
 
-        if importlib.util.find_spec("fastembed") is None:
-            return HealthResult(
-                "semantic-readiness",
-                WARN,
-                "keyword fallback active; embedded semantic model unavailable",
-            )
+        model_available = importlib.util.find_spec("fastembed") is not None
+        private_root = _read_private_root(context)
+        paths = SecondSelfPaths(context.repo_root, private_root or context.repo_root)
+        documents = layer1_documents(paths) + memory_store_documents(context.repo_root)
         index = SemanticIndex(context.cache_root / "semantic-memory" / "index.sqlite3")
-        if not index.database_path.is_file() or index.count() == 0:
-            return HealthResult(
-                "semantic-readiness",
-                WARN,
-                "keyword fallback active; semantic index is absent or empty",
-            )
-    except (OSError, SemanticError, ImportError):
+        status = index.status(
+            documents, model_id=FastEmbedder().model_id if model_available else None
+        )
+        reason = "semantic-model-unavailable" if not model_available else status.fallback_reason
+        fallback = "none" if model_available and status.ready else "keyword"
+        fallback_detail = (
+            "fallback=none; keyword fallback available"
+            if fallback == "none"
+            else "fallback=keyword; keyword fallback active"
+        )
+        detail = (
+            f"{reason}; {fallback_detail}; indexed={status.indexed}; expected={status.expected}; "
+            f"changed={status.changed}; missing={status.missing}; "
+            f"model_mismatch={str(status.model_mismatch).lower()}"
+        )
+        if model_available and status.ready:
+            return HealthResult("semantic-readiness", OK, detail)
+        return HealthResult("semantic-readiness", WARN, detail)
+    except (OSError, SemanticError, ImportError, ValueError):
         return HealthResult(
             "semantic-readiness",
             WARN,
-            "keyword fallback active; semantic index is unavailable",
+            "semantic-index-unavailable; fallback=keyword",
         )
-    return HealthResult("semantic-readiness", OK, "semantic index available")
 
 
 def _check_optional_json_state(

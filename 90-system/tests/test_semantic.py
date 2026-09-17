@@ -64,6 +64,36 @@ def test_refresh_rejects_duplicate_paths(tmp_path):
         index.refresh([document("same.md", "one"), document("same.md", "one")], embedder)
 
 
+def test_status_is_read_only_when_index_is_absent(tmp_path):
+    index_path = tmp_path / "missing" / "index.sqlite3"
+    index = SemanticIndex(index_path)
+
+    status = index.status([document("one.md", "one")], model_id="synthetic-v1")
+
+    assert status.fallback_reason == "semantic-index-empty"
+    assert not index_path.exists()
+
+
+def test_failed_refresh_preserves_previous_index(tmp_path):
+    index = SemanticIndex(tmp_path / "index.sqlite3")
+    good = FakeEmbedder({"one": (1.0,)})
+    index.refresh([document("one.md", "one")], good)
+
+    class FailingEmbedder(FakeEmbedder):
+        def embed(self, text):
+            if text == "two":
+                raise RuntimeError("synthetic failure")
+            return super().embed(text)
+
+    with pytest.raises(SemanticError):
+        index.refresh(
+            [document("one.md", "one"), document("two.md", "two")],
+            FailingEmbedder({"one": (1.0,), "two": (0.0,)}),
+        )
+
+    assert [match.path for match in index.search((1.0,))] == ["one.md"]
+
+
 def test_malformed_vectors_are_skipped(tmp_path):
     index_path = tmp_path / "index.sqlite3"
     index = SemanticIndex(index_path)
