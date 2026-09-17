@@ -7,6 +7,7 @@ identity, skill, evidence, broker, or approval rules.
 |---|---|---|
 | Unified health | `python -m second_self doctor [--strict] [--json]` | Reports ECHO, Calendar, routing/Ollama readiness, evaluation state, scheduler state, privacy, vault, and Git checks with redacted details. |
 | Routing diagnostic | `python -m second_self route --operation NAME --sensitivity LEVEL --dry-run [--json]` | Validates trusted metadata and fails closed without accepting a prompt or invoking a provider. |
+| Semantic recall index | `python -m second_self recall-index status|rebuild` | Maintains a private, rebuildable embedded-vector index; source Markdown remains authoritative and keyword recall is the fallback. |
 | Synthetic evaluations | `python -m second_self eval [suite] [--json]` | Runs deterministic recall/safety gates against the reviewed baseline without private fixtures or model judging. |
 | Scheduler | `python -m second_self schedule list\|status\|run-due\|install\|remove [--json]` | Uses versioned local state, bounded locking/retries, disabled-by-default jobs, and explicit launcher confirmation. |
 | Dashboard summary | Local dashboard home | Shows payload-free health, routing, evaluation, scheduler, and Calendar availability states. |

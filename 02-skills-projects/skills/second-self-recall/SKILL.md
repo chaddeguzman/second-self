@@ -25,3 +25,8 @@ Results are scored by folder priority (04 References highest for most recall),
 recency, tag strength (frontmatter tags and body `#tag` mentions), and title
 match. Higher scores rank first. Use `--min-score` to filter weak matches and
 `--max-results` to cap the result count.
+
+When the optional local semantic index is available, `recall` also uses hybrid
+semantic ranking to recover paraphrases and related concepts. The Markdown
+sources remain authoritative, semantic results retain their source paths, and
+keyword ranking is used automatically when the embedded model is unavailable.

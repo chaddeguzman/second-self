@@ -19,12 +19,13 @@ from .models import (
     IDENTIFIER_RE,
 )
 from .recall_suite import RECALL_SUITE
+from .semantic_suite import SEMANTIC_SUITE
 from .safety_suite import SAFETY_SUITE
 from .smoke import SMOKE_SUITE
 
 REPORT_VERSION = "evaluation-report/v1"
 MAX_FIXTURE_BYTES = 1_048_576
-BUILTIN_SUITES = (RECALL_SUITE, SAFETY_SUITE, SMOKE_SUITE)
+BUILTIN_SUITES = (RECALL_SUITE, SAFETY_SUITE, SEMANTIC_SUITE, SMOKE_SUITE)
 
 
 class FixtureValidationError(ValueError):

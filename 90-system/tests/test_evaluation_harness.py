@@ -219,7 +219,7 @@ def test_eval_help_and_list_behavior(capsys):
     assert main(["eval", "--json"]) == 0
     assert json.loads(capsys.readouterr().out) == {
         "version": "evaluation-suite-list/v1",
-        "suites": ["recall", "safety", "smoke"],
+            "suites": ["recall", "safety", "semantic", "smoke"],
         "baseline": "compatible",
     }
 

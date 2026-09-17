@@ -18,6 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10"]
+semantic = ["fastembed>=0.7,<1", "truststore>=0.10,<1"]
 
 [project.scripts]
 second-self = "second_self.cli:main"

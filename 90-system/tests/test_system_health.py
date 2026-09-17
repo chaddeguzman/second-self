@@ -19,6 +19,7 @@ from second_self.health.system import (
     check_privacy_validator,
     check_private_path_resolution,
     check_scheduler_state,
+    check_semantic_readiness,
 )
 from second_self.providers import ProviderHealth, ProviderHealthStatus
 
@@ -133,6 +134,15 @@ def test_ollama_ready_and_offline_are_bounded(tmp_path):
     assert str(tmp_path) not in result.detail
 
 
+def test_semantic_readiness_reports_optional_index_without_loading_model(tmp_path):
+    context = make_context(tmp_path)
+    write_valid_config(context)
+    result = check_semantic_readiness(context)
+    assert result.status == WARN
+    assert "keyword fallback" in result.detail
+    assert str(tmp_path) not in result.detail
+
+
 @pytest.mark.parametrize(
     ("checker", "relative"),
     [
@@ -182,6 +192,7 @@ def test_system_registry_has_exact_order_and_read_only_fix_behavior(tmp_path):
         "git-main-alignment",
         "privacy-validator",
         "ollama-readiness",
+        "semantic-readiness",
         "evaluation-state",
         "scheduler-state",
     ]

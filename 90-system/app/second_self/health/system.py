@@ -17,6 +17,7 @@ from ..providers import (
     ProviderHealth,
     ProviderHealthStatus,
 )
+from ..reads.semantic import SemanticError, SemanticIndex
 from .registry import FAIL, OK, WARN, HealthCheck, HealthRegistry, HealthResult
 
 GitRunner = Callable[[Sequence[str], Path], subprocess.CompletedProcess[str]]
@@ -174,6 +175,33 @@ def check_ollama_readiness(context: SystemHealthContext) -> HealthResult:
     )
 
 
+def check_semantic_readiness(context: SystemHealthContext) -> HealthResult:
+    """Report optional semantic index readiness without loading private text."""
+    try:
+        import importlib.util
+
+        if importlib.util.find_spec("fastembed") is None:
+            return HealthResult(
+                "semantic-readiness",
+                WARN,
+                "keyword fallback active; embedded semantic model unavailable",
+            )
+        index = SemanticIndex(context.cache_root / "semantic-memory" / "index.sqlite3")
+        if not index.database_path.is_file() or index.count() == 0:
+            return HealthResult(
+                "semantic-readiness",
+                WARN,
+                "keyword fallback active; semantic index is absent or empty",
+            )
+    except (OSError, SemanticError, ImportError):
+        return HealthResult(
+            "semantic-readiness",
+            WARN,
+            "keyword fallback active; semantic index is unavailable",
+        )
+    return HealthResult("semantic-readiness", OK, "semantic index available")
+
+
 def _check_optional_json_state(
     path: Path, *, check: str, label: str
 ) -> HealthResult:
@@ -226,6 +254,7 @@ def build_system_health_registry(context: SystemHealthContext) -> HealthRegistry
         ("git-main-alignment", check_git_main_alignment),
         ("privacy-validator", check_privacy_validator),
         ("ollama-readiness", check_ollama_readiness),
+        ("semantic-readiness", check_semantic_readiness),
         ("evaluation-state", check_evaluation_state),
         ("scheduler-state", check_scheduler_state),
     )
