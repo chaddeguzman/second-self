@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
 import sqlite3
 import struct
-import os
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -55,6 +55,27 @@ class SemanticMatch:
     path: str
     source: str
     score: float
+
+
+@dataclass(frozen=True, slots=True)
+class SemanticIndexStatus:
+    """Aggregate freshness state without exposing indexed source details."""
+
+    indexed: int
+    expected: int
+    changed: int
+    missing: int
+    model_mismatch: bool
+
+    @property
+    def ready(self) -> bool:
+        return (
+            self.expected > 0
+            and self.indexed == self.expected
+            and self.changed == 0
+            and self.missing == 0
+            and not self.model_mismatch
+        )
 
 
 def _pack_vector(vector: Sequence[float]) -> bytes:
@@ -198,6 +219,45 @@ class SemanticIndex:
             raise SemanticError("semantic index status failed") from None
         finally:
             connection.close()
+
+    def status(
+        self,
+        documents: Iterable[SemanticDocument],
+        *,
+        model_id: str | None = None,
+    ) -> SemanticIndexStatus:
+        """Compare current source hashes to the private index by aggregate only."""
+        expected = tuple(documents)
+        current = {document.path: document for document in expected}
+        connection = self._connect()
+        try:
+            rows = connection.execute(
+                "SELECT path, content_hash, model_id FROM semantic_documents"
+            ).fetchall()
+        except sqlite3.Error:
+            raise SemanticError("semantic index status failed") from None
+        finally:
+            connection.close()
+
+        indexed = {str(path): (str(content_hash), str(index_model)) for path, content_hash, index_model in rows}
+        changed = sum(
+            1
+            for path, document in current.items()
+            if path in indexed and indexed[path][0] != document.content_hash
+        )
+        missing = sum(1 for path in indexed if path not in current)
+        model_mismatch = bool(
+            model_id
+            and indexed
+            and any(index_model != model_id for _hash, index_model in indexed.values())
+        )
+        return SemanticIndexStatus(
+            indexed=len(indexed),
+            expected=len(current),
+            changed=changed,
+            missing=missing,
+            model_mismatch=model_mismatch,
+        )
 
 
 def _iter_markdown(root: Path) -> Iterable[tuple[Path, str]]:

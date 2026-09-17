@@ -37,7 +37,7 @@ from .maintenance.validation import validate
 from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
 from .reads.due import due_items
-from .reads.recall import hybrid_recall_layer1
+from .reads.recall import hybrid_recall
 from .reads.semantic import FastEmbedder, SemanticError, SemanticIndex, layer1_documents, memory_store_documents
 from .reads.recent import recent_items
 from .reads.search import search_layer1
@@ -369,7 +369,7 @@ def _command_recall(args: argparse.Namespace) -> int:
     semantic_index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
     _print(
         {
-            "results": hybrid_recall_layer1(
+            "results": hybrid_recall(
                 paths,
                 args.query,
                 semantic_index=semantic_index,
@@ -386,7 +386,19 @@ def _command_recall_index(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
     if args.recall_index_command == "status":
-        _print({"count": index.count(), "path": "private semantic index"})
+        documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)
+        status = index.status(documents, model_id=FastEmbedder().model_id)
+        _print(
+            {
+                "count": status.indexed,
+                "expected": status.expected,
+                "changed": status.changed,
+                "missing": status.missing,
+                "model_mismatch": status.model_mismatch,
+                "ready": status.ready,
+                "path": "private semantic index",
+            }
+        )
         return 0
     try:
         embedder = FastEmbedder()

@@ -10,8 +10,9 @@ from second_self.reads.semantic import (
     SemanticError,
     SemanticIndex,
     layer1_documents,
+    memory_store_documents,
 )
-from second_self.reads.recall import hybrid_recall_layer1
+from second_self.reads.recall import hybrid_recall, hybrid_recall_layer1
 
 
 class FakeEmbedder:
@@ -114,3 +115,53 @@ def test_hybrid_recall_can_return_a_semantic_only_layer1_match(second_self):
 
     assert results[0]["path"].endswith("00 Memory/Identity Delay.md")
     assert results[0]["retrieval"] == "semantic"
+
+
+def test_status_reports_changed_missing_and_model_mismatch(tmp_path):
+    index = SemanticIndex(tmp_path / "index.sqlite3")
+    embedder = FakeEmbedder({"one": (1.0,), "two": (1.0,)})
+    index.refresh([document("one.md", "one"), document("two.md", "two")], embedder)
+
+    status = index.status(
+        [document("one.md", "changed"), document("three.md", "one")],
+        model_id="other-model",
+    )
+
+    assert status.indexed == 2
+    assert status.expected == 2
+    assert status.changed == 1
+    assert status.missing == 1
+    assert status.model_mismatch is True
+    assert status.ready is False
+
+
+def test_memory_store_documents_excludes_staging_and_sessions(tmp_path):
+    root = tmp_path / "90-system" / ".echo" / "memory"
+    (root / "staging").mkdir(parents=True)
+    (root / "sessions").mkdir(parents=True)
+    (root / "durable.md").write_text("durable", encoding="utf-8")
+    (root / "staging" / "pending.md").write_text("private pending", encoding="utf-8")
+    (root / "sessions" / "session.md").write_text("private session", encoding="utf-8")
+
+    documents = memory_store_documents(tmp_path)
+
+    assert [item.path for item in documents] == ["memory/durable.md"]
+
+
+def test_unified_hybrid_recall_returns_memory_provenance_and_conflict_flag(second_self):
+    memory = second_self.repo_root / "90-system" / ".echo" / "memory"
+    memory.mkdir(parents=True, exist_ok=True)
+    (memory / "conflict-note.md").write_text("identity and delay", encoding="utf-8")
+    docs = layer1_documents(second_self) + memory_store_documents(second_self.repo_root)
+    embedder = FakeEmbedder(
+        {doc.text: ((1.0, 0.0) if "identity" in doc.text else (0.0, 1.0)) for doc in docs}
+        | {"why delay": (1.0, 0.0)}
+    )
+    index = SemanticIndex(second_self.cache / "semantic" / "index.sqlite3")
+    index.refresh(docs, embedder)
+
+    results = hybrid_recall(second_self, "why delay", semantic_index=index, embedder=embedder)
+
+    memory_results = [item for item in results if item["provenance"] == "memory"]
+    assert memory_results
+    assert memory_results[0]["conflict_review"] is True

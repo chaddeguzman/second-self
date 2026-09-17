@@ -14,7 +14,7 @@ from typing import Any
 
 from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
-from .semantic import Embedder, SemanticError, SemanticIndex
+from .semantic import Embedder, SemanticError, SemanticIndex, memory_store_documents
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 SNIPPET_RADIUS = 60
@@ -264,11 +264,15 @@ def hybrid_recall_layer1(
         path = match.path.removeprefix("layer1/")
         public_path = f"01-strategy-storage/{path}"
         existing = by_path.get(public_path)
-        semantic_boost = max(0, round(match.score * 100))
+        semantic_norm = max(0.0, min(1.0, float(match.score)))
         if existing is not None:
+            keyword_score = float(existing["score"])
+            keyword_norm = min(1.0, keyword_score / 100.0)
             existing["semantic_score"] = round(match.score, 6)
-            existing["score"] = int(existing["score"]) + semantic_boost
+            existing["keyword_score"] = round(keyword_score, 6)
+            existing["score"] = round(keyword_norm * 70.0 + semantic_norm * 25.0, 6)
             existing["retrieval"] = "hybrid"
+            existing["score_breakdown"]["semantic"] = round(semantic_norm * 25.0, 6)
             continue
         source_path = paths.layer1 / Path(path)
         try:
@@ -286,19 +290,115 @@ def hybrid_recall_layer1(
         by_path[public_path] = {
             "path": public_path,
             "title": Path(path).stem,
-            "score": folder + recency + semantic_boost,
+            "score": round(semantic_norm * 25.0, 6),
             "score_breakdown": {
                 "folder": folder,
                 "recency": recency,
                 "tag": 0,
                 "title": 0,
-                "semantic": semantic_boost,
+                "keyword": 0,
+                "semantic": round(semantic_norm * 25.0, 6),
             },
+            "keyword_score": 0,
             "semantic_score": round(match.score, 6),
             "retrieval": "semantic",
             "snippet": "",
             "matched": "",
         }
     results = list(by_path.values())
-    results.sort(key=lambda entry: (int(entry["score"]), str(entry["title"]).casefold()), reverse=True)
+    for entry in results:
+        entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
+    results.sort(key=lambda entry: (float(entry["score"]), str(entry["title"]).casefold()), reverse=True)
     return results[:max_results]
+
+
+def _memory_keyword_results(repo_root: Path, query: str, max_results: int) -> list[dict[str, Any]]:
+    """Return metadata-only keyword hits from durable ECHO memory."""
+    terms = tuple(term for term in re.findall(r"[\w-]+", query.casefold()) if term)
+    results: list[dict[str, Any]] = []
+    for document in memory_store_documents(repo_root):
+        lowered = document.text.casefold()
+        exact = query.casefold() in lowered
+        overlap = sum(term in lowered for term in terms)
+        if not exact and overlap == 0:
+            continue
+        keyword_score = 70.0 if exact else min(60.0, overlap * 12.0)
+        results.append(
+            {
+                "path": f"90-system/.echo/memory/{document.path.removeprefix('memory/')}",
+                "title": Path(document.path).stem,
+                "score": round(keyword_score * 0.7, 6),
+                "keyword_score": keyword_score,
+                "score_breakdown": {"keyword": round(keyword_score * 0.7, 6), "semantic": 0},
+                "retrieval": "keyword",
+                "provenance": "memory",
+                "conflict_review": "conflict" in document.path.casefold(),
+                "snippet": "",
+                "matched": "",
+            }
+        )
+    results.sort(key=lambda entry: (float(entry["score"]), str(entry["title"]).casefold()), reverse=True)
+    return results[:max_results]
+
+
+def hybrid_recall(
+    paths: SecondSelfPaths,
+    query: str,
+    *,
+    semantic_index: SemanticIndex | None = None,
+    embedder: Embedder | None = None,
+    max_results: int = 50,
+    min_score: int = 0,
+    today: date | None = None,
+) -> list[dict[str, Any]]:
+    """Unified Layer 1 and durable ECHO-memory recall with safe fallback."""
+    results = hybrid_recall_layer1(
+        paths,
+        query,
+        semantic_index=semantic_index,
+        embedder=embedder,
+        max_results=max_results,
+        min_score=min_score,
+        today=today,
+    )
+    for entry in results:
+        entry.setdefault("provenance", "layer1")
+        entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
+    memory_results = _memory_keyword_results(paths.repo_root, query, max_results)
+    if semantic_index is not None and embedder is not None and query.strip():
+        try:
+            semantic_matches = semantic_index.search(embedder.embed(query), min_score=0.35)
+        except (SemanticError, ValueError, TypeError):
+            semantic_matches = []
+        by_path = {str(entry["path"]): entry for entry in memory_results}
+        for match in semantic_matches:
+            if match.source != "memory" or not match.path.startswith("memory/"):
+                continue
+            relative = match.path.removeprefix("memory/")
+            public_path = f"90-system/.echo/memory/{relative}"
+            semantic_norm = max(0.0, min(1.0, float(match.score)))
+            existing = by_path.get(public_path)
+            if existing is None:
+                by_path[public_path] = {
+                    "path": public_path,
+                    "title": Path(relative).stem,
+                    "score": round(semantic_norm * 25.0, 6),
+                    "keyword_score": 0,
+                    "score_breakdown": {"keyword": 0, "semantic": round(semantic_norm * 25.0, 6)},
+                    "semantic_score": round(match.score, 6),
+                    "retrieval": "semantic",
+                    "provenance": "memory",
+                    "conflict_review": "conflict" in public_path.casefold(),
+                    "snippet": "",
+                    "matched": "",
+                }
+            else:
+                keyword_score = float(existing.get("keyword_score", 0))
+                existing["score"] = round(min(1.0, keyword_score / 100.0) * 70.0 + semantic_norm * 25.0, 6)
+                existing["semantic_score"] = round(match.score, 6)
+                existing["score_breakdown"]["semantic"] = round(semantic_norm * 25.0, 6)
+                existing["retrieval"] = "hybrid"
+        memory_results = list(by_path.values())
+    combined = results + memory_results
+    combined.sort(key=lambda entry: (float(entry["score"]), str(entry["path"]).casefold()), reverse=True)
+    return combined[:max_results]
