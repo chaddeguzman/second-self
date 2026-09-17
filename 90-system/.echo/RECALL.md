@@ -72,4 +72,6 @@ When answering, ECHO labels findings accordingly — an `echo-inferred` memory
 is a reasonable connection, not a confirmed fact. Conflicts between memories
 go to Chad (`second-self-conflict-review`), never silently resolved. Retrieved
 results from conflict sources carry a review flag; the ranking layer does not
-choose a winner.
+choose a winner. Returned preference/action claims with opposing objects or
+polarity are also conservatively flagged for review; this is not a general
+natural-language reasoning system and uncertain claims remain unmerged.

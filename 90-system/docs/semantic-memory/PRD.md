@@ -16,7 +16,8 @@ ECHO memory while preserving keyword fallback and contradiction safety.
 - Index Layer 1 and durable ECHO memory without storing source text.
 - Detect changed, missing, and model-mismatched index entries safely.
 - Use deterministic hybrid ranking with keyword and semantic components.
-- Surface conflicts without silently resolving them.
+- Surface source-labeled and conservative natural-language conflicts without
+  silently resolving them.
 - Expand synthetic evaluation and privacy regression coverage.
 
 ## Done

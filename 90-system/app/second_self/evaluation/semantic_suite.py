@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+import sqlite3
 from tempfile import TemporaryDirectory
 
 from ..core.paths import SecondSelfPaths
@@ -82,6 +83,16 @@ def _evaluate(fixture: Mapping[str, object]) -> Mapping[str, object]:
             max_results=len(expected),
         )
         returned = [str(item["path"]) for item in results]
+        repeated = [
+            str(item["path"])
+            for item in hybrid_recall_layer1(
+                paths,
+                query,
+                semantic_index=index,
+                embedder=embedder,
+                max_results=len(expected),
+            )
+        ]
     conflict_ok = (
         any(bool(item.get("conflict_review")) for item in results)
         if conflict_expected
@@ -93,6 +104,7 @@ def _evaluate(fixture: Mapping[str, object]) -> Mapping[str, object]:
         "expected_sources": expected,
         "top_match_ok": bool(returned) and returned[0] == expected[0],
         "coverage_ok": all(source in returned for source in expected),
+        "deterministic_ok": returned == repeated,
         "conflict_ok": conflict_ok,
         "_metrics": {
             "top_match_accuracy": float(bool(returned) and returned[0] == expected[0]),
@@ -103,6 +115,45 @@ def _evaluate(fixture: Mapping[str, object]) -> Mapping[str, object]:
             ),
         },
     }
+
+
+def _evaluate_index_health(fixture: Mapping[str, object]) -> Mapping[str, object]:
+    """Exercise aggregate freshness and corrupt-vector safety with synthetic data."""
+    if fixture.get("body") != "synthetic index health":
+        raise ValueError("synthetic semantic fixture is invalid")
+    with TemporaryDirectory(prefix="second-self-semantic-health-") as temp:
+        root = Path(temp)
+        paths = SecondSelfPaths(root / "repo", root / "data")
+        target = paths.layer1 / "00 Memory" / "Health.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("synthetic index health", encoding="utf-8")
+        documents = layer1_documents(paths)
+        embedder = _SyntheticEmbedder(
+            {document.text: (1.0,) for document in documents}, (1.0,), "health"
+        )
+        index = SemanticIndex(paths.cache / "semantic" / "index.sqlite3")
+        index.refresh(documents, embedder)
+        target.write_text("synthetic index health changed", encoding="utf-8")
+        stale = index.status(layer1_documents(paths), model_id=embedder.model_id)
+        connection = sqlite3.connect(paths.cache / "semantic" / "index.sqlite3")
+        connection.execute(
+            "INSERT INTO semantic_documents VALUES (?, ?, ?, ?, ?)",
+            ("corrupt.md", "synthetic", "hash", embedder.model_id, b"bad"),
+        )
+        connection.commit()
+        connection.close()
+        corrupt_safe = all(match.path != "corrupt.md" for match in index.search((1.0,)))
+        return {
+            "stale_detected": stale.changed == 1,
+            "corrupt_safe": corrupt_safe,
+            "status_safe": set(stale.__dataclass_fields__) == {
+                "indexed", "expected", "changed", "missing", "model_mismatch"
+            },
+            "_metrics": {
+                "stale_detection": float(stale.changed == 1),
+                "corrupt_index_safety": float(corrupt_safe),
+            },
+        }
 
 
 def _evaluate_fallback(fixture: Mapping[str, object]) -> Mapping[str, object]:
@@ -142,11 +193,13 @@ def _evaluate_fallback(fixture: Mapping[str, object]) -> Mapping[str, object]:
 
 def _case(case_id: str, fixture: dict[str, object], evaluator=_evaluate) -> EvalCase:
     if evaluator is _evaluate:
-        fields = ("top_match_ok", "coverage_ok")
+        fields = ("top_match_ok", "coverage_ok", "deterministic_ok")
         if fixture.get("conflict_expected"):
             fields += ("conflict_ok",)
-    else:
+    elif evaluator is _evaluate_fallback:
         fields = ("fallback_ok",)
+    else:
+        fields = ("stale_detected", "corrupt_safe", "status_safe")
     return EvalCase(
         case_id,
         EvalFixture(True, data=fixture),
@@ -245,6 +298,11 @@ SEMANTIC_SUITE = EvalSuite(
                 "expected_sources": ["01-strategy-storage/03 Strategy/01 Conflicts/Morning.md"],
                 "conflict_expected": True,
             },
+        ),
+        _case(
+            "stale-and-corrupt-index-safety",
+            {"body": "synthetic index health"},
+            _evaluate_index_health,
         ),
     ),
 )
