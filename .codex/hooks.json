@@ -17,13 +17,14 @@
     ],
     "UserPromptSubmit": [
       {
+        "matcher": "(?!)",
         "hooks": [
           {
             "type": "command",
             "command": "python \"$(git rev-parse --show-toplevel)/.codex/echo_prompt_hook.py\"",
             "commandWindows": "$root = git rev-parse --show-toplevel; python (Join-Path $root '.codex/echo_prompt_hook.py')",
             "timeout": 10,
-            "statusMessage": "Loading ECHO context"
+            "statusMessage": "ECHO prompt enrichment inactive"
           }
         ]
       }

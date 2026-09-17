@@ -29,6 +29,10 @@ def main() -> int:
     prompt = event.get("prompt") if isinstance(event, dict) else None
     reason = activation_reason(prompt) if isinstance(prompt, str) else None
     if reason is None:
+        # Some Codex hosts report an empty hook response as "Hook failed".
+        # Explicitly acknowledge ordinary prompts while adding ECHO context
+        # only for matching prompts.
+        _emit({"continue": True})
         return 0
 
     try:
