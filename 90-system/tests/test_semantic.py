@@ -165,3 +165,36 @@ def test_unified_hybrid_recall_returns_memory_provenance_and_conflict_flag(secon
     memory_results = [item for item in results if item["provenance"] == "memory"]
     assert memory_results
     assert memory_results[0]["conflict_review"] is True
+
+
+def test_unified_recall_falls_back_to_keyword_when_index_is_stale(second_self):
+    note_path = second_self.layer1 / "00 Memory" / "Freshness.md"
+    note_path.parent.mkdir(parents=True, exist_ok=True)
+    note_path.write_text(
+        "---\ntype: note\ncreated: 2026-08-01\nstatus: active\n---\n\n"
+        "# Freshness\n\nIndex freshness matters.\n",
+        encoding="utf-8",
+    )
+    docs = layer1_documents(second_self)
+    embedder = FakeEmbedder({doc.text: (1.0,) for doc in docs} | {"freshness": (1.0,)})
+    index = SemanticIndex(second_self.cache / "semantic" / "index.sqlite3")
+    index.refresh(docs, embedder)
+    note_path.write_text(note_path.read_text(encoding="utf-8") + "Changed.", encoding="utf-8")
+
+    results = hybrid_recall(second_self, "freshness", semantic_index=index, embedder=embedder)
+
+    assert results[0]["retrieval"] == "keyword"
+    assert all("semantic_score" not in result for result in results)
+
+
+def test_unified_recall_flags_natural_language_conflicting_claims(second_self):
+    memory = second_self.repo_root / "90-system" / ".echo" / "memory"
+    memory.mkdir(parents=True, exist_ok=True)
+    (memory / "morning.md").write_text("I prefer orbitalpha mornings.", encoding="utf-8")
+    (memory / "night.md").write_text("I now prefer orbitalpha nights.", encoding="utf-8")
+
+    results = hybrid_recall(second_self, "orbitalpha", max_results=50)
+    flagged = [result for result in results if result["conflict_review"]]
+
+    assert len(flagged) == 2
+    assert all(result["conflict_reason"] == "conflicting claims require review" for result in flagged)

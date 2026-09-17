@@ -28,7 +28,9 @@ recall.
 
 Keyword and semantic scores are normalized to bounded components. Strong exact
 keyword evidence outranks weak semantic similarity; strong paraphrase evidence
-can outrank weak keyword coincidence. Ties are deterministic. Conflicting
+can outrank weak keyword coincidence. Ties are deterministic. A conservative
+claim parser compares returned preference/action claims for opposing objects
+or polarity, while conflict-oriented paths remain flagged as well. Conflicting
 evidence remains visible with a review flag and is never silently resolved.
 
 ## Privacy and compatibility

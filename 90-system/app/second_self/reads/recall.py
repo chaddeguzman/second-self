@@ -14,7 +14,13 @@ from typing import Any
 
 from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
-from .semantic import Embedder, SemanticError, SemanticIndex, memory_store_documents
+from .semantic import (
+    Embedder,
+    SemanticError,
+    SemanticIndex,
+    layer1_documents,
+    memory_store_documents,
+)
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 SNIPPET_RADIUS = 60
@@ -43,6 +49,12 @@ RECENCY_BANDS = [
 
 # Inline #tag mention in body text.
 _INLINE_TAG_RE = re.compile(r"#([A-Za-z0-9_-]+)")
+_CLAIM_RE = re.compile(
+    r"\b(?:i|we)\s+(?:(?P<neg>do not|don't|never|cannot|can't)\s+)?"
+    r"(?:now\s+)?(?P<verb>prefer|like|avoid|want|choose|dislike|hate)\s+"
+    r"(?P<object>[^.!?\n]+)",
+    re.IGNORECASE,
+)
 
 
 def _folder_priority(relative_path: str) -> int:
@@ -86,6 +98,65 @@ def _tag_score(tags: tuple[str, ...], body: str, query: str) -> int:
 def _title_score(title: str, query: str) -> int:
     """Return 10 if the query appears in the title, else 0."""
     return 10 if query.casefold() in title.casefold() else 0
+
+
+def _keyword_evidence(result: dict[str, Any]) -> float:
+    """Return bounded lexical evidence, excluding folder and recency priority."""
+    breakdown = result.get("score_breakdown", {})
+    if isinstance(breakdown, dict) and (
+        float(breakdown.get("title", 0)) > 0 or float(breakdown.get("tag", 0)) > 0
+    ):
+        return 1.0
+    return 0.35 if result.get("matched") else 0.0
+
+
+def _claim_profiles(text: str) -> list[tuple[str, bool, str]]:
+    """Extract conservative preference/action claims for conflict flagging."""
+    profiles: list[tuple[str, bool, str]] = []
+    for match in _CLAIM_RE.finditer(text):
+        obj = " ".join(match.group("object").casefold().split())
+        profiles.append((match.group("verb").casefold(), bool(match.group("neg")), obj))
+    return profiles
+
+
+def _mark_conflicts(paths: SecondSelfPaths, results: list[dict[str, Any]]) -> None:
+    """Mark returned results whose conservative claims conflict."""
+    texts: dict[str, str] = {}
+    for entry in results:
+        public_path = str(entry.get("path", ""))
+        if public_path.startswith("01-strategy-storage/"):
+            source = paths.layer1 / Path(public_path.removeprefix("01-strategy-storage/"))
+            try:
+                texts[public_path] = source.read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                continue
+        elif public_path.startswith("90-system/.echo/memory/"):
+            source = paths.repo_root / public_path
+            try:
+                texts[public_path] = source.read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                continue
+
+    profiles = {
+        path: _claim_profiles(text)
+        for path, text in texts.items()
+    }
+    conflict_paths: set[str] = set()
+    items = list(profiles.items())
+    for index, (left_path, left_claims) in enumerate(items):
+        for right_path, right_claims in items[index + 1 :]:
+            for left_verb, left_neg, left_object in left_claims:
+                for right_verb, right_neg, right_object in right_claims:
+                    if left_verb != right_verb:
+                        continue
+                    objects_conflict = left_object != right_object
+                    polarity_conflict = left_object == right_object and left_neg != right_neg
+                    if objects_conflict or polarity_conflict:
+                        conflict_paths.update((left_path, right_path))
+    for entry in results:
+        if str(entry.get("path", "")) in conflict_paths:
+            entry["conflict_review"] = True
+            entry["conflict_reason"] = "conflicting claims require review"
 
 
 def _snippet(text: str, match_start: int, match_end: int) -> str:
@@ -250,6 +321,11 @@ def hybrid_recall_layer1(
     if semantic_index is None or embedder is None or not query.strip():
         return keyword_results
     try:
+        status = semantic_index.status(
+            layer1_documents(paths), model_id=embedder.model_id
+        )
+        if not status.ready:
+            return keyword_results
         semantic_matches = semantic_index.search(
             embedder.embed(query), min_score=0.35
         )
@@ -267,7 +343,7 @@ def hybrid_recall_layer1(
         semantic_norm = max(0.0, min(1.0, float(match.score)))
         if existing is not None:
             keyword_score = float(existing["score"])
-            keyword_norm = min(1.0, keyword_score / 100.0)
+            keyword_norm = _keyword_evidence(existing)
             existing["semantic_score"] = round(match.score, 6)
             existing["keyword_score"] = round(keyword_score, 6)
             existing["score"] = round(keyword_norm * 70.0 + semantic_norm * 25.0, 6)
@@ -352,22 +428,34 @@ def hybrid_recall(
     today: date | None = None,
 ) -> list[dict[str, Any]]:
     """Unified Layer 1 and durable ECHO-memory recall with safe fallback."""
+    all_documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)
+    semantic_ready = semantic_index is not None and embedder is not None
+    if semantic_ready:
+        try:
+            semantic_ready = semantic_index.status(
+                all_documents, model_id=embedder.model_id
+            ).ready
+        except (SemanticError, ValueError, TypeError):
+            semantic_ready = False
+    active_index = semantic_index if semantic_ready else None
+    active_embedder = embedder if semantic_ready else None
     results = hybrid_recall_layer1(
         paths,
         query,
-        semantic_index=semantic_index,
-        embedder=embedder,
+        semantic_index=active_index,
+        embedder=active_embedder,
         max_results=max_results,
         min_score=min_score,
         today=today,
     )
     for entry in results:
         entry.setdefault("provenance", "layer1")
+        entry.setdefault("retrieval", "keyword")
         entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
     memory_results = _memory_keyword_results(paths.repo_root, query, max_results)
-    if semantic_index is not None and embedder is not None and query.strip():
+    if active_index is not None and active_embedder is not None and query.strip():
         try:
-            semantic_matches = semantic_index.search(embedder.embed(query), min_score=0.35)
+            semantic_matches = active_index.search(active_embedder.embed(query), min_score=0.35)
         except (SemanticError, ValueError, TypeError):
             semantic_matches = []
         by_path = {str(entry["path"]): entry for entry in memory_results}
@@ -394,11 +482,12 @@ def hybrid_recall(
                 }
             else:
                 keyword_score = float(existing.get("keyword_score", 0))
-                existing["score"] = round(min(1.0, keyword_score / 100.0) * 70.0 + semantic_norm * 25.0, 6)
+                existing["score"] = round(_keyword_evidence(existing) * 70.0 + semantic_norm * 25.0, 6)
                 existing["semantic_score"] = round(match.score, 6)
                 existing["score_breakdown"]["semantic"] = round(semantic_norm * 25.0, 6)
                 existing["retrieval"] = "hybrid"
         memory_results = list(by_path.values())
     combined = results + memory_results
+    _mark_conflicts(paths, combined)
     combined.sort(key=lambda entry: (float(entry["score"]), str(entry["path"]).casefold()), reverse=True)
     return combined[:max_results]
