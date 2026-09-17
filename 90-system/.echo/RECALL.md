@@ -52,11 +52,15 @@ disagree, the files win — rebuild the index.
 ## Semantic path (optional, interface unchanged)
 
 When the optional embedded model is installed, semantic recall embeds the
-query and each durable memory's hook + body, ranks by cosine similarity, and
-merges with keyword scores. A paraphrased question ("something about why I
-stall on identity-tied tasks") can then find the right memory even when it
-shares no keywords with the hook. The derived SQLite index lives in the
-ignored private cache and is always rebuildable from the Markdown sources.
+query and each Layer 1 or durable ECHO memory entry, ranks by normalized
+cosine similarity, and merges with keyword scores. A paraphrased question
+("something about why I stall on identity-tied tasks") can then find the right
+memory even when it shares no keywords with the hook. The derived SQLite index
+lives in the ignored private cache and is always rebuildable from the Markdown
+sources. `recall-index status` reports aggregate freshness state using content
+hashes and model version without exposing source text or private details.
+Normal recall uses keyword fallback when the index is stale, missing, corrupt,
+or the model is unavailable.
 Until the model and index are ready — and automatically whenever the model is
 missing or down — keyword ranking remains the path. Recall never fails because
 semantic dependencies are unavailable.
@@ -66,4 +70,6 @@ semantic dependencies are unavailable.
 Ranked results carry their `source` (`echo-inferred` vs `chad-authored`).
 When answering, ECHO labels findings accordingly — an `echo-inferred` memory
 is a reasonable connection, not a confirmed fact. Conflicts between memories
-go to Chad (`second-self-conflict-review`), never silently resolved.
+go to Chad (`second-self-conflict-review`), never silently resolved. Retrieved
+results from conflict sources carry a review flag; the ranking layer does not
+choose a winner.

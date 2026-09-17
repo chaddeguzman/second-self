@@ -15,12 +15,13 @@ from .models import EvalAssertion, EvalCase, EvalFixture, EvalSuite
 class _SyntheticEmbedder:
     model_id = "synthetic-semantic-v1"
 
-    def __init__(self, vectors: Mapping[str, Sequence[float]], query: Sequence[float]):
+    def __init__(self, vectors: Mapping[str, Sequence[float]], query: Sequence[float], query_text: str):
         self._vectors = vectors
         self._query = tuple(float(value) for value in query)
+        self._query_text = query_text
 
     def embed(self, text: str) -> Sequence[float]:
-        if text == "__query__":
+        if text == self._query_text:
             return self._query
         return tuple(float(value) for value in self._vectors[text])
 
@@ -37,6 +38,7 @@ def _evaluate(fixture: Mapping[str, object]) -> Mapping[str, object]:
     query = fixture.get("query")
     query_vector = fixture.get("query_vector")
     expected = fixture.get("expected_sources")
+    conflict_expected = fixture.get("conflict_expected", False)
     if not isinstance(notes, list) or not isinstance(query, str):
         raise ValueError("synthetic semantic fixture is invalid")
     if not isinstance(query_vector, list) or not isinstance(expected, list):
@@ -69,23 +71,29 @@ def _evaluate(fixture: Mapping[str, object]) -> Mapping[str, object]:
                 item for item in notes if document.path.endswith(str(item["path"]))
             )
             vectors[document.text] = note["vector"]
-        embedder = _SyntheticEmbedder(vectors, query_vector)
+        embedder = _SyntheticEmbedder(vectors, query_vector, query)
         index = SemanticIndex(paths.cache / "semantic" / "index.sqlite3")
         index.refresh(documents, embedder)
         results = hybrid_recall_layer1(
             paths,
-            "__query__",
+            query,
             semantic_index=index,
             embedder=embedder,
             max_results=len(expected),
         )
         returned = [str(item["path"]) for item in results]
+    conflict_ok = (
+        any(bool(item.get("conflict_review")) for item in results)
+        if conflict_expected
+        else not any(bool(item.get("conflict_review")) for item in results)
+    )
     return {
         "top_match": returned[0] if returned else "",
         "returned_sources": returned,
         "expected_sources": expected,
         "top_match_ok": bool(returned) and returned[0] == expected[0],
         "coverage_ok": all(source in returned for source in expected),
+        "conflict_ok": conflict_ok,
         "_metrics": {
             "top_match_accuracy": float(bool(returned) and returned[0] == expected[0]),
             "source_coverage": (
@@ -133,7 +141,12 @@ def _evaluate_fallback(fixture: Mapping[str, object]) -> Mapping[str, object]:
 
 
 def _case(case_id: str, fixture: dict[str, object], evaluator=_evaluate) -> EvalCase:
-    fields = ("top_match_ok", "coverage_ok") if evaluator is _evaluate else ("fallback_ok",)
+    if evaluator is _evaluate:
+        fields = ("top_match_ok", "coverage_ok")
+        if fixture.get("conflict_expected"):
+            fields += ("conflict_ok",)
+    else:
+        fields = ("fallback_ok",)
     return EvalCase(
         case_id,
         EvalFixture(True, data=fixture),
@@ -207,6 +220,31 @@ SEMANTIC_SUITE = EvalSuite(
                 "expected_sources": ["01-strategy-storage/00 Memory/Identity.md"],
             },
             _evaluate_fallback,
+        ),
+        _case(
+            "exact-keyword-beats-weak-semantic",
+            {
+                "query": "identity",
+                "query_vector": [0.0, 1.0],
+                "notes": [
+                    {"path": "00 Memory/Identity.md", "body": "Identity is important context.", "vector": [1.0, 0.0]},
+                    {"path": "04 References/Weak.md", "body": "A weakly related note.", "vector": [0.0, 1.0]},
+                ],
+                "expected_sources": ["01-strategy-storage/00 Memory/Identity.md"],
+            },
+        ),
+        _case(
+            "conflict-review-flag",
+            {
+                "query": "mornings",
+                "query_vector": [1.0, 0.0],
+                "notes": [
+                    {"path": "03 Strategy/01 Conflicts/Morning.md", "body": "I prefer mornings.", "vector": [1.0, 0.0]},
+                    {"path": "03 Strategy/01 Conflicts/Night.md", "body": "I now prefer nights.", "vector": [0.9, 0.1]},
+                ],
+                "expected_sources": ["01-strategy-storage/03 Strategy/01 Conflicts/Morning.md"],
+                "conflict_expected": True,
+            },
         ),
     ),
 )
