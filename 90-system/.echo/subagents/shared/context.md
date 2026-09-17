@@ -12,13 +12,12 @@ from this file until ECHO writes a fresh task-specific context.
 - `echo-google-calendar/PLAN.md`: all 5 phases Done; read-only Calendar is integrated.
 - `echo-local-agent-foundation/PLAN.md`: all 17 phases Done; foundation is complete.
 - Next planned cycle: reconcile operational status and harden readiness before
-  beginning semantic memory improvement program. Charlie owns the approved
-  full-build task. Execute sequentially: Phase 1 combines unified source
-  coverage and stale-index detection; Phase 2 calibrates hybrid ranking;
-  Phase 3 surfaces contradictions for review; Phase 4 expands evaluation and
-  certification. Local-only privacy is mandatory. Safe keyword fallback is
-  used for stale or unavailable semantic indexes. Stop after every phase for
-  review; do not start the next phase automatically.
+  completed the semantic memory improvement program. Future work must refresh
+  this context rather than reuse the completed task. The delivered behavior
+  is unified Layer 1/ECHO-memory coverage, aggregate stale-index detection,
+  normalized deterministic ranking, source-oriented conflict-review flags,
+  and synthetic evaluation coverage. Local-only privacy and safe keyword
+  fallback remain mandatory.
 
 **Current boundaries:** Calendar remains read-only; Gmail and Drive remain
 stubs; future tasks must write a fresh exact scope before delegation.
