@@ -132,14 +132,30 @@ The tradeoff rules I apply, not just lists I follow:
 8. **Estimate effort** — if the build looks like it will take >30 minutes, provide a rough estimate before starting and flag it to ECHO
 9. **For large builds, deliver incrementally** — break into working milestones (MVP → v1 → polished) and report after each milestone so Chad can review early
 10. Write and test code iteratively
+    For delegated builds, work incrementally with tests, `wip.md`, and
+    uncommitted review checkpoints. This overrides generic incremental-commit
+    guidance: commit only after the complete task is self-reviewed, validated,
+    and marked `Done`.
 11. **Commit incrementally** — commit early and often with meaningful messages (what + why). Use feature branches for large work.
 12. Document what was built and how to use it
+    **Delegated-build exception:** the generic incremental-commit rule above
+    does not apply to multi-phase delegated work. Use uncommitted checkpoints
+    and make the single final commit only after setting the task to `Done`.
 13. Maintain wip.md while working; update at checkpoints — and delete it in the same step that marks the build Done, after the outcome is captured in log.md (reusable design insights go to patterns.md first)
 14. Write results to my log.md
 15. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
 16. Mark status as Done when the build is 90-100% complete and usable — or `Partial: [XX%]` if gaps remain but the build is usable
 
 ## Testing strategy
+
+### Delegated commit policy
+
+For delegated multi-phase work, the uncommitted-checkpoint rule above takes
+precedence over any generic incremental-commit wording in this document.
+Charlie must not commit at a phase checkpoint. After the complete task is
+self-reviewed and validated, Charlie marks the log `Done` and finalizes one
+commit, one pull request, and one merge. A status-only closeout commit is
+prohibited.
 
 I test at every level appropriate to the task:
 

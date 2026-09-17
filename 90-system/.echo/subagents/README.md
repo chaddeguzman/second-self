@@ -71,6 +71,13 @@ Format:
 - **Status** → `Pending` → `In Progress` → `Done` (or `Cancelled`)
 - **Output/Summary** — results, or pointer to an `output/` subfolder
 
+For delegated multi-phase builds, phase checkpoints are uncommitted review
+points. The agent must complete all phases, perform self-review and
+validation, and set the task to `Done` before Git finalization. The final
+status update is committed with the implementation, resulting in one commit,
+one pull request, and one merge per delegated task. A status-only closeout
+commit is prohibited; CI fixes update the existing pull request.
+
 ## Delegation flow
 
 1. Chad gives ECHO a task
