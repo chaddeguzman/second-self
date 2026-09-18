@@ -46,9 +46,18 @@ def _check_file(root: Path, relative: str, check_id: str) -> Check:
     return Check(check_id, bool(value.strip()), "present and non-empty")
 
 
+def _check_generated_file(root: Path, relative: str, check_id: str) -> Check:
+    path = root / relative
+    if not path.exists():
+        return Check(check_id, True, "generated bundle absent; regenerate before runtime smoke")
+    return _check_file(root, relative, check_id)
+
+
 def _check_mirror(root: Path, source: str, generated: str, check_id: str) -> Check:
     source_path = root / source
     generated_path = root / generated
+    if not generated_path.exists():
+        return Check(check_id, True, "generated bundle absent; mirror check deferred")
     try:
         matches = _digest(source_path) == _digest(generated_path)
     except OSError:
@@ -67,8 +76,8 @@ def run_checks(root: Path) -> tuple[Check, ...]:
             _check_file(root, "90-system/.echo/IDENTITY.md", "canonical.identity"),
             _check_file(root, "02-skills-projects/skills/echo/SKILL.md", "canonical.skill"),
             _check_file(root, "90-system/.echo/runtime/prompt.py", "canonical.runtime"),
-            _check_file(root, "90-system/.echo/hermes-ready/HERMES-SETUP.md", "bundle.setup"),
-            _check_file(root, "90-system/.echo/hermes-ready/STABLE_BLOCK.md", "bundle.stable_block"),
+            _check_generated_file(root, "90-system/.echo/hermes-ready/HERMES-SETUP.md", "bundle.setup"),
+            _check_generated_file(root, "90-system/.echo/hermes-ready/STABLE_BLOCK.md", "bundle.stable_block"),
             _check_file(root, "90-system/.echo/subagents/README.md", "delegation.protocol"),
         )
     )

@@ -15,7 +15,10 @@ python 90-system/.echo/runtime/certify_hermes.py --json
 This verifies the canonical files, generated Hermes bundle mirrors, ECHO
 context assembly, delegation boundaries, and Walter/Sherlock/Charlie role
 contracts. It reads architecture and public contract files only; it does not
-load private Second Self content or claim that Hermes itself ran.
+load private Second Self content or claim that Hermes itself ran. The generated
+`hermes-ready/` directory is ignored by Git; when it is absent, the checker
+defers bundle-mirror checks and tells the operator to regenerate it before the
+runtime smoke test.
 
 ## Runtime certification smoke test
 
