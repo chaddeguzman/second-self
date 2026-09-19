@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,25 @@ def _ensure_note(path: Path, title: str = "Note") -> None:
         f"---\ntype: note\ncreated: 2026-07-24\nstatus: active\n---\n\n# {title}\n",
         encoding="utf-8",
     )
+
+
+def _proposal_path(paths: SecondSelfPaths, proposal_id: str) -> Path:
+    return paths.audit / "proposals" / f"{proposal_id}.json"
+
+
+def _approval_digest(proposal: dict[str, object]) -> str:
+    payload = {
+        "specification": proposal["specification"],
+        "input_hashes": proposal["input_hashes"],
+        "exact_preview": proposal["exact_preview"],
+    }
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
 
 
 @pytest.mark.parametrize("confirmation", ["Y", "y", "Yes", "YES", " yes "])
@@ -42,6 +62,181 @@ def test_single_approval_edit_and_audit(
     assert "Approved value." in target.read_text(encoding="utf-8")
     audit = (second_self.audit / "agent-edits.jsonl").read_text(encoding="utf-8")
     assert '"agent": "pytest"' in audit
+
+
+def test_proposal_binds_canonical_reviewed_payload(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Identity.md"
+    _ensure_note(target, "Current Identity")
+
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"content": "# Updated", "path": str(target)}],
+        },
+    )
+
+    assert proposal["schema"] == "second-self-broker-proposal"
+    assert proposal["version"] == 1
+    assert proposal["approval_digest"] == _approval_digest(proposal)
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        (
+            "specification",
+            {"operation": "edit", "changes": []},
+        ),
+        ("input_hashes", {}),
+        ("exact_preview", "tampered preview"),
+    ],
+)
+def test_approval_rejects_tampered_bound_payload(
+    second_self: SecondSelfPaths,
+    field: str,
+    replacement: object,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    original = target.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    proposal[field] = replacement
+    proposal_path = _proposal_path(second_self, proposal["id"])
+    proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="integrity"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert target.read_text(encoding="utf-8") == original
+    assert not proposal_path.with_suffix(".lock").exists()
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [("schema", "other-schema"), ("version", 2)],
+)
+def test_approval_rejects_unsupported_proposal_schema(
+    second_self: SecondSelfPaths,
+    field: str,
+    replacement: object,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    proposal[field] = replacement
+    proposal_path = _proposal_path(second_self, proposal["id"])
+    proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="schema"):
+        approve(second_self, proposal["id"], "yes")
+
+
+def test_approval_rejects_digestless_proposal_and_requires_reproposal(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    original = target.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    proposal.pop("approval_digest")
+    _proposal_path(second_self, proposal["id"]).write_text(
+        json.dumps(proposal), encoding="utf-8"
+    )
+
+    with pytest.raises(RuntimeError, match="Create a new proposal"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert target.read_text(encoding="utf-8") == original
+
+
+def test_approval_recomputes_exact_preview_before_apply(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    original = target.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    proposal["exact_preview"] = "fabricated reviewed preview"
+    proposal["approval_digest"] = _approval_digest(proposal)
+    _proposal_path(second_self, proposal["id"]).write_text(
+        json.dumps(proposal), encoding="utf-8"
+    )
+
+    with pytest.raises(RuntimeError, match="exact preview"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert target.read_text(encoding="utf-8") == original
+
+
+def test_affirmative_approval_requires_exclusive_proposal_lock(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    original = target.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    lock = _proposal_path(second_self, proposal["id"]).with_suffix(".lock")
+    lock.touch()
+
+    with pytest.raises(RuntimeError, match="already active"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert target.read_text(encoding="utf-8") == original
+
+
+def test_digestless_proposal_can_still_be_explicitly_rejected(
+    second_self: SecondSelfPaths,
+) -> None:
+    target = second_self.layer1 / "01 Capture/01 Current" / "Current Strategy.md"
+    _ensure_note(target, "Current Strategy")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [{"path": str(target), "content": "# replacement"}],
+        },
+    )
+    proposal.pop("approval_digest")
+    _proposal_path(second_self, proposal["id"]).write_text(
+        json.dumps(proposal), encoding="utf-8"
+    )
+
+    rejected = approve(second_self, proposal["id"], "no")
+
+    assert rejected["status"] == "rejected"
 
 
 @pytest.mark.parametrize("confirmation", ["N", "n", "No", "NO", " no "])

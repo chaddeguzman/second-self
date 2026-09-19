@@ -48,15 +48,50 @@ ALLOWED_PRIVATE_SCAFFOLD_FILES = {
 }
 
 
-def _tracked_files(repo: Path) -> list[Path]:
-    result = subprocess.run(
-        ["git", "-C", str(repo), "ls-files", "-z"],
-        check=False,
-        capture_output=True,
-    )
+def _tracked_files(repo: Path) -> list[tuple[str, str, str]]:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo), "ls-files", "--stage", "-z"],
+            check=False,
+            capture_output=True,
+        )
+    except OSError as exc:
+        raise RuntimeError(
+            "privacy validation could not enumerate the Git index"
+        ) from exc
     if result.returncode:
-        return []
-    return [repo / value.decode("utf-8") for value in result.stdout.split(b"\0") if value]
+        raise RuntimeError("privacy validation could not enumerate the Git index")
+    entries: list[tuple[str, str, str]] = []
+    try:
+        for value in result.stdout.split(b"\0"):
+            if not value:
+                continue
+            metadata, raw_path = value.split(b"\t", 1)
+            mode, object_id, _stage = metadata.decode("ascii").split(" ")
+            entries.append((raw_path.decode("utf-8"), object_id, mode))
+    except (UnicodeError, ValueError) as exc:
+        raise RuntimeError(
+            "privacy validation could not enumerate the Git index"
+        ) from exc
+    return entries
+
+
+def _staged_blob(repo: Path, relative: str, object_id: str) -> bytes:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "blob", object_id],
+            check=False,
+            capture_output=True,
+        )
+    except OSError as exc:
+        raise RuntimeError(
+            f"privacy validation could not read staged blob for {relative}"
+        ) from exc
+    if result.returncode:
+        raise RuntimeError(
+            f"privacy validation could not read staged blob for {relative}"
+        )
+    return result.stdout
 
 
 def validate(
@@ -88,18 +123,28 @@ def validate(
             errors.append(f"{note.relative_to(paths.data_root)}: {error}")
 
     if privacy:
-        for tracked in _tracked_files(paths.repo_root):
-            relative = tracked.relative_to(paths.repo_root).as_posix()
+        try:
+            tracked_files = _tracked_files(paths.repo_root)
+        except RuntimeError as exc:
+            errors.append(str(exc))
+            return errors
+        for relative, object_id, mode in tracked_files:
             if (
                 relative.startswith(IGNORED_TRACKED_PREFIXES)
                 and relative not in ALLOWED_PRIVATE_SCAFFOLD_FILES
             ):
                 errors.append(f"private/runtime path is tracked: {relative}")
                 continue
-            if not tracked.is_file() or tracked.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif"}:
+            if mode == "160000":
+                continue
+            if Path(relative).suffix.lower() in {".png", ".jpg", ".jpeg", ".gif"}:
                 continue
             try:
-                text = tracked.read_text(encoding="utf-8")
+                blob = _staged_blob(paths.repo_root, relative, object_id)
+                text = blob.decode("utf-8")
+            except RuntimeError as exc:
+                errors.append(str(exc))
+                continue
             except UnicodeError:
                 continue
             for label, pattern in SECRET_PATTERNS.items():
