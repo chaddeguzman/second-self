@@ -1,0 +1,34 @@
+{
+  "schema": "second-self-public-scaffold",
+  "version": 1,
+  "roots": [
+    {
+      "path": "01-strategy-storage",
+      "files": [
+        "README.md",
+        "00 Memory/.gitkeep",
+        "02 Journal/.gitkeep",
+        "03 Strategy/.gitkeep",
+        "04 References/.gitkeep",
+        "05 Reviews/.gitkeep"
+      ]
+    },
+    {
+      "path": "02-skills-projects/projects",
+      "files": [
+        ".gitkeep"
+      ]
+    },
+    {
+      "path": "03-wiki",
+      "files": [
+        ".gitkeep",
+        "README.md",
+        "analyses/.gitkeep",
+        "entities/.gitkeep",
+        "sources/.gitkeep",
+        "topics/.gitkeep"
+      ]
+    }
+  ]
+}

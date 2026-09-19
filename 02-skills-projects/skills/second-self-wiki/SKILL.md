@@ -18,7 +18,7 @@ with these scope rules:
 - At step 7, do not ask an open-ended destination question. Instead, analyze each
   file's content against the existing `04 References` subfolders and **present a
   recommended subfolder per file** (`01 books`, `02 quotes`, `03 research`,
-  `04 guides`, `05 docs`, `06 uncategorized`). Ask for a quick confirm: the user may
+  `04 guides`, `05 docs`, `06 Uncategorized`). Ask for a quick confirm: the user may
   reply with a single "yes" to accept all recommendations, or correct specific files
   in one response. Then continue with steps 8–12 unchanged.
 
@@ -55,4 +55,3 @@ Only file a conversational result when the user explicitly asks. Create or updat
 ## Maintain
 
 Run structural lint before semantic review. Check contradictions, stale synthesis, candidate entity duplicates, missing source coverage, and meaningful orphans. Put uncertain merges and renames in `open-questions.md`; never merge entities or rename archived sources automatically.
-

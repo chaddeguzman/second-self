@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from ..core.paths import SecondSelfPaths, resolve_private_path
+from ..core.scaffold import PUBLIC_SCAFFOLD_FILES
 
 
 ALLOWED_OPERATIONS = {
@@ -25,14 +26,7 @@ ALLOWED_OPERATIONS = {
     "wiki_process",
     "link_fix",
 }
-LAYER1_SCAFFOLD_FILES = (
-    "00 Memory/.gitkeep",
-    "01 Capture/.gitkeep",
-    "02 Journal/.gitkeep",
-    "03 Strategy/.gitkeep",
-    "04 References/.gitkeep",
-    "05 Reviews/.gitkeep",
-)
+LAYER1_SCAFFOLD_FILES = PUBLIC_SCAFFOLD_FILES["01-strategy-storage"]
 APPROVAL_PENDING_STATUSES = {
     "approval-pending",
     "intent-pending",

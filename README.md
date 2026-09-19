@@ -124,7 +124,7 @@ second-self/
 |   |   |-- 03 research/
 |   |   |-- 04 guides/
 |   |   |-- 05 docs/
-|   |   `-- 06 uncategorized/
+|   |   `-- 06 Uncategorized/
 |   `-- 05 Reviews/
 |-- 02-skills-projects/        Skills and private projects (Layer 2)
 |   |-- skills/
