@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..core.frontmatter import read_note, validate_metadata
 from ..core.paths import SecondSelfPaths
-from ..core.scaffold import DIRECTORIES
+from ..core.scaffold import DIRECTORIES, PUBLIC_SCAFFOLD_PATHS
 from ..maintenance.link_check import as_error_strings, check_wikilinks
 
 
@@ -24,28 +24,7 @@ IGNORED_TRACKED_PREFIXES = (
     ".second-self-schema",
     ".second-self-cache/",
 )
-ALLOWED_PRIVATE_SCAFFOLD_FILES = {
-    "01-strategy-storage/README.md",
-    "01-strategy-storage/00 Memory/.gitkeep",
-    "01-strategy-storage/01 Capture/.gitkeep",
-    "01-strategy-storage/02 Journal/.gitkeep",
-    "01-strategy-storage/03 Strategy/.gitkeep",
-    "01-strategy-storage/04 References/.gitkeep",
-    "01-strategy-storage/04 References/01 books/.gitkeep",
-    "01-strategy-storage/04 References/02 quotes/.gitkeep",
-    "01-strategy-storage/04 References/03 research/.gitkeep",
-    "01-strategy-storage/04 References/04 guides/.gitkeep",
-    "01-strategy-storage/04 References/05 docs/.gitkeep",
-    "01-strategy-storage/04 References/06 uncategorized/.gitkeep",
-    "01-strategy-storage/05 Reviews/.gitkeep",
-    "02-skills-projects/projects/.gitkeep",
-    "03-wiki/.gitkeep",
-    "03-wiki/README.md",
-    "03-wiki/analyses/.gitkeep",
-    "03-wiki/entities/.gitkeep",
-    "03-wiki/sources/.gitkeep",
-    "03-wiki/topics/.gitkeep",
-}
+ALLOWED_PRIVATE_SCAFFOLD_FILES = set(PUBLIC_SCAFFOLD_PATHS)
 
 
 def _tracked_files(repo: Path) -> list[tuple[str, str, str]]:

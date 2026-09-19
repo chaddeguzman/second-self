@@ -1,9 +1,59 @@
 from __future__ import annotations
 
+import json
 from datetime import date
+from importlib.resources import files
 from pathlib import Path
+from pathlib import PurePosixPath
+from typing import Any
 
 from .paths import SecondSelfPaths
+
+
+def _load_public_scaffold_files() -> dict[str, tuple[str, ...]]:
+    payload: Any = json.loads(
+        files("second_self").joinpath("public_scaffold.json").read_text(encoding="utf-8")
+    )
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema") != "second-self-public-scaffold"
+        or payload.get("version") != 1
+        or not isinstance(payload.get("roots"), list)
+    ):
+        raise ValueError("invalid public scaffold manifest")
+    manifest: dict[str, tuple[str, ...]] = {}
+    for entry in payload["roots"]:
+        if not isinstance(entry, dict):
+            raise ValueError("invalid public scaffold root")
+        root = entry.get("path")
+        raw_files = entry.get("files")
+        if not isinstance(root, str) or not isinstance(raw_files, list):
+            raise ValueError("invalid public scaffold root")
+        root_path = PurePosixPath(root)
+        if root_path.is_absolute() or ".." in root_path.parts or root in manifest:
+            raise ValueError("invalid public scaffold root")
+        public_files: list[str] = []
+        for relative in raw_files:
+            if not isinstance(relative, str):
+                raise ValueError("invalid public scaffold file")
+            relative_path = PurePosixPath(relative)
+            if (
+                relative_path.is_absolute()
+                or ".." in relative_path.parts
+                or relative in public_files
+            ):
+                raise ValueError("invalid public scaffold file")
+            public_files.append(relative)
+        manifest[root] = tuple(public_files)
+    return manifest
+
+
+PUBLIC_SCAFFOLD_FILES = _load_public_scaffold_files()
+PUBLIC_SCAFFOLD_PATHS = frozenset(
+    f"{root}/{relative}"
+    for root, public_files in PUBLIC_SCAFFOLD_FILES.items()
+    for relative in public_files
+)
 
 
 DIRECTORIES = [
@@ -17,7 +67,7 @@ DIRECTORIES = [
     "01-strategy-storage/04 References/03 research",
     "01-strategy-storage/04 References/04 guides",
     "01-strategy-storage/04 References/05 docs",
-    "01-strategy-storage/04 References/06 uncategorized",
+    "01-strategy-storage/04 References/06 Uncategorized",
     "01-strategy-storage/05 Reviews",
     "01-strategy-storage/98-trash",
     "01-strategy-storage/99-audit/indexes",

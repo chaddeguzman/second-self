@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from second_self.core.paths import SecondSelfPaths
+from second_self.core.scaffold import PUBLIC_SCAFFOLD_FILES
 from second_self.maintenance.validation import validate
 
 
@@ -13,7 +14,7 @@ def _synthetic_openai_key() -> str:
     return "sk-" + "proj-" + "abcdefghijklmnopqrstuvwxyz"
 
 
-def test_layer1_readme_is_public_but_personal_notes_are_rejected(
+def test_layer1_public_scaffold_is_allowed_but_personal_notes_are_rejected(
     tmp_path: Path,
 ) -> None:
     repo = tmp_path / "repo"
@@ -22,15 +23,16 @@ def test_layer1_readme_is_public_but_personal_notes_are_rejected(
     memory.mkdir(parents=True)
     data.mkdir()
 
-    readme = repo / "01-strategy-storage" / "README.md"
-    readme.write_text("# Strategy Storage\n", encoding="utf-8")
-    reference_scaffolds = [
-        repo / "01-strategy-storage" / "04 References" / name / ".gitkeep"
-        for name in ("01 books", "02 quotes", "03 research", "04 guides", "05 docs")
+    public_scaffolds = [
+        repo / "01-strategy-storage" / relative
+        for relative in PUBLIC_SCAFFOLD_FILES["01-strategy-storage"]
     ]
-    for scaffold in reference_scaffolds:
+    for scaffold in public_scaffolds:
         scaffold.parent.mkdir(parents=True, exist_ok=True)
-        scaffold.touch()
+        scaffold.write_text(
+            "# Strategy Storage\n" if scaffold.name == "README.md" else "",
+            encoding="utf-8",
+        )
     personal_note = memory / "personal.md"
     personal_note.write_text("# Private\n", encoding="utf-8")
 
@@ -42,9 +44,8 @@ def test_layer1_readme_is_public_but_personal_notes_are_rejected(
             str(repo),
             "add",
             "--",
-            str(readme),
             str(personal_note),
-            *(str(scaffold) for scaffold in reference_scaffolds),
+            *(str(scaffold) for scaffold in public_scaffolds),
         ],
         check=True,
         capture_output=True,

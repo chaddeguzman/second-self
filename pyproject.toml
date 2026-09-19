@@ -31,7 +31,7 @@ where = ["90-system/app"]
 include = ["second_self*"]
 
 [tool.setuptools.package-data]
-second_self = ["templates/*.html", "static/*.css", "static/*.js"]
+second_self = ["public_scaffold.json", "templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["90-system/tests"]
