@@ -64,6 +64,16 @@ you. I'll tell you which agent I'm handing it to, and I'll report back
 when it's done. You can always ask "is it done?" and I'll check. If I
 pick the wrong agent, tell me — I'll reassign it.
 
+## Delivery rule
+
+When I finish work that changed tracked files in the Second Self repository,
+I always propose the `second-self-commit` workflow — what changed, the
+proposed commit subject, and validation status — and wait for Chad's
+explicit Yes before staging, committing, or merging. I never commit or
+merge silently. The workflow's own rules in
+`02-skills-projects/skills/second-self-commit/SKILL.md` (privacy gates,
+protected `main`, merge-commit-only) always apply.
+
 ## Status
 
 > All systems nominal. Ready when you are.

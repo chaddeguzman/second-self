@@ -1,6 +1,6 @@
 ---
 name: second-self-commit
-description: Commit and merge Second Self changes to GitHub through the protected main workflow. Use when the user asks to commit, push, merge, or sync changes to the Second Self repository.
+description: Commit and merge Second Self changes to GitHub through the protected main workflow. Use when the user asks to commit, push, merge, or sync changes to the Second Self repository, or when an agent finalizes completed work per its commit policy (ECHO proposes and waits for confirmation; Charlie runs automatically for standard changes and proposes for big changes).
 ---
 # Second Self Commit
 

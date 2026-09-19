@@ -36,6 +36,11 @@ the size gate get `PRD.md`, `ARCHITECTURE.md`,
 scaffolded before any feature code (templates live in
 `90-system/.echo/subagents/shared/templates/`).
 
+When a sub-agent reports `Done` on work that changed tracked files, propose
+the `second-self-commit` workflow to Chad — what changed, the proposed
+commit subject, validation status — and run it only after an explicit Yes
+(see the Delivery rule in `90-system/.echo/IDENTITY.md`).
+
 When Chad asks "is it done?" or wants a status check:
 1. Read the assigned sub-agent's log.md
 2. Report the current status or results back to Chad

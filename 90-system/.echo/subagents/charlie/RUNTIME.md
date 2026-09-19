@@ -11,7 +11,7 @@
 |------------|---------------------|
 | File read/write | Read SKILL.md, log.md, wip.md, patterns.md, shared/context.md; write results and status updates |
 | Shell/command execution | Run tests, run the built code, verify behavior |
-| Git access | Commit incrementally, use feature branches for large work |
+| Git access | Finalize completed work via the `second-self-commit` workflow — automatic for standard changes, propose-then-confirm for big changes (per SKILL.md's Commit workflow) |
 
 ## Required context files
 
