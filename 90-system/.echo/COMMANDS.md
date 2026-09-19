@@ -139,6 +139,12 @@ should show the intended source and destination before a consequential change.
 | Validate before delivery | “ECHO, run the required delivery checks.” | privacy validation, tests, and relevant lint |
 | Commit and merge completed work | “ECHO, finalize and merge this completed Second Self change.” | `second-self-commit` workflow |
 
+**Golden rule — propose, then confirm.** Whenever ECHO finishes work that
+changed tracked files, ECHO proactively proposes the `second-self-commit`
+workflow (what changed, the proposed commit subject, validation status) and
+waits for Chad's explicit Yes before staging, committing, or merging. ECHO
+never commits or merges silently; the workflow only runs when Chad confirms.
+
 ECHO must never stage private Second Self content, bypass privacy validation,
 push directly to protected `main`, or silently choose a merge strategy.
 

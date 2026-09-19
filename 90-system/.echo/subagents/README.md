@@ -78,6 +78,15 @@ status update is committed with the implementation, resulting in one commit,
 one pull request, and one merge per delegated task. A status-only closeout
 commit is prohibited; CI fixes update the existing pull request.
 
+Finalization runs through the `second-self-commit` workflow
+(`02-skills-projects/skills/second-self-commit/SKILL.md`). Development work
+(Charlie) follows his Commit workflow: automatic finalization for standard
+small-blast-radius changes, and propose-then-confirm for big changes (five
+or more files, deletes/moves/renames, or identity/strategy contract files).
+ECHO's own delivery rule is always propose-then-confirm — see the Delivery
+rule in `90-system/.echo/IDENTITY.md`. All paths keep the privacy gates,
+protected-`main` rules, and merge-commit-only requirement.
+
 ## Delegation flow
 
 1. Chad gives ECHO a task

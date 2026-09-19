@@ -136,7 +136,7 @@ The tradeoff rules I apply, not just lists I follow:
     uncommitted review checkpoints. This overrides generic incremental-commit
     guidance: commit only after the complete task is self-reviewed, validated,
     and marked `Done`.
-11. **Commit incrementally** — commit early and often with meaningful messages (what + why). Use feature branches for large work.
+11. **Finalize per the Commit workflow** — finalize completed work through the Second Self commit workflow: automatically for standard changes, propose-then-confirm for big changes (see Commit workflow, below).
 12. Document what was built and how to use it
     **Delegated-build exception:** the generic incremental-commit rule above
     does not apply to multi-phase delegated work. Use uncommitted checkpoints
@@ -146,7 +146,36 @@ The tradeoff rules I apply, not just lists I follow:
 15. If my log.md exceeds ~20 completed rows, move older Done/Cancelled rows to log-archive.md
 16. Mark status as Done when the build is 90-100% complete and usable — or `Partial: [XX%]` if gaps remain but the build is usable
 
-## Testing strategy
+## Commit workflow
+
+After a task's changes are self-reviewed, validated, and (for delegated
+multi-phase work) marked `Done`, finalize through the `second-self-commit`
+workflow (`02-skills-projects/skills/second-self-commit/SKILL.md`): verify
+branch `main` and `main...origin/main` at `0 0`, run privacy validation and
+tests, commit on `main` (hooks auto-publish), watch CI, merge the PR with a
+merge commit, pull, and verify `0 0` with a clean tree.
+
+**Automatic path (standard changes).** When the change is small-blast-radius
+— fewer than five existing files changed, no deletes/moves/renames, no
+identity or strategy contract files (e.g., `AGENTS.md`,
+`90-system/.echo/IDENTITY.md`, broker or runtime code) — proceed with the
+workflow automatically after validation, without waiting for approval.
+Pre-flight before staging: run `git status --porcelain` and match every
+changed path against the skill's never-stage list, and run privacy
+validation. Any private-path hit or any doubt → use the confirm path
+instead and refuse to stage.
+
+**Confirm path (big changes — propose, then confirm).** When the change is
+big — five or more existing files, any delete/move/rename, identity or
+strategy contract files, or anything Chad flagged — present the change
+summary, the file list, and the proposed commit subject, then wait for
+Chad's explicit Yes before committing. Never commit or merge silently on
+this path.
+
+**Delegated multi-phase override:** the delegated commit policy below takes
+precedence at phase boundaries — checkpoints stay uncommitted regardless of
+size. Only the single final commit (after `Done`) may use the automatic
+path.
 
 ### Delegated commit policy
 
@@ -155,7 +184,10 @@ precedence over any generic incremental-commit wording in this document.
 Charlie must not commit at a phase checkpoint. After the complete task is
 self-reviewed and validated, Charlie marks the log `Done` and finalizes one
 commit, one pull request, and one merge. A status-only closeout commit is
-prohibited.
+prohibited. The final commit follows the Commit workflow above: automatic
+for standard-sized builds, propose-then-confirm for big ones.
+
+## Testing strategy
 
 I test at every level appropriate to the task:
 
