@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import difflib
 import hashlib
+import hmac
 import json
 import os
 import shutil
@@ -37,6 +38,8 @@ APPROVAL_PENDING_STATUSES = {
     "intent-pending",
     "exact-pending",
 }
+PROPOSAL_SCHEMA = "second-self-broker-proposal"
+PROPOSAL_VERSION = 1
 
 
 def _hash(path: Path) -> str | None:
@@ -62,6 +65,59 @@ def _hash(path: Path) -> str | None:
 
 def _proposal_path(paths: SecondSelfPaths, proposal_id: str) -> Path:
     return paths.audit / "proposals" / f"{proposal_id}.json"
+
+
+def _proposal_lock_path(paths: SecondSelfPaths, proposal_id: str) -> Path:
+    return _proposal_path(paths, proposal_id).with_suffix(".lock")
+
+
+def _approval_digest(proposal: dict[str, Any]) -> str:
+    payload = {
+        "specification": proposal["specification"],
+        "input_hashes": proposal["input_hashes"],
+        "exact_preview": proposal["exact_preview"],
+    }
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _validate_proposal_schema(proposal: dict[str, Any]) -> None:
+    if (
+        proposal.get("schema") != PROPOSAL_SCHEMA
+        or proposal.get("version") != PROPOSAL_VERSION
+    ):
+        raise RuntimeError(
+            "Proposal schema is unsupported. Create a new proposal."
+        )
+
+
+def _validate_approval_digest(proposal: dict[str, Any]) -> None:
+    supplied = proposal.get("approval_digest")
+    if (
+        not isinstance(supplied, str)
+        or len(supplied) != 64
+        or any(character not in "0123456789abcdef" for character in supplied)
+    ):
+        raise RuntimeError(
+            "Proposal integrity metadata is missing or invalid. "
+            "Create a new proposal."
+        )
+    try:
+        expected = _approval_digest(proposal)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError(
+            "Proposal integrity metadata is missing or invalid. "
+            "Create a new proposal."
+        ) from exc
+    if not hmac.compare_digest(supplied, expected):
+        raise RuntimeError(
+            "Proposal integrity check failed. Create a new proposal."
+        )
 
 
 def _path_label(paths: SecondSelfPaths, path: Path) -> str:
@@ -236,6 +292,8 @@ def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, 
         "id": proposal_id,
         "created": datetime.now().astimezone().isoformat(),
         "status": "approval-pending",
+        "schema": PROPOSAL_SCHEMA,
+        "version": PROPOSAL_VERSION,
         "specification": specification,
         "input_hashes": {
             _path_label(paths, path): _hash(path)
@@ -243,6 +301,7 @@ def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, 
         },
         "exact_preview": _exact_preview(paths, specification),
     }
+    proposal["approval_digest"] = _approval_digest(proposal)
     path = _proposal_path(paths, proposal_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(proposal, indent=2) + "\n", encoding="utf-8")
@@ -560,40 +619,68 @@ def approve(
             json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
         )
         return proposal
-    _check_stale(paths, proposal)
-    operation = proposal["specification"]["operation"]
-    lock: Path | None = None
-    lock_handle: int | None = None
-    if operation == "wiki_process":
-        paths.wiki_transactions.mkdir(parents=True, exist_ok=True)
-        lock = paths.wiki_transactions / ".processing.lock"
-        try:
-            lock_handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        except FileExistsError as exc:
-            raise RuntimeError("Another wiki transaction is already active") from exc
+    proposal_lock = _proposal_lock_path(paths, proposal_id)
     try:
-        changed = _apply(paths, proposal["specification"], proposal_id)
+        proposal_lock_handle = os.open(
+            proposal_lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY
+        )
+    except FileExistsError as exc:
+        raise RuntimeError(
+            "Another approval for this proposal is already active"
+        ) from exc
+    try:
+        proposal = load_proposal(paths, proposal_id)
+        if proposal["status"] not in APPROVAL_PENDING_STATUSES:
+            raise ValueError(f"Proposal status is {proposal['status']}")
+        _validate_proposal_schema(proposal)
+        _validate_approval_digest(proposal)
+        recomputed_preview = _exact_preview(paths, proposal["specification"])
+        _check_stale(paths, proposal)
+        if recomputed_preview != proposal.get("exact_preview"):
+            raise RuntimeError(
+                "Proposal exact preview integrity check failed. "
+                "Create a new proposal."
+            )
+        operation = proposal["specification"]["operation"]
+        lock: Path | None = None
+        lock_handle: int | None = None
+        if operation == "wiki_process":
+            paths.wiki_transactions.mkdir(parents=True, exist_ok=True)
+            lock = paths.wiki_transactions / ".processing.lock"
+            try:
+                lock_handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError as exc:
+                raise RuntimeError(
+                    "Another wiki transaction is already active"
+                ) from exc
+        try:
+            changed = _apply(paths, proposal["specification"], proposal_id)
+        finally:
+            if lock_handle is not None:
+                os.close(lock_handle)
+            if lock is not None and lock.exists():
+                lock.unlink()
+        proposal["status"] = "applied"
+        proposal["applied"] = datetime.now().astimezone().isoformat()
+        proposal["changed_paths"] = [
+            _path_label(paths, Path(value)) for value in changed
+        ]
+        _proposal_path(paths, proposal_id).write_text(
+            json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
+        )
+        paths.audit.mkdir(parents=True, exist_ok=True)
+        event = {
+            "time": proposal["applied"],
+            "agent": agent,
+            "action": proposal["specification"]["operation"],
+            "paths": proposal["changed_paths"],
+            "approval": proposal_id,
+        }
+        audit_log = paths.audit / "agent-edits.jsonl"
+        with audit_log.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(event) + "\n")
+        return proposal
     finally:
-        if lock_handle is not None:
-            os.close(lock_handle)
-        if lock is not None and lock.exists():
-            lock.unlink()
-    proposal["status"] = "applied"
-    proposal["applied"] = datetime.now().astimezone().isoformat()
-    proposal["changed_paths"] = [
-        _path_label(paths, Path(value)) for value in changed
-    ]
-    _proposal_path(paths, proposal_id).write_text(
-        json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
-    )
-    paths.audit.mkdir(parents=True, exist_ok=True)
-    event = {
-        "time": proposal["applied"],
-        "agent": agent,
-        "action": proposal["specification"]["operation"],
-        "paths": proposal["changed_paths"],
-        "approval": proposal_id,
-    }
-    with (paths.audit / "agent-edits.jsonl").open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps(event) + "\n")
-    return proposal
+        os.close(proposal_lock_handle)
+        if proposal_lock.exists():
+            proposal_lock.unlink()
