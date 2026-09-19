@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -40,6 +42,55 @@ def test_journal_appends_to_existing_note(second_self: SecondSelfPaths) -> None:
     assert content.count("## Notes") == 1
     assert content.count("## Decisions") == 1
     assert content.count("## Lessons") == 1
+
+
+def test_failed_verification_preserves_existing_journal(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import second_self.writes.journal as journal_module
+
+    now = datetime(2026, 8, 4, 9, 30, tzinfo=timezone.utc)
+    journal_entry(second_self, "Original body.", now=now)
+    target = second_self.layer1 / "02 Journal" / "2026-08-04 - Journal.md"
+    original = target.read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        journal_module,
+        "validate_metadata",
+        lambda metadata: ["simulated verification failure"],
+    )
+
+    with pytest.raises(RuntimeError, match="verification failed"):
+        journal_entry(second_self, "Replacement body.", now=now)
+
+    assert target.read_text(encoding="utf-8") == original
+
+
+def test_concurrent_journal_appends_are_serialized(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import second_self.writes.journal as journal_module
+
+    now = datetime(2026, 8, 4, 9, 30, tzinfo=timezone.utc)
+    journal_entry(second_self, "Initial body.", now=now)
+    original_append = journal_module._append_under_notes
+
+    def delayed_append(text: str, body: str, title: str) -> str:
+        import time
+
+        time.sleep(0.01)
+        return original_append(text, body, title)
+
+    monkeypatch.setattr(journal_module, "_append_under_notes", delayed_append)
+
+    def append(index: int) -> Path:
+        return journal_entry(second_self, f"Body {index}.", now=now).path
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        paths = list(pool.map(append, range(12)))
+
+    assert len(set(paths)) == 1
+    content = paths[0].read_text(encoding="utf-8")
+    assert all(f"Body {index}." in content for index in range(12))
 
 
 def test_journal_title_becomes_heading(second_self: SecondSelfPaths) -> None:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -12,6 +14,8 @@ from ..core.paths import SecondSelfPaths
 
 MAX_TITLE_LENGTH = 120
 MAX_BODY_LENGTH = 100 * 1024
+JOURNAL_LOCK_TIMEOUT_SECONDS = 15
+JOURNAL_LOCK_STALE_SECONDS = 15 * 60
 
 
 @dataclass(frozen=True)
@@ -81,6 +85,52 @@ def _append_under_notes(text: str, body: str, title: str) -> str:
     return "".join(lines[:insert_at]) + block + "".join(lines[insert_at:])
 
 
+@contextmanager
+def _journal_lock(path: Path):
+    """Serialize read/modify/replace operations for one daily journal."""
+    lock_path = path.with_name(f".{path.name}.lock")
+    deadline = time.monotonic() + JOURNAL_LOCK_TIMEOUT_SECONDS
+    acquired = False
+    while not acquired:
+        try:
+            descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except (FileExistsError, PermissionError):
+            try:
+                stale = time.time() - lock_path.stat().st_mtime > JOURNAL_LOCK_STALE_SECONDS
+            except FileNotFoundError:
+                continue
+            if stale:
+                try:
+                    lock_path.unlink()
+                except FileNotFoundError:
+                    continue
+            elif time.monotonic() >= deadline:
+                raise RuntimeError("Journal is busy.")
+            else:
+                time.sleep(0.01)
+        except OSError as exc:
+            raise RuntimeError("Journal lock could not be acquired.") from exc
+        else:
+            os.close(descriptor)
+            acquired = True
+    try:
+        yield
+    finally:
+        try:
+            lock_path.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _verify_journal(path: Path, expected: str) -> None:
+    if path.read_text(encoding="utf-8") != expected:
+        raise RuntimeError("Journal verification failed.")
+    metadata, _ = read_note(path)
+    errors = validate_metadata(metadata)
+    if errors:
+        raise RuntimeError("Journal metadata verification failed.")
+
+
 def journal_entry(
     paths: SecondSelfPaths,
     body: str,
@@ -95,46 +145,58 @@ def journal_entry(
     journal_dir.mkdir(parents=True, exist_ok=True)
     target = journal_dir / f"{entry_date.isoformat()} - Journal.md"
 
-    if target.exists():
-        existing = target.read_text(encoding="utf-8")
-        content = _append_under_notes(existing, body, title)
-        appended = True
-    else:
-        content = _template(entry_date)
-        content = _append_under_notes(content, body, title)
-        appended = False
-    if not content.endswith("\n"):
-        content += "\n"
+    with _journal_lock(target):
+        previous = target.read_bytes() if target.exists() else None
+        if previous is not None:
+            existing = previous.decode("utf-8")
+            content = _append_under_notes(existing, body, title)
+            appended = True
+        else:
+            content = _template(entry_date)
+            content = _append_under_notes(content, body, title)
+            appended = False
+        if not content.endswith("\n"):
+            content += "\n"
 
-    temporary: Path | None = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            newline="\n",
-            prefix=".journal-",
-            suffix=".tmp",
-            dir=journal_dir,
-            delete=False,
-        ) as stream:
-            temporary = Path(stream.name)
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-
-        os.replace(temporary, target)
-        temporary = None
+        temporary: Path | None = None
         try:
-            if target.read_text(encoding="utf-8") != content:
-                raise RuntimeError("Journal verification failed.")
-            metadata, _ = read_note(target)
-            errors = validate_metadata(metadata)
-            if errors:
-                raise RuntimeError("Journal metadata verification failed.")
-        except Exception:
-            target.unlink(missing_ok=True)
-            raise
-        return JournalEntry(target, entry_date, appended)
-    finally:
-        if temporary is not None and temporary.exists():
-            temporary.unlink()
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                newline="\n",
+                prefix=".journal-",
+                suffix=".tmp",
+                dir=journal_dir,
+                delete=False,
+            ) as stream:
+                temporary = Path(stream.name)
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+
+            _verify_journal(temporary, content)
+            os.replace(temporary, target)
+            temporary = None
+            try:
+                _verify_journal(target, content)
+            except Exception:
+                if previous is None:
+                    target.unlink(missing_ok=True)
+                else:
+                    with tempfile.NamedTemporaryFile(
+                        mode="wb",
+                        prefix=".journal-restore-",
+                        suffix=".tmp",
+                        dir=journal_dir,
+                        delete=False,
+                    ) as restore_stream:
+                        restore = Path(restore_stream.name)
+                        restore_stream.write(previous)
+                        restore_stream.flush()
+                        os.fsync(restore_stream.fileno())
+                    os.replace(restore, target)
+                raise
+            return JournalEntry(target, entry_date, appended)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
