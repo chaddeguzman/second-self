@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,9 @@ from ..core.paths import SecondSelfPaths
 from .semantic import (
     Embedder,
     SemanticError,
+    SemanticDocument,
     SemanticIndex,
+    SemanticMatch,
     layer1_documents,
     memory_store_documents,
 )
@@ -350,18 +353,52 @@ def hybrid_recall_layer1(
     )
     if semantic_index is None or embedder is None or not query.strip():
         return keyword_results
-    try:
-        status = semantic_index.status(
-            layer1_documents(paths), model_id=embedder.model_id
-        )
-        if not status.ready:
-            return keyword_results
-        semantic_matches = semantic_index.search(
-            embedder.embed(query), min_score=0.35
-        )
-    except (SemanticError, ValueError, TypeError):
-        return keyword_results
+    semantic_matches = _ready_semantic_matches(
+        semantic_index,
+        embedder,
+        layer1_documents(paths),
+        query,
+    )
 
+    by_path = _merge_layer1_semantic_matches(
+        paths,
+        keyword_results,
+        semantic_matches,
+        today=today,
+    )
+    results = list(by_path.values())
+    for entry in results:
+        entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
+    results.sort(key=lambda entry: (float(entry["score"]), str(entry["title"]).casefold()), reverse=True)
+    return results[:max_results]
+
+
+def _ready_semantic_matches(
+    semantic_index: SemanticIndex,
+    embedder: Embedder,
+    documents: Sequence[SemanticDocument],
+    query: str,
+) -> list[SemanticMatch]:
+    """Return semantic matches only when the supplied index is fresh and usable."""
+    if not query.strip():
+        return []
+    try:
+        status = semantic_index.status(documents, model_id=embedder.model_id)
+        if not status.ready:
+            return []
+        return semantic_index.search(embedder.embed(query), min_score=0.35)
+    except (SemanticError, ValueError, TypeError):
+        return []
+
+
+def _merge_layer1_semantic_matches(
+    paths: SecondSelfPaths,
+    keyword_results: list[dict[str, Any]],
+    semantic_matches: Sequence[SemanticMatch],
+    *,
+    today: date | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Merge Layer 1 semantic matches into keyword results by public path."""
     by_path = {str(item["path"]): item for item in keyword_results}
     current = today or date.today()
     for match in semantic_matches:
@@ -412,11 +449,7 @@ def hybrid_recall_layer1(
             "matched": "",
             "provenance": "layer1",
         }
-    results = list(by_path.values())
-    for entry in results:
-        entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
-    results.sort(key=lambda entry: (float(entry["score"]), str(entry["title"]).casefold()), reverse=True)
-    return results[:max_results]
+    return by_path
 
 
 def _memory_keyword_results(repo_root: Path, query: str, max_results: int) -> list[dict[str, Any]]:
@@ -460,35 +493,36 @@ def hybrid_recall(
 ) -> list[dict[str, Any]]:
     """Unified Layer 1 and durable ECHO-memory recall with safe fallback."""
     all_documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)
-    semantic_ready = semantic_index is not None and embedder is not None
-    if semantic_ready:
-        try:
-            semantic_ready = semantic_index.status(
-                all_documents, model_id=embedder.model_id
-            ).ready
-        except (SemanticError, ValueError, TypeError):
-            semantic_ready = False
-    active_index = semantic_index if semantic_ready else None
-    active_embedder = embedder if semantic_ready else None
-    results = hybrid_recall_layer1(
+    semantic_matches: list[SemanticMatch] = []
+    if semantic_index is not None and embedder is not None:
+        semantic_matches = _ready_semantic_matches(
+            semantic_index,
+            embedder,
+            all_documents,
+            query,
+        )
+
+    layer1_keyword_results = recall_layer1(
         paths,
         query,
-        semantic_index=active_index,
-        embedder=active_embedder,
         max_results=max_results,
         min_score=min_score,
         today=today,
     )
+    layer1_matches = [match for match in semantic_matches if match.source == "layer1"]
+    layer1_by_path = _merge_layer1_semantic_matches(
+        paths,
+        layer1_keyword_results,
+        layer1_matches,
+        today=today,
+    )
+    results = list(layer1_by_path.values())
     for entry in results:
         entry.setdefault("provenance", "layer1")
         entry.setdefault("retrieval", "keyword")
         entry["conflict_review"] = "conflict" in str(entry.get("path", "")).casefold()
     memory_results = _memory_keyword_results(paths.repo_root, query, max_results)
-    if active_index is not None and active_embedder is not None and query.strip():
-        try:
-            semantic_matches = active_index.search(active_embedder.embed(query), min_score=0.35)
-        except (SemanticError, ValueError, TypeError):
-            semantic_matches = []
+    if semantic_matches:
         by_path = {str(entry["path"]): entry for entry in memory_results}
         for match in semantic_matches:
             if match.source != "memory" or not match.path.startswith("memory/"):
