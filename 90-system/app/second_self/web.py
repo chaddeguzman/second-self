@@ -503,7 +503,8 @@ def create_app(
     @app.get("/search")
     def search():
         query = request.args.get("q", "").strip()
-        results = search_layer1(paths, query) if query else []
+        page = search_layer1(paths, query) if query else None
+        results = page.items if page is not None else []
         for result in results:
             result["preview_url"] = url_for(
                 "preview",
@@ -524,7 +525,7 @@ def create_app(
             "search.html",
             query=query,
             results=results,
-            truncated=getattr(results, "truncated", False),
+            truncated=page.truncated if page is not None else False,
             read_only=read_only,
         )
 
