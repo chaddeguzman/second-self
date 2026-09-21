@@ -179,12 +179,22 @@ def test_memory_store_documents_excludes_staging_and_sessions(tmp_path):
 
 
 def test_unified_hybrid_recall_returns_memory_provenance_and_conflict_flag(second_self):
+    layer1_note = second_self.layer1 / "00 Memory" / "Identity Delay.md"
+    layer1_note.parent.mkdir(parents=True, exist_ok=True)
+    layer1_note.write_text(
+        "---\ntype: note\ncreated: 2026-08-01\nstatus: active\n---\n\n"
+        "# Identity Delay\n\nA semantic-only Layer 1 match.\n",
+        encoding="utf-8",
+    )
     memory = second_self.repo_root / "90-system" / ".echo" / "memory"
     memory.mkdir(parents=True, exist_ok=True)
     (memory / "conflict-note.md").write_text("identity and delay", encoding="utf-8")
     docs = layer1_documents(second_self) + memory_store_documents(second_self.repo_root)
     embedder = FakeEmbedder(
-        {doc.text: ((1.0, 0.0) if "identity" in doc.text else (0.0, 1.0)) for doc in docs}
+        {
+            doc.text: ((1.0, 0.0) if doc.path.endswith(("Identity Delay.md", "conflict-note.md")) else (0.0, 1.0))
+            for doc in docs
+        }
         | {"why delay": (1.0, 0.0)}
     )
     index = SemanticIndex(second_self.cache / "semantic" / "index.sqlite3")
@@ -192,8 +202,11 @@ def test_unified_hybrid_recall_returns_memory_provenance_and_conflict_flag(secon
 
     results = hybrid_recall(second_self, "why delay", semantic_index=index, embedder=embedder)
 
+    layer1_results = [item for item in results if item["provenance"] == "layer1"]
     memory_results = [item for item in results if item["provenance"] == "memory"]
+    assert any(item["retrieval"] == "semantic" for item in layer1_results)
     assert memory_results
+    assert any("semantic_score" in item for item in memory_results)
     assert memory_results[0]["conflict_review"] is True
 
 
