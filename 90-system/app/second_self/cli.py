@@ -360,7 +360,12 @@ def _command_journal(args: argparse.Namespace) -> int:
 
 def _command_search(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
-    _print({"results": search_layer1(paths, args.query, max_results=args.max_results)})
+    try:
+        page = search_layer1(paths, args.query, max_results=args.max_results)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    _print(page.as_dict())
     return 0
 
 
