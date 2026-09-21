@@ -155,6 +155,35 @@ def test_stale_raw_source_blocks_wiki_process(second_self: SecondSelfPaths) -> N
         approve(second_self, proposal["id"], "yes")
 
 
+def test_stale_wiki_lock_is_recovered_when_no_transaction_is_active(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import second_self.broker.broker as broker_module
+
+    lock = second_self.wiki_transactions / ".processing.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.touch()
+    monkeypatch.setattr(broker_module, "WIKI_LOCK_STALE_SECONDS", 0)
+    target = second_self.wiki / "topics" / "recovered-lock.md"
+    proposal = propose(
+        second_self,
+        {
+            "operation": "wiki_process",
+            "changes": [
+                {
+                    "path": target.relative_to(second_self.data_root).as_posix(),
+                    "content": _page("wiki-topic", body="# Recovered lock\n"),
+                }
+            ],
+        },
+    )
+
+    approve(second_self, proposal["id"], "yes")
+
+    assert target.exists()
+    assert not lock.exists()
+
+
 def test_wiki_process_rolls_back_page_when_move_fails(
     second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
 ) -> None:

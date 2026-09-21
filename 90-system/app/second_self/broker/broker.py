@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -34,6 +35,10 @@ APPROVAL_PENDING_STATUSES = {
 }
 PROPOSAL_SCHEMA = "second-self-broker-proposal"
 PROPOSAL_VERSION = 1
+TRANSACTION_SCHEMA = "second-self-broker-transaction"
+TRANSACTION_VERSION = 1
+WIKI_LOCK_STALE_SECONDS = 15 * 60
+WIKI_LOCK_SCHEMA = "second-self-wiki-lock"
 
 
 def _hash(path: Path) -> str | None:
@@ -337,6 +342,164 @@ def _write_journal(path: Path, journal: dict[str, Any]) -> None:
     os.replace(temporary, path)
 
 
+def _transaction_stage(paths: SecondSelfPaths, proposal_id: str) -> Path:
+    return paths.audit / "transactions" / proposal_id
+
+
+def _transaction_targets(
+    paths: SecondSelfPaths, specification: dict[str, Any]
+) -> list[Path]:
+    targets = list(_affected(paths, specification))
+    operation = specification["operation"]
+    if operation in {"move", "wiki_process"}:
+        targets.extend(
+            resolve_private_path(paths, item["to"])
+            for item in specification.get("moves", [])
+        )
+    elif operation == "export":
+        targets.append(Path(specification["destination"]).expanduser().resolve())
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for target in targets:
+        key = str(target.resolve()).casefold()
+        if key not in seen:
+            seen.add(key)
+            unique.append(target)
+    return unique
+
+
+def _remove_transaction_path(path: Path) -> None:
+    if os.path.isjunction(path):
+        path.rmdir()
+    elif path.is_dir():
+        shutil.rmtree(path)
+    elif path.exists():
+        path.unlink()
+
+
+def _begin_transaction(
+    paths: SecondSelfPaths, proposal_id: str, specification: dict[str, Any]
+) -> tuple[Path, dict[str, Any]]:
+    stage = _transaction_stage(paths, proposal_id)
+    if stage.exists():
+        raise FileExistsError(f"Transaction staging already exists: {proposal_id}")
+    backups = stage / "backups"
+    backups.mkdir(parents=True)
+    records: list[dict[str, Any]] = []
+    try:
+        for index, target in enumerate(_transaction_targets(paths, specification)):
+            existed = target.exists() or os.path.isjunction(target)
+            record: dict[str, Any] = {
+                "path": str(target),
+                "backup": f"{index}",
+                "existed": existed,
+                "original_hash": _hash(target),
+                "kind": "missing",
+            }
+            if existed and os.path.isjunction(target):
+                record["kind"] = "junction"
+                record["target"] = str(target.resolve())
+            elif existed and target.is_dir():
+                record["kind"] = "directory"
+                shutil.copytree(target, backups / str(index))
+            elif existed:
+                record["kind"] = "file"
+                shutil.copy2(target, backups / str(index))
+            records.append(record)
+        journal = {
+            "schema": TRANSACTION_SCHEMA,
+            "version": TRANSACTION_VERSION,
+            "id": proposal_id,
+            "operation": specification["operation"],
+            "status": "staging",
+            "records": records,
+            "dynamic_paths": [],
+        }
+        _write_journal(stage / "journal.json", journal)
+        journal["status"] = "applying"
+        _write_journal(stage / "journal.json", journal)
+        return stage, journal
+    except Exception:
+        shutil.rmtree(stage, ignore_errors=True)
+        raise
+
+
+def _rollback_transaction(stage: Path, journal: dict[str, Any]) -> None:
+    for value in reversed(journal.get("dynamic_paths", [])):
+        path = Path(value)
+        if path.exists() or os.path.isjunction(path):
+            _remove_transaction_path(path)
+    for record in reversed(journal.get("records", [])):
+        path = Path(record["path"])
+        if path.exists() or os.path.isjunction(path):
+            _remove_transaction_path(path)
+        if not record.get("existed"):
+            continue
+        kind = record.get("kind")
+        if kind == "junction":
+            subprocess.run(
+                ["cmd.exe", "/d", "/c", "mklink", "/J", str(path), record["target"]],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        elif kind == "directory":
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(stage / "backups" / record["backup"], path)
+        elif kind == "file":
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(stage / "backups" / record["backup"], path)
+
+
+def _checkpoint_transaction(stage: Path, journal: dict[str, Any]) -> None:
+    hashes = {
+        record["path"]: _hash(Path(record["path"]))
+        for record in journal.get("records", [])
+    }
+    hashes.update(
+        {value: _hash(Path(value)) for value in journal.get("dynamic_paths", [])}
+    )
+    journal["checkpoint_hashes"] = hashes
+    _write_journal(stage / "journal.json", journal)
+
+
+def _assert_recovery_safe(journal: dict[str, Any]) -> None:
+    checkpoint_hashes = journal.get("checkpoint_hashes", {})
+    for record in journal.get("records", []):
+        path = Path(record["path"])
+        current_hash = _hash(path)
+        allowed = {record.get("original_hash"), checkpoint_hashes.get(str(path))}
+        if current_hash not in allowed:
+            raise RuntimeError(
+                f"Refusing broker recovery because {record['path']} has unrelated content"
+            )
+    for value in journal.get("dynamic_paths", []):
+        path = Path(value)
+        if _hash(path) != checkpoint_hashes.get(value):
+            raise RuntimeError(
+                f"Refusing broker recovery because {value} has unrelated content"
+            )
+
+
+def _recover_transactions(paths: SecondSelfPaths) -> list[str]:
+    root = paths.audit / "transactions"
+    if not root.exists():
+        return []
+    recovered: list[str] = []
+    for journal_path in sorted(root.glob("*/journal.json")):
+        journal = json.loads(journal_path.read_text(encoding="utf-8"))
+        if journal.get("schema") != TRANSACTION_SCHEMA or journal.get("version") != TRANSACTION_VERSION:
+            raise RuntimeError("Broker transaction journal is unsupported")
+        if journal.get("status") not in {"staging", "applying"}:
+            continue
+        _assert_recovery_safe(journal)
+        _rollback_transaction(journal_path.parent, journal)
+        journal["status"] = "rolled-back"
+        _write_journal(journal_path, journal)
+        recovered.append(str(journal.get("id", journal_path.parent.name)))
+    return recovered
+
+
 def _prune_empty_references_parents(paths: SecondSelfPaths, start: Path) -> None:
     """Prune empty parent directories under 04 References after a move-out."""
     references = (paths.layer1 / "04 References").resolve()
@@ -541,10 +704,57 @@ def recover_wiki_transactions(paths: SecondSelfPaths) -> list[str]:
     return recovered
 
 
+def _wiki_transaction_is_active(paths: SecondSelfPaths) -> bool:
+    if not paths.wiki_transactions.exists():
+        return False
+    for journal_path in paths.wiki_transactions.glob("*/journal.json"):
+        journal = json.loads(journal_path.read_text(encoding="utf-8"))
+        if journal.get("status") in {"staging", "applying"}:
+            return True
+    return False
+
+
+def _acquire_wiki_lock(
+    paths: SecondSelfPaths, proposal_id: str
+) -> tuple[Path, int]:
+    paths.wiki_transactions.mkdir(parents=True, exist_ok=True)
+    lock = paths.wiki_transactions / ".processing.lock"
+    try:
+        handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        try:
+            payload = json.dumps(
+                {
+                    "schema": WIKI_LOCK_SCHEMA,
+                    "proposal_id": proposal_id,
+                    "created_at": datetime.now().astimezone().isoformat(),
+                }
+            ).encode("utf-8")
+            os.write(handle, payload)
+            return lock, handle
+        except Exception:
+            os.close(handle)
+            lock.unlink(missing_ok=True)
+            raise
+    except FileExistsError as exc:
+        age = time.time() - lock.stat().st_mtime
+        if age <= WIKI_LOCK_STALE_SECONDS or _wiki_transaction_is_active(paths):
+            raise RuntimeError(
+                "Another wiki transaction is already active"
+            ) from exc
+        lock.unlink()
+        try:
+            return lock, os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError as retry_exc:
+            raise RuntimeError(
+                "Another wiki transaction is already active"
+            ) from retry_exc
+
+
 def _apply(
     paths: SecondSelfPaths,
     specification: dict[str, Any],
     proposal_id: str,
+    transaction: dict[str, Any] | None = None,
 ) -> list[str]:
     operation = specification["operation"]
     changed: list[str] = []
@@ -553,6 +763,10 @@ def _apply(
             path = resolve_private_path(paths, item["path"])
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(item["content"], encoding="utf-8")
+            if transaction is not None:
+                _checkpoint_transaction(
+                    _transaction_stage(paths, proposal_id), transaction
+                )
             changed.append(str(path))
     elif operation == "delete":
         stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
@@ -566,7 +780,17 @@ def _apply(
                 while destination.exists():
                     destination = trash / f"{source.stem}-{counter}{source.suffix}"
                     counter += 1
+                if transaction is not None:
+                    transaction["dynamic_paths"].append(str(destination))
+                    _write_journal(
+                        _transaction_stage(paths, proposal_id) / "journal.json",
+                        transaction,
+                    )
                 shutil.move(str(source), destination)
+                if transaction is not None:
+                    _checkpoint_transaction(
+                        _transaction_stage(paths, proposal_id), transaction
+                    )
                 changed.extend([str(source), str(destination)])
     elif operation == "move":
         for item in specification["moves"]:
@@ -576,6 +800,10 @@ def _apply(
             if destination.exists():
                 raise FileExistsError(destination)
             shutil.move(str(source), destination)
+            if transaction is not None:
+                _checkpoint_transaction(
+                    _transaction_stage(paths, proposal_id), transaction
+                )
             changed.extend([str(source), str(destination)])
     elif operation == "export":
         destination = Path(specification["destination"]).expanduser().resolve()
@@ -583,6 +811,10 @@ def _apply(
         if destination.exists():
             raise FileExistsError(destination)
         destination.write_text(specification["content"], encoding="utf-8")
+        if transaction is not None:
+            _checkpoint_transaction(
+                _transaction_stage(paths, proposal_id), transaction
+            )
         changed.append(str(destination))
     elif operation == "assemble_layer1":
         changed.extend(_assemble_layer1(paths))
@@ -596,6 +828,10 @@ def _apply(
                 text = text.replace(replacement["old"], replacement["new"], 1)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
+            if transaction is not None:
+                _checkpoint_transaction(
+                    _transaction_stage(paths, proposal_id), transaction
+                )
             changed.append(str(path))
     return changed
 
@@ -613,6 +849,7 @@ def approve(
             json.dumps(proposal, indent=2) + "\n", encoding="utf-8"
         )
         return proposal
+    _recover_transactions(paths)
     proposal_lock = _proposal_lock_path(paths, proposal_id)
     try:
         proposal_lock_handle = os.open(
@@ -638,21 +875,34 @@ def approve(
         operation = proposal["specification"]["operation"]
         lock: Path | None = None
         lock_handle: int | None = None
+        lock_owned = False
+        transaction_stage: Path | None = None
+        transaction: dict[str, Any] | None = None
         if operation == "wiki_process":
-            paths.wiki_transactions.mkdir(parents=True, exist_ok=True)
-            lock = paths.wiki_transactions / ".processing.lock"
-            try:
-                lock_handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            except FileExistsError as exc:
-                raise RuntimeError(
-                    "Another wiki transaction is already active"
-                ) from exc
+            lock, lock_handle = _acquire_wiki_lock(paths, proposal_id)
+            lock_owned = True
         try:
-            changed = _apply(paths, proposal["specification"], proposal_id)
+            transaction_stage, transaction = _begin_transaction(
+                paths, proposal_id, proposal["specification"]
+            )
+            changed = _apply(
+                paths,
+                proposal["specification"],
+                proposal_id,
+                transaction,
+            )
+            transaction["status"] = "committed"
+            _write_journal(transaction_stage / "journal.json", transaction)
+        except Exception:
+            if transaction_stage is not None and transaction is not None:
+                _rollback_transaction(transaction_stage, transaction)
+                transaction["status"] = "rolled-back"
+                _write_journal(transaction_stage / "journal.json", transaction)
+            raise
         finally:
             if lock_handle is not None:
                 os.close(lock_handle)
-            if lock is not None and lock.exists():
+            if lock_owned and lock is not None and lock.exists():
                 lock.unlink()
         proposal["status"] = "applied"
         proposal["applied"] = datetime.now().astimezone().isoformat()

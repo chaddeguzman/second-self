@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 
 import pytest
@@ -62,6 +63,189 @@ def test_single_approval_edit_and_audit(
     assert "Approved value." in target.read_text(encoding="utf-8")
     audit = (second_self.audit / "agent-edits.jsonl").read_text(encoding="utf-8")
     assert '"agent": "pytest"' in audit
+
+
+def test_multi_file_edit_failure_restores_every_original(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = second_self.layer1 / "01 Capture/01 Current" / "First.md"
+    second = second_self.layer1 / "01 Capture/01 Current" / "Second.md"
+    _ensure_note(first, "First")
+    _ensure_note(second, "Second")
+    first_original = first.read_text(encoding="utf-8")
+    second_original = second.read_text(encoding="utf-8")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "edit",
+            "changes": [
+                {"path": str(first), "content": "# First replacement"},
+                {"path": str(second), "content": "# Second replacement"},
+            ],
+        },
+    )
+    original_write_text = Path.write_text
+    writes = 0
+
+    def fail_on_second_write(path: Path, data: str, *args: object, **kwargs: object) -> None:
+        nonlocal writes
+        if path in {first, second}:
+            writes += 1
+            if writes == 2:
+                raise OSError("simulated second write failure")
+        original_write_text(path, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", fail_on_second_write)
+    with pytest.raises(OSError, match="simulated second write failure"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert first.read_text(encoding="utf-8") == first_original
+    assert second.read_text(encoding="utf-8") == second_original
+
+
+def test_multi_file_move_failure_restores_sources_and_destinations(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = second_self.layer1 / "01 Capture/02 Notes/First.md"
+    second = second_self.layer1 / "01 Capture/02 Notes/Second.md"
+    first_destination = second_self.layer1 / "04 References/04 guides/First.md"
+    second_destination = second_self.layer1 / "04 References/04 guides/Second.md"
+    _ensure_note(first, "First")
+    _ensure_note(second, "Second")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "move",
+            "moves": [
+                {"from": str(first), "to": str(first_destination)},
+                {"from": str(second), "to": str(second_destination)},
+            ],
+        },
+    )
+    original_move = shutil.move
+    moves = 0
+
+    def fail_on_second_move(source: str, destination: str) -> str:
+        nonlocal moves
+        moves += 1
+        if moves == 2:
+            raise OSError("simulated second move failure")
+        return original_move(source, destination)
+
+    monkeypatch.setattr("second_self.broker.broker.shutil.move", fail_on_second_move)
+    with pytest.raises(OSError, match="simulated second move failure"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert first.exists()
+    assert second.exists()
+    assert not first_destination.exists()
+    assert not second_destination.exists()
+
+
+def test_multi_file_delete_failure_restores_sources_and_trash(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = second_self.layer1 / "01 Capture/02 Notes/First.md"
+    second = second_self.layer1 / "01 Capture/02 Notes/Second.md"
+    _ensure_note(first, "First")
+    _ensure_note(second, "Second")
+    proposal = propose(
+        second_self,
+        {
+            "operation": "delete",
+            "paths": [str(first), str(second)],
+        },
+    )
+    original_move = shutil.move
+    moves = 0
+
+    def fail_on_second_delete_move(source: str, destination: str) -> str:
+        nonlocal moves
+        moves += 1
+        if moves == 2:
+            raise OSError("simulated second delete failure")
+        return original_move(source, destination)
+
+    monkeypatch.setattr("second_self.broker.broker.shutil.move", fail_on_second_delete_move)
+    with pytest.raises(OSError, match="simulated second delete failure"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert first.exists()
+    assert second.exists()
+    assert not list(second_self.trash.rglob("First.md"))
+
+
+@pytest.mark.parametrize("operation", ["migration", "link_fix"])
+def test_multi_file_text_operation_failure_restores_every_original(
+    second_self: SecondSelfPaths,
+    monkeypatch: pytest.MonkeyPatch,
+    operation: str,
+) -> None:
+    first = second_self.layer1 / "01 Capture/02 Notes/First.md"
+    second = second_self.layer1 / "01 Capture/02 Notes/Second.md"
+    _ensure_note(first, "First")
+    _ensure_note(second, "Second")
+    originals = {first: first.read_text(encoding="utf-8"), second: second.read_text(encoding="utf-8")}
+    if operation == "migration":
+        specification = {
+            "operation": operation,
+            "changes": [
+                {"path": str(first), "content": "# Migrated first"},
+                {"path": str(second), "content": "# Migrated second"},
+            ],
+        }
+    else:
+        specification = {
+            "operation": operation,
+            "fixes": [
+                {"path": str(first), "replacements": [{"old": "# First", "new": "# Fixed first"}]},
+                {"path": str(second), "replacements": [{"old": "# Second", "new": "# Fixed second"}]},
+            ],
+        }
+    proposal = propose(second_self, specification)
+    original_write_text = Path.write_text
+    writes = 0
+
+    def fail_on_second_write(path: Path, data: str, *args: object, **kwargs: object) -> None:
+        nonlocal writes
+        if path in originals:
+            writes += 1
+            if writes == 2:
+                raise OSError("simulated second text operation failure")
+        original_write_text(path, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", fail_on_second_write)
+    with pytest.raises(OSError, match="simulated second text operation failure"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert {path: path.read_text(encoding="utf-8") for path in originals} == originals
+
+
+def test_export_failure_leaves_no_destination(
+    second_self: SecondSelfPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    destination = second_self.repo_root / "export.md"
+    proposal = propose(
+        second_self,
+        {
+            "operation": "export",
+            "destination": str(destination),
+            "content": "exported",
+            "sources": [],
+        },
+    )
+    original_write_text = Path.write_text
+
+    def fail_export(path: Path, data: str, *args: object, **kwargs: object) -> None:
+        if path == destination:
+            raise OSError("simulated export failure")
+        original_write_text(path, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", fail_export)
+    with pytest.raises(OSError, match="simulated export failure"):
+        approve(second_self, proposal["id"], "yes")
+
+    assert not destination.exists()
 
 
 def test_proposal_binds_canonical_reviewed_payload(
