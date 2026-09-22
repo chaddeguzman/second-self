@@ -33,7 +33,10 @@ jobs:
       - name: Verify generated front-matter contract
         run: python 90-system/automation/scripts/generate-frontmatter-contract.py --check
       - name: Lint public wiki scaffold
-        run: python -m second_self wiki lint
+        run: |
+          python -m second_self bootstrap --data-root "$env:RUNNER_TEMP\\second-self-public"
+          python -m second_self wiki init
+          python -m second_self wiki lint
       - name: Run semantic evaluation baseline
         run: python -m second_self eval semantic --json
       - name: Run recall evaluation baseline
