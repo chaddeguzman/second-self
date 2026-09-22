@@ -11,6 +11,7 @@ from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
 from ..foundation import foundation_summary
 from ..wiki.wiki import wiki_status
+from .manifest import DocumentManifest, build_manifest
 
 
 MAX_SCAN_FILES = 10_000
@@ -294,6 +295,68 @@ def _scan_projects(paths: SecondSelfPaths, result: _ScanResult) -> None:
             result.projects.append(item)
 
 
+def _scan_manifest(paths: SecondSelfPaths, manifest: DocumentManifest, result: _ScanResult) -> None:
+    """Populate dashboard note/project items from a shared document snapshot."""
+    for entry in manifest.entries:
+        if result.scanned >= MAX_SCAN_FILES:
+            result.errors += 1
+            break
+        relative = entry.relative_path
+        if not relative.lower().endswith(".md"):
+            continue
+        if relative.casefold().startswith("01-strategy-storage/98-trash/"):
+            continue
+        if relative.casefold().startswith("01-strategy-storage/99-audit/"):
+            continue
+        if relative.casefold().startswith("01-strategy-storage/00 memory/"):
+            continue
+        if relative.casefold().startswith("03-wiki/"):
+            continue
+        if Path(relative).stem.casefold().endswith(" index"):
+            continue
+        if relative.casefold().startswith("01-strategy-storage/"):
+            scope: Literal["layer1", "projects"] = "layer1"
+            root_prefix = "01-strategy-storage/"
+        elif relative.casefold().startswith("02-skills-projects/projects/"):
+            scope = "projects"
+            root_prefix = "02-skills-projects/projects/"
+        else:
+            continue
+        relative_path = relative.removeprefix(root_prefix)
+        if scope == "projects" and ("/" in relative_path or relative_path.casefold() == "projects index.md"):
+            continue
+        metadata = entry.metadata or {}
+        if not entry.readable:
+            result.legacy.append({"path": relative_path, "scope": scope, "reason": entry.error or "read error"})
+            result.legacy_excluded += 1
+            result.errors += 1
+            continue
+        if not metadata:
+            result.legacy.append({"path": relative_path, "scope": scope, "reason": "empty metadata"})
+            result.legacy_excluded += 1
+            continue
+        body = entry.body or ""
+        result.scanned += 1
+        item = DashboardItem(
+            scope=scope,
+            relative_path=relative_path,
+            title=_title(body, Path(relative_path)),
+            record_type=str(metadata.get("type", "")),
+            status=str(metadata.get("status", "")),
+            created=_parse_date(metadata.get("created")),
+            due=_parse_date(metadata.get("due")),
+            preview_eligible=True,
+            tags=_tags(metadata.get("tags")),
+            project_state=str(metadata.get("project_state", "")),
+            writeback_status=str(metadata.get("writeback_status", "")),
+        )
+        if scope == "layer1":
+            result.layer1.append(item)
+        else:
+            result.projects.append(item)
+        result.saw_due_field = result.saw_due_field or item.due is not None
+
+
 def _humanize_age(days: int) -> str:
     if days <= 0:
         return "today"
@@ -346,11 +409,16 @@ def _queue(
     )
 
 
-def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> DashboardSnapshot:
+def scan_dashboard(
+    paths: SecondSelfPaths,
+    today: date | None = None,
+    *,
+    manifest: DocumentManifest | None = None,
+) -> DashboardSnapshot:
     today = today or date.today()
     result = _ScanResult([], [], [])
-    _scan_layer1(paths, result)
-    _scan_projects(paths, result)
+    manifest = manifest or build_manifest(paths)
+    _scan_manifest(paths, manifest, result)
     layer1 = result.layer1
     raw_items, raw_scan_errors = _raw_file_items(paths.raw, paths.layer1)
     raw_items = tuple(
@@ -410,7 +478,7 @@ def scan_dashboard(paths: SecondSelfPaths, today: date | None = None) -> Dashboa
         legacy=tuple(result.legacy),
         scan_errors=result.errors + int(root_error) + raw_scan_errors,
         scanned_files=result.scanned,
-        wiki=wiki_status(paths),
+        wiki=wiki_status(paths, manifest),
         foundation=foundation_summary(paths),
         layer1=tuple(layer1),
         projects=tuple(result.projects),

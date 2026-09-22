@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..core.paths import SecondSelfPaths
+from .manifest import DocumentManifest, build_manifest
 
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -30,7 +31,11 @@ def _snippet(text: str, match_start: int, match_end: int) -> str:
 
 
 def search_layer1(
-    paths: SecondSelfPaths, query: str, *, max_results: int = 50
+    paths: SecondSelfPaths,
+    query: str,
+    *,
+    max_results: int = 50,
+    manifest: DocumentManifest | None = None,
 ) -> SearchPage:
     if max_results <= 0:
         raise ValueError("max_results must be positive")
@@ -40,6 +45,29 @@ def search_layer1(
     needle = query.casefold()
     results: list[dict[str, str]] = []
     truncated = False
+    if manifest is not None or paths.layer1.is_dir():
+        snapshot = manifest or build_manifest(paths)
+        for entry in snapshot.entries:
+            if not entry.relative_path.casefold().startswith("01-strategy-storage/") or not entry.readable:
+                continue
+            text = entry.text
+            if text is None:
+                continue
+            index = text.casefold().find(needle)
+            if index == -1:
+                continue
+            if len(results) >= max_results:
+                return SearchPage(results, truncated=True)
+            results.append(
+                {
+                    "path": entry.relative_path,
+                    "relative_path": entry.relative_path.removeprefix("01-strategy-storage/"),
+                    "scope": "layer1",
+                    "snippet": _snippet(text, index, index + len(query)),
+                    "matched": text[index : index + len(query)],
+                }
+            )
+        return SearchPage(results)
     root = paths.layer1
     if not root.is_dir():
         return SearchPage(results)

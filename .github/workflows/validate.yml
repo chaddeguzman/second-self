@@ -24,7 +24,10 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements.lock
       - run: python -m pip install --no-deps -e .
+      - run: python -m pip install "ruff>=0.12,<1" "mypy>=2,<3"
       - run: python -m pytest
+      - run: python -m ruff check 90-system/app/second_self/broker/models.py 90-system/app/second_self/wiki/models.py
+      - run: python -m mypy
       - run: python -m second_self validate --privacy
   open-pull-request:
     if: github.ref_name == 'automation/main'

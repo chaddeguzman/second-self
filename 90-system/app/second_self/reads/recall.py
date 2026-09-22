@@ -15,6 +15,7 @@ from typing import Any
 
 from ..core.frontmatter import read_note
 from ..core.paths import SecondSelfPaths
+from .manifest import DocumentManifest, build_manifest
 from .semantic import (
     Embedder,
     SemanticError,
@@ -199,12 +200,28 @@ def _snippet(text: str, match_start: int, match_end: int) -> str:
     return f"{prefix}{text[start:end]}{suffix}"
 
 
-def _iter_layer1_notes(paths: SecondSelfPaths) -> list[tuple[Path, str]]:
+def _iter_layer1_notes(
+    paths: SecondSelfPaths,
+    manifest: DocumentManifest | None = None,
+) -> list[tuple[Path, str, object | None]]:
     """Walk Layer 1 and return (path, relative_to_layer1) for each .md note."""
     root = paths.layer1
+    if manifest is not None:
+        return [
+            (
+                paths.data_root / entry.relative_path,
+                entry.relative_path.removeprefix("01-strategy-storage/"),
+                entry,
+            )
+            for entry in manifest.entries
+            if entry.relative_path.casefold().startswith("01-strategy-storage/")
+            and entry.relative_path.lower().endswith(".md")
+            and Path(entry.relative_path).name.casefold() not in EXCLUDED_FILES
+            and entry.readable
+        ]
     if not root.is_dir():
         return []
-    notes: list[tuple[Path, str]] = []
+    notes: list[tuple[Path, str, object | None]] = []
     try:
         walker = os.walk(root, followlinks=False)
         for directory, directories, files in walker:
@@ -222,7 +239,7 @@ def _iter_layer1_notes(paths: SecondSelfPaths) -> list[tuple[Path, str]]:
                 if name.casefold() in EXCLUDED_FILES:
                     continue
                 path = current / name
-                notes.append((path, path.relative_to(root).as_posix()))
+                notes.append((path, path.relative_to(root).as_posix(), None))
     except OSError:
         return notes
     return notes
@@ -235,6 +252,7 @@ def recall_layer1(
     max_results: int = 50,
     min_score: int = 0,
     today: date | None = None,
+    manifest: DocumentManifest | None = None,
 ) -> list[dict[str, Any]]:
     """Ranked recall search across Layer 1 notes.
 
@@ -247,19 +265,29 @@ def recall_layer1(
     needle = query.casefold()
 
     results: list[dict[str, Any]] = []
-    for path, relative in _iter_layer1_notes(paths):
-        try:
-            if path.stat().st_size > MAX_FILE_BYTES:
+    manifest = manifest or build_manifest(paths)
+    for path, relative, raw_entry in _iter_layer1_notes(paths, manifest):
+        if raw_entry is not None:
+            entry = raw_entry
+            text = entry.text
+            if text is None:
                 continue
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeError):
-            continue
+        else:
+            try:
+                if path.stat().st_size > MAX_FILE_BYTES:
+                    continue
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                continue
 
         # Parse frontmatter for tags and created date.
         tags: tuple[str, ...] = ()
         created: date | None = None
         try:
-            metadata, body = read_note(path)
+            if raw_entry is not None:
+                metadata, body = entry.metadata or {}, entry.body or ""
+            else:
+                metadata, body = read_note(path)
             raw_tags = metadata.get("tags")
             if isinstance(raw_tags, list):
                 tags = tuple(
@@ -337,6 +365,7 @@ def hybrid_recall_layer1(
     max_results: int = 50,
     min_score: int = 0,
     today: date | None = None,
+    manifest: DocumentManifest | None = None,
 ) -> list[dict[str, Any]]:
     """Combine keyword recall with optional semantic index results.
 
@@ -350,6 +379,7 @@ def hybrid_recall_layer1(
         max_results=max_results,
         min_score=min_score,
         today=today,
+        manifest=manifest,
     )
     if semantic_index is None or embedder is None or not query.strip():
         return keyword_results
@@ -490,6 +520,7 @@ def hybrid_recall(
     max_results: int = 50,
     min_score: int = 0,
     today: date | None = None,
+    manifest: DocumentManifest | None = None,
 ) -> list[dict[str, Any]]:
     """Unified Layer 1 and durable ECHO-memory recall with safe fallback."""
     all_documents = layer1_documents(paths) + memory_store_documents(paths.repo_root)

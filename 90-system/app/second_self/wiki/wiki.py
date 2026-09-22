@@ -10,6 +10,7 @@ from typing import Any
 from ..core.frontmatter import read_note, split_frontmatter, validate_metadata
 from ..core.paths import SecondSelfPaths, resolve_private_path
 from ..core.scaffold import scaffold_wiki
+from ..reads.manifest import DocumentManifest, build_manifest
 from .links import parse_wikilinks, resolve_wiki_target
 
 
@@ -144,10 +145,26 @@ def add_source(paths: SecondSelfPaths, source: Path) -> dict[str, Any]:
     }
 
 
-def _source_records(paths: SecondSelfPaths) -> dict[str, dict[str, Any]]:
+def _source_records(
+    paths: SecondSelfPaths,
+    manifest: DocumentManifest | None = None,
+) -> dict[str, dict[str, Any]]:
     records: dict[str, dict[str, Any]] = {}
     source_dir = paths.wiki / "sources"
     if not source_dir.exists():
+        return records
+    if manifest is not None:
+        for entry in manifest.entries:
+            if not (
+                entry.relative_path.casefold().startswith("03-wiki/sources/")
+                and entry.relative_path.lower().endswith(".md")
+                and entry.readable
+            ):
+                continue
+            metadata = entry.metadata or {}
+            source_id = str(metadata.get("source_id", ""))
+            if source_id:
+                records[source_id] = metadata
         return records
     for page in source_dir.glob("*.md"):
         try:
@@ -160,8 +177,11 @@ def _source_records(paths: SecondSelfPaths) -> dict[str, dict[str, Any]]:
     return records
 
 
-def wiki_status(paths: SecondSelfPaths) -> dict[str, Any]:
-    records = _source_records(paths)
+def wiki_status(
+    paths: SecondSelfPaths,
+    manifest: DocumentManifest | None = None,
+) -> dict[str, Any]:
+    records = _source_records(paths, manifest or build_manifest(paths))
     records_by_path = {
         str(metadata.get("source_path", "")): metadata
         for metadata in records.values()
