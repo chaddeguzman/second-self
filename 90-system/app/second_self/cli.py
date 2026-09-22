@@ -1,25 +1,34 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import importlib.util
 import json
 import sys
-from time import perf_counter
+from datetime import datetime, timezone
 from pathlib import Path
+from time import perf_counter
 
+from .agent_status import build_report as build_agent_status_report
+from .agent_status import render_report as render_agent_status
 from .broker.broker import (
     approve,
     load_proposal,
     propose,
     recover_wiki_transactions,
 )
-from .capabilities import build_report as build_capability_report
+from .capabilities import (
+    build_guide_report as build_capability_guide_report,
+)
+from .capabilities import (
+    build_report as build_capability_report,
+)
+from .capabilities import (
+    render_guide as render_capability_guide,
+)
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
-from .evaluation import discover_suites
+from .evaluation import discover_suites, run_suite
 from .evaluation import render_text as render_eval_text
-from .evaluation import run_suite
 from .evaluation.reporting import (
     BASELINE_VERSION,
     BaselineError,
@@ -46,19 +55,26 @@ from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
 from .reads.due import due_items
 from .reads.recall import hybrid_recall
-from .reads.semantic import FastEmbedder, SemanticError, SemanticIndex, layer1_documents, memory_store_documents
 from .reads.recent import recent_items
 from .reads.search import search_layer1
+from .reads.semantic import (
+    FastEmbedder,
+    SemanticError,
+    SemanticIndex,
+    layer1_documents,
+    memory_store_documents,
+)
+from .retrieval_transparency import build_report as build_retrieval_transparency
 from .routing import DataOrigin, DataOriginKind, diagnose_policy
 from .scheduler import JobStore, SchedulerStateError
 from .scheduler.due import run_due
-from .scheduler.lock import SchedulerLock, SchedulerLockError
 from .scheduler.launcher import (
     WindowsTaskScheduler,
     install_launcher,
     launcher_status,
     remove_launcher,
 )
+from .scheduler.lock import SchedulerLock, SchedulerLockError
 from .wiki.wiki import add_source, initialize_wiki, lint_wiki, wiki_status
 from .writes.capture import capture_note
 from .writes.journal import journal_entry
@@ -156,9 +172,11 @@ def _command_doctor(args: argparse.Namespace) -> int:
 
 
 def _command_capabilities(args: argparse.Namespace) -> int:
-    report = build_capability_report()
+    report = build_capability_guide_report() if args.guide else build_capability_report()
     if args.json:
         _print(report)
+    elif args.guide:
+        print(render_capability_guide(report))
     else:
         for item in report["capabilities"]:
             print(f"{item['name']}: {item['state']} — {item['summary']}")
@@ -399,17 +417,30 @@ def _command_recall(args: argparse.Namespace) -> int:
         max_results=args.max_results,
         min_score=args.min_score,
     )
-    _print({"results": results})
+    fallback = not any(item.get("retrieval") in {"semantic", "hybrid"} for item in results)
+    payload: dict[str, object] = {"results": results}
+    if args.explain:
+        payload["transparency"] = build_retrieval_transparency(results, fallback=fallback)
+    _print(payload)
     append_event(
         paths.cache / "retrieval-quality.jsonl",
         RetrievalEvent.from_results(
             result_count=len(results),
             results=results,
-            fallback=not any(item.get("retrieval") in {"semantic", "hybrid"} for item in results),
+            fallback=fallback,
             latency_ms=round((perf_counter() - started) * 1000),
             event_id=f"recall-{round(started * 1000)}",
         ),
     )
+    return 0
+
+
+def _command_agents(args: argparse.Namespace) -> int:
+    report = build_agent_status_report(REPO_ROOT / "90-system" / ".echo" / "subagents")
+    if args.json:
+        _print(report)
+    else:
+        print(render_agent_status(report))
     return 0
 
 
@@ -637,6 +668,11 @@ def build_parser() -> argparse.ArgumentParser:
         "capabilities", help="show redacted ECHO capability availability"
     )
     capabilities.add_argument("--json", action="store_true")
+    capabilities.add_argument(
+        "--guide",
+        action="store_true",
+        help="show state meanings, boundaries, prerequisites, examples, and safe next steps",
+    )
     capabilities.set_defaults(func=_command_capabilities)
 
     route = sub.add_parser(
@@ -708,7 +744,20 @@ def build_parser() -> argparse.ArgumentParser:
     recall.add_argument("query")
     recall.add_argument("--max-results", type=int, default=50)
     recall.add_argument("--min-score", type=int, default=0)
+    recall.add_argument(
+        "--explain",
+        action="store_true",
+        help="include evidence, provenance, retrieval status, uncertainty, and next action",
+    )
     recall.set_defaults(func=_command_recall)
+
+    agents = sub.add_parser("agents", help="show delegated-agent status")
+    agents_sub = agents.add_subparsers(dest="agents_command", required=True)
+    agents_status = agents_sub.add_parser(
+        "status", help="show redacted status and latest assignment for each agent"
+    )
+    agents_status.add_argument("--json", action="store_true")
+    agents_status.set_defaults(func=_command_agents)
 
     retrieval_quality = sub.add_parser(
         "retrieval-quality", help="show redacted retrieval quality metrics"

@@ -15,6 +15,7 @@
 |------------|-------------|---------|
 | Vault recall | Read-only, evidence-based retrieval across Second Self's curated vault. Cites file + date. Refuses to invent. | Chad: "Find what I wrote about procrastination." → ECHO searches vault, returns `[confirmed]` finding with citation. |
 | Memory-store recall | Ranked retrieval over ECHO's own memory entries. Keyword-first, degrades gracefully if embeddings unavailable. | Chad: "How do I prefer to work?" → ECHO searches memory store, returns relevant entries. |
+| Recall transparency | Optional bounded explanation of answer, evidence provenance, retrieval mode, capability status, uncertainty, and next action. It omits raw snippets and paths from the explanation object. | `python -m second_self recall "topic" --explain` → ECHO returns results plus a trust summary. |
 | Conflict review | When sources disagree, lays each claim side by side with date and source. Never picks a winner. | Chad: "I have two different opinions on X." → ECHO presents both with sources, lets Chad decide. |
 | Local sensitive drafting boundary | Internal review-before-apply drafting from cited Memory, Journal, or Strategy recall results. Policy runs first and only local Ollama receives raw text; the result remains untrusted in-memory data with no apply or tool authority. | A trusted caller requests a draft from cited sensitive recall results → ECHO returns a citation-preserving proposal for human review or a redacted failure, without changing evidence. |
 
@@ -33,6 +34,7 @@
 |------------|-------------|---------|
 | Delegate | Assesses task complexity, routes to the right sub-agent, monitors progress, reports back. Keeps ECHO free. | Chad: "Build me a SAP workflow tracker." → ECHO: "Handing this to Charlie. I'll let you know when it's done." |
 | Status check | Reads the assigned sub-agent's log and reports current status or results. | Chad: "Is it done?" → ECHO reads Charlie's log, reports back. |
+| Delegated-agent status | Redacted roster of each agent's current status and active assignment. | `python -m second_self agents status` → ECHO shows Charlie, Walter, and Sherlock progress. |
 
 ### Fun Features
 
@@ -68,6 +70,11 @@
   stable, redacted availability states. Gmail and Drive remain disabled future
   connectors; the registry does not imply OAuth, network access, or write
   authority.
+- **Capability guide** — `python -m second_self capabilities --guide` explains
+  the four states, data boundaries, prerequisites, approval requirements,
+  examples, fallbacks, and safe next steps. Add `--json` for the stable
+  `capability-help/v1` machine-readable shape. The guide never enables a
+  disabled capability or grants external-action authority.
 - **Future Gmail/Drive contract** — DOC-002 defines the provider-neutral,
   typed boundary for explicit read-only requests and transient,
   source-attributed metadata. Any explicit save must use the broker-reviewed
