@@ -79,6 +79,12 @@
   typed boundary for explicit read-only requests and transient,
   source-attributed metadata. Any explicit save must use the broker-reviewed
   Raw capture flow; no adapter, OAuth, sync, or external write is enabled.
+- **Gmail read-only adapter** — `python -m second_self gmail auth
+  --client-config <local-file>` performs explicit read-only OAuth consent;
+  set `SECOND_SELF_GMAIL_ENABLED=1` for the process, then
+  `python -m second_self gmail search "from:team"` performs bounded metadata
+  search. OAuth material stays in the OS keyring and is never printed or
+  committed.
 
 | Tool | Command | Description | Example |
 |------|---------|-------------|---------|

@@ -147,6 +147,7 @@
 
 ## Planned (not yet wired)
 - Voice interaction (Phase 2).
-- Further external connectors (Gmail, Drive — provider-neutral DOC-002
-  contracts exist; adapter/OAuth work remains separate) and autonomous action
-  (Phase 3–4).
+- Further external connectors (Drive — provider-neutral DOC-002 contracts
+  exist; adapter/OAuth work remains separate) and autonomous action (Phase
+  3–4). Gmail's read-only adapter is implemented but remains disabled until
+  explicit enablement; OAuth material belongs in the OS keyring only.

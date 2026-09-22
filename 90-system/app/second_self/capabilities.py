@@ -68,10 +68,17 @@ def build_registry() -> tuple[Capability, ...]:
             "Future read-only, on-demand Gmail search",
             "future_connector",
             boundary="external_provider_when_enabled",
-            prerequisites=("DOC-002 contract", "explicit enablement"),
+            prerequisites=(
+                "DOC-002 contract",
+                "explicit enablement",
+                "read-only OAuth consent",
+            ),
             approval="explicit_request",
             fallback="remains disabled; local recall is unaffected",
-            examples=("search Gmail metadata",),
+            examples=(
+                "python -m second_self gmail auth --client-config <local-file>",
+                "python -m second_self gmail search \"from:team\"",
+            ),
         ),
         Capability(
             "drive",

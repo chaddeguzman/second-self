@@ -1,4 +1,4 @@
-"""Provider-neutral contracts for future external connectors."""
+"""Provider-neutral contracts and optional external connector boundaries."""
 
 from .contracts import (
     ConnectorItem,
@@ -7,6 +7,13 @@ from .contracts import (
     ConnectorResult,
     ConnectorState,
 )
+from .gmail_auth import (
+    GMAIL_READONLY_SCOPE,
+    GmailAuthError,
+    GmailCredentialStore,
+    authorize_gmail,
+    load_gmail_credentials,
+)
 
 __all__ = [
     "ConnectorItem",
@@ -14,4 +21,9 @@ __all__ = [
     "ConnectorRequest",
     "ConnectorResult",
     "ConnectorState",
+    "GMAIL_READONLY_SCOPE",
+    "GmailAuthError",
+    "GmailCredentialStore",
+    "authorize_gmail",
+    "load_gmail_credentials",
 ]

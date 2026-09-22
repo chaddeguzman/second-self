@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,6 +26,17 @@ from .capabilities import (
 from .capabilities import (
     render_guide as render_capability_guide,
 )
+from .connectors import (
+    ConnectorKind,
+    ConnectorRequest,
+    ConnectorResult,
+    ConnectorState,
+    GmailAuthError,
+    GmailCredentialStore,
+    authorize_gmail,
+    load_gmail_credentials,
+)
+from .connectors.gmail import GmailConnector
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
 from .evaluation import discover_suites, run_suite
@@ -181,6 +193,102 @@ def _command_capabilities(args: argparse.Namespace) -> int:
         for item in report["capabilities"]:
             print(f"{item['name']}: {item['state']} — {item['summary']}")
     return 0
+
+
+def _gmail_enabled() -> bool:
+    return os.environ.get("SECOND_SELF_GMAIL_ENABLED", "").casefold() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
+def _gmail_client_config(args: argparse.Namespace) -> Path:
+    configured = args.client_config or os.environ.get("SECOND_SELF_GMAIL_CLIENT_CONFIG", "")
+    return Path(configured) if configured else Path("missing-gmail-client.json")
+
+
+def _build_gmail_service():
+    try:
+        from googleapiclient.discovery import build
+
+        credentials = load_gmail_credentials(GmailCredentialStore())
+        return build("gmail", "v1", credentials=credentials, cache_discovery=False)
+    except GmailAuthError:
+        raise
+    except Exception as exc:
+        raise GmailAuthError("Gmail service is unavailable") from exc
+
+
+def _gmail_payload(result: ConnectorResult) -> dict[str, object]:
+    return {
+        "version": "gmail-connector/v1",
+        "kind": result.kind.value,
+        "state": result.state.value,
+        "message": result.message,
+        "items": [
+            {
+                "id": item.item_id,
+                "title": item.title,
+                "source_uri": item.source_uri,
+                "metadata": dict(item.metadata),
+            }
+            for item in result.items
+        ],
+    }
+
+
+def _render_gmail_result(result: ConnectorResult, *, as_json: bool) -> None:
+    payload = _gmail_payload(result)
+    if as_json:
+        _print(payload)
+        return
+    print(f"Gmail: {result.state.value}")
+    if result.message:
+        print(result.message)
+    for item in result.items:
+        print(f"- {item.title} ({item.source_uri})")
+
+
+def _command_gmail(args: argparse.Namespace) -> int:
+    store = GmailCredentialStore()
+    if args.gmail_command == "auth":
+        try:
+            authorize_gmail(_gmail_client_config(args), store)
+        except GmailAuthError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        payload = {
+            "version": "gmail-auth/v1",
+            "state": "available",
+            "message": "Gmail read-only authorization stored in the OS keyring.",
+        }
+        if args.json:
+            _print(payload)
+        else:
+            print(payload["message"])
+        return 0
+
+    request = ConnectorRequest(ConnectorKind.GMAIL, args.query, limit=args.limit)
+    if not _gmail_enabled():
+        result = ConnectorResult(
+            ConnectorKind.GMAIL,
+            ConnectorState.DISABLED,
+            message="Gmail is disabled; local Second Self recall remains available.",
+        )
+        _render_gmail_result(result, as_json=args.json)
+        return 0
+    try:
+        connector = GmailConnector(_build_gmail_service, enabled=True)
+        result = connector.search(request)
+    except GmailAuthError:
+        result = ConnectorResult(
+            ConnectorKind.GMAIL,
+            ConnectorState.UNAVAILABLE,
+            message="Gmail authorization is unavailable; run explicit read-only authorization.",
+        )
+    _render_gmail_result(result, as_json=args.json)
+    return 0 if result.state is not ConnectorState.UNAVAILABLE else 2
 
 
 def _command_route(args: argparse.Namespace) -> int:
@@ -674,6 +782,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="show state meanings, boundaries, prerequisites, examples, and safe next steps",
     )
     capabilities.set_defaults(func=_command_capabilities)
+
+    gmail = sub.add_parser("gmail", help="explicit read-only Gmail operations")
+    gmail_sub = gmail.add_subparsers(dest="gmail_command", required=True)
+    gmail_auth = gmail_sub.add_parser("auth", help="authorize Gmail read-only access")
+    gmail_auth.add_argument("--client-config", type=Path)
+    gmail_auth.add_argument("--json", action="store_true")
+    gmail_auth.set_defaults(func=_command_gmail)
+    gmail_search = gmail_sub.add_parser("search", help="search bounded Gmail metadata")
+    gmail_search.add_argument("query")
+    gmail_search.add_argument("--limit", type=int, default=20)
+    gmail_search.add_argument("--json", action="store_true")
+    gmail_search.set_defaults(func=_command_gmail)
 
     route = sub.add_parser(
         "route",
