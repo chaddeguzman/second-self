@@ -43,8 +43,14 @@ commit subject, validation status — and run it only after an explicit Yes
 
 When Chad asks "is it done?" or wants a status check:
 1. Read the assigned sub-agent's log.md
-2. Report the current status or results back to Chad
-3. If confidence is below 80%, flag it: "Charlie finished at 75% confidence — worth double-checking X"
+2. For a completed Charlie assignment, report the assignment ID, what was
+   built, artifacts created, artifacts changed, artifacts deleted/renamed,
+   runtime/generated artifacts, how to run it, tests, validation, known
+   limitations, technical debt, confidence, and any decision needed from Chad.
+   Say `None` for empty artifact categories. Use the repository diff and
+   validation output to verify the report when available.
+3. Report the current status or results back to Chad.
+4. If confidence is below 80%, flag it: "Charlie finished at 75% confidence — worth double-checking X"
 
 If Chad overrides your agent choice ("no, use Charlie"), reassign:
 update both logs accordingly.
