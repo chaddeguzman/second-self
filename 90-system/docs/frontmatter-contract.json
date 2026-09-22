@@ -1,0 +1,60 @@
+{
+  "contract": "second-self-frontmatter",
+  "version": 1,
+  "core_required": ["type", "created", "status"],
+  "fields": {
+    "type": {
+      "kind": "string",
+      "enum": [
+        "capture", "identity", "strategy", "note", "journal", "book",
+        "reference", "quote", "lesson", "review", "decision", "conflict",
+        "import", "project", "handoff", "wiki-index", "wiki-log",
+        "wiki-open-questions", "wiki-source", "wiki-topic"
+      ]
+    },
+    "created": {"kind": "date"},
+    "status": {
+      "kind": "string",
+      "enum": ["inbox", "proposed", "active", "superseded", "archived"]
+    },
+    "updated": {"kind": "date", "required": false},
+    "tags": {"kind": "list", "items": "string", "unique": true, "required": false},
+    "projects": {"kind": "list", "items": "string", "unique": true, "required": false},
+    "related": {"kind": "list", "items": "string", "unique": true, "required": false},
+    "source": {"kind": "string-or-list", "required": false},
+    "project_state": {
+      "kind": "string",
+      "enum": ["idea", "planned", "active", "paused", "completed", "cancelled", "archived"]
+    },
+    "repository": {"kind": "string"},
+    "local_path": {"kind": "string", "required": false},
+    "verification": {"kind": "string", "enum": ["derived"]},
+    "source_id": {"kind": "string"},
+    "source_path": {"kind": "string"},
+    "source_sha256": {"kind": "string"},
+    "source_kind": {"kind": "string"},
+    "processed_at": {"kind": "datetime"},
+    "duplicate_of": {"kind": "string", "required": false},
+    "supersedes": {"kind": "string", "required": false}
+  },
+  "profiles": {
+    "project": {
+      "required": ["project_state", "repository"],
+      "type": "project"
+    },
+    "wiki-derived": {
+      "required": ["verification"],
+      "verification": "derived"
+    },
+    "wiki-source": {
+      "required": [
+        "verification", "source_id", "source_path", "source_sha256"
+      ],
+      "type": "wiki-source",
+      "verification": "derived"
+    },
+    "wiki-index": {"required": ["verification"], "type": "wiki-index", "verification": "derived"},
+    "wiki-log": {"required": ["verification"], "type": "wiki-log", "verification": "derived"},
+    "wiki-open-questions": {"required": ["verification"], "type": "wiki-open-questions", "verification": "derived"}
+  }
+}

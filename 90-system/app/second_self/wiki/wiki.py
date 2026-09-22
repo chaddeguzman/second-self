@@ -10,6 +10,7 @@ from typing import Any
 from ..core.frontmatter import read_note, split_frontmatter, validate_metadata
 from ..core.paths import SecondSelfPaths, resolve_private_path
 from ..core.scaffold import scaffold_wiki
+from .links import parse_wikilinks, resolve_wiki_target
 
 
 SUPPORTED = {
@@ -287,6 +288,18 @@ def validate_wiki_change_set(
             linked = (target.parent / decoded).resolve()
             if _inside(linked, paths.wiki) and linked not in mapped and not linked.exists():
                 errors.append(f"{target.name}: broken wiki link {raw_link}")
+        for link in parse_wikilinks(body):
+            if link.is_embed:
+                continue
+            linked = resolve_wiki_target(target, link.target, paths)
+            if linked is None:
+                stripped = re.split(r"[#^]", link.target, maxsplit=1)[0].strip()
+                candidates = [
+                    (target.parent / stripped).with_suffix(".md"),
+                    (paths.wiki / stripped).with_suffix(".md"),
+                ]
+                if not any(candidate.resolve() in mapped for candidate in candidates):
+                    errors.append(f"{target.name}: broken wiki link {link.target}")
     if errors:
         raise ValueError("Invalid wiki change set: " + "; ".join(errors))
 
@@ -322,6 +335,16 @@ def lint_wiki(paths: SecondSelfPaths) -> list[str]:
                     f"{page.relative_to(paths.wiki).as_posix()}: broken link {raw_link}"
                 )
             if target in incoming:
+                incoming[target] += 1
+        for link in parse_wikilinks(body):
+            if link.is_embed:
+                continue
+            target = resolve_wiki_target(page, link.target, paths)
+            if target is None:
+                errors.append(
+                    f"{page.relative_to(paths.wiki).as_posix()}: broken link [[{link.target}]]"
+                )
+            elif target in incoming:
                 incoming[target] += 1
         if page.name == "log.md":
             lines = body.splitlines()
@@ -368,5 +391,3 @@ def references_destination(
         )
     destination = paths.layer1 / "04 References" / subfolder / source.name
     return _collision_safe(destination)
-
-
