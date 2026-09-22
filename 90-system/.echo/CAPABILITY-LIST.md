@@ -68,6 +68,10 @@
   stable, redacted availability states. Gmail and Drive remain disabled future
   connectors; the registry does not imply OAuth, network access, or write
   authority.
+- **Future Gmail/Drive contract** — DOC-002 defines the provider-neutral,
+  typed boundary for explicit read-only requests and transient,
+  source-attributed metadata. Any explicit save must use the broker-reviewed
+  Raw capture flow; no adapter, OAuth, sync, or external write is enabled.
 
 | Tool | Command | Description | Example |
 |------|---------|-------------|---------|

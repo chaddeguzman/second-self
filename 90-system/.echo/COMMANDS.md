@@ -111,6 +111,9 @@ failed.
 registry. States are `available`, `degraded`, `disabled`, or `planned`.
 Gmail and Drive are intentionally `disabled` placeholders until their
 read-only, on-demand contracts are implemented and explicitly enabled.
+DOC-002 now defines the future contract boundary, but does not enable either
+connector: requests must be bounded and explicit, results are transient and
+source-attributed, and any save must go through broker-reviewed Raw capture.
 
 ## Calendar
 

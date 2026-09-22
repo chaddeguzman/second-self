@@ -135,5 +135,6 @@
 
 ## Planned (not yet wired)
 - Voice interaction (Phase 2).
-- Further external connectors (Gmail, Drive — stubs exist in
-  `scripts/connectors/`) and autonomous action (Phase 3–4).
+- Further external connectors (Gmail, Drive — provider-neutral DOC-002
+  contracts exist; adapter/OAuth work remains separate) and autonomous action
+  (Phase 3–4).
