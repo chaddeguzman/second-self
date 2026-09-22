@@ -23,6 +23,10 @@
 - **Conflict review** — `second-self-conflict-review`: when two memories or
   sources disagree, lays each claim side by side with date and source so
   Chad decides. Never silently picks a winner.
+- **Recall transparency** — `second-self recall <query> --explain` adds a
+  bounded explanation containing the direct answer, source provenance,
+  retrieval mode, capability status, uncertainty, conflicts, and safest next
+  action. The explanation omits raw snippets and paths.
 - **Local sensitive drafting boundary** — trusted internal callers can turn
   cited Memory, Journal, or Strategy recall results into an untrusted in-memory
   draft through policy-approved local Ollama. Citations remain attached; there
@@ -44,6 +48,9 @@
   report results back to Chad. Keeps ECHO free for other requests.
 - **Status check** — when Chad asks "is it done?" read the assigned
   sub-agent's log.md and report current status or results.
+- **Delegated-agent status** — `second-self agents status` shows a redacted
+  roster with each agent's current status and active assignment; `--json`
+  emits the stable `agent-status/v1` shape.
 
 ### Evaluation
 - **Synthetic harness** — `second-self eval [suite] [--json]` lists or runs
@@ -114,6 +121,11 @@
   inspects or rebuilds the private semantic index from durable sources. The
   source Markdown remains authoritative; rebuild failures are redacted.
   Documented in CAPABILITY-LIST.md under "CLI Tools".
+- **capability guide** — `python -m second_self capabilities --guide`:
+  explains availability states, data boundaries, prerequisites, approvals,
+  examples, safe fallbacks, and next steps. `--json` emits the stable
+  `capability-help/v1` shape. This is informational and never enables a
+  disabled capability.
 
 ### Data sources
 - Second Self vault (read-only)

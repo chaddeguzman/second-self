@@ -36,6 +36,7 @@ the exact direct command instead of pretending it ran.
 |---|---|---|
 | Find an exact word or phrase | “ECHO, search for `identity`.” | `.\90-system\automation\scripts\second-self.ps1 search "identity"` |
 | Recall related ideas | “ECHO, recall what I have written about avoiding important work.” | `.\90-system\automation\scripts\second-self.ps1 recall "avoiding important work"` |
+| Explain a recall result | “ECHO, explain how you found that.” | `python -m second_self recall "<query>" --explain` |
 | Check the semantic index | “ECHO, check semantic memory status.” | `.\90-system\automation\scripts\second-self.ps1 recall-index status` |
 | Rebuild semantic memory | “ECHO, rebuild the semantic index.” | `.\90-system\automation\scripts\second-self.ps1 recall-index rebuild` |
 | Rebuild only if needed | “ECHO, check the index and rebuild it if stale.” | status, then rebuild only when required |
@@ -69,6 +70,7 @@ confirmed personal memory.
 | Run a weekly review | “ECHO, start my weekly review.” | `second-self-weekly-review` workflow |
 | Review conflicting claims | “ECHO, prepare a decision about these conflicting notes.” | `second-self-conflict-review` workflow |
 | Delegate a large build | “ECHO, delegate this build to Charlie.” | Charlie delegation workflow |
+| Check delegated-agent progress | “ECHO, what are your agents doing?” | `python -m second_self agents status` |
 
 ## Wiki and source maintenance
 
@@ -114,6 +116,17 @@ read-only, on-demand contracts are implemented and explicitly enabled.
 DOC-002 now defines the future contract boundary, but does not enable either
 connector: requests must be bounded and explicit, results are transient and
 source-attributed, and any save must go through broker-reviewed Raw capture.
+
+For an onboarding view with state meanings, data boundaries, prerequisites,
+approval requirements, examples, fallbacks, and safe next steps, run:
+
+```powershell
+python -m second_self capabilities --guide
+python -m second_self capabilities --guide --json
+```
+
+The guide is informational. It does not enable disabled capabilities or grant
+external-action authority.
 
 ## Calendar
 
