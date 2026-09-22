@@ -17,24 +17,40 @@ jobs:
   test:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -r requirements.lock
+      - name: Verify dependency lock and profiles
+        run: python 90-system/automation/scripts/verify-dependency-lock.py
       - run: python -m pip install --no-deps -e .
-      - run: python -m pip install "ruff>=0.12,<1" "mypy>=2,<3"
       - run: python -m pytest
       - run: python -m ruff check 90-system/app/second_self/broker/models.py 90-system/app/second_self/wiki/models.py
       - run: python -m mypy
       - run: python -m second_self validate --privacy
+      - name: Verify generated front-matter contract
+        run: python 90-system/automation/scripts/generate-frontmatter-contract.py --check
+      - name: Lint public wiki scaffold
+        run: |
+          python -m second_self bootstrap --data-root "$env:RUNNER_TEMP\\second-self-public"
+          python -m second_self wiki init
+          python -m second_self wiki lint
+      - name: Run semantic evaluation baseline
+        run: python -m second_self eval semantic --json
+      - name: Run recall evaluation baseline
+        run: python -m second_self eval recall --json
+      - name: Run safety evaluation baseline
+        run: python -m second_self eval safety --json
+      - name: Check Hermes static readiness
+        run: python 90-system/.echo/runtime/certify_hermes.py --json
   open-pull-request:
     if: github.ref_name == 'automation/main'
     runs-on: ubuntu-latest
     steps:
       - name: Open or update pull request
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const { owner, repo } = context.repo;

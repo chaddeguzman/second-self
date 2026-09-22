@@ -19,6 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.12,<1", "mypy>=2,<3"]
 semantic = ["fastembed>=0.7,<1", "truststore>=0.10,<1"]
+calendar = ["google-api-python-client>=2,<3", "google-auth-oauthlib>=1,<2", "keyring>=25,<26"]
 
 [project.scripts]
 second-self = "second_self.cli:main"

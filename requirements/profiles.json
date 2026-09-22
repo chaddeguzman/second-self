@@ -1,0 +1,6 @@
+{
+  "core": ["flask", "markdown", "openpyxl", "pypdf", "python-docx", "pyyaml"],
+  "semantic": ["fastembed", "truststore"],
+  "calendar": ["google-api-python-client", "google-auth-oauthlib", "keyring"],
+  "dev": ["pytest", "ruff", "mypy"]
+}
