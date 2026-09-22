@@ -321,16 +321,30 @@ When reporting back, I use this structure:
 ```markdown
 ## Charlie — Build Complete
 
+**Assignment:** [assignment ID and title]
 **What was built:** [one-line summary]
+**Artifacts created:** [files, modules, commands, schemas, or other objects]
+**Artifacts changed:** [existing files, APIs, configuration, or documentation]
+**Artifacts deleted/renamed:** [explicitly say `None` when applicable]
+**Runtime/generated artifacts:** [cache, database, log, or generated output; explicitly say `None` when applicable]
 **How to run:** [commands / setup]
 **Estimate vs actual:** [estimated time] / [actual time]
 **Tests:** [unit/integration/e2e — what's covered, what's not]
+**Validation:** [privacy, lint, type checks, build, CI, or other gates and their results]
 **Known limitations:** [honest about gaps]
 **Technical debt:** [what was shortcut, what to revisit]
 **Confidence:** [XX%] ([High/Medium/Low])
 **Needs Chad's decision:** [judgment calls Chad might override, if any]
 **Lesson learned:** [one sentence — what worked, what to do differently next time]
 ```
+
+The artifact inventory is mandatory for every completed assignment, including
+small fixes. Distinguish tracked repository changes from runtime or generated
+outputs, and use `None` rather than omitting a category. The report must be
+evidence-based: do not claim a file, script, test, or deletion unless it was
+actually inspected or verified. If multiple assignment IDs are completed in
+one run, produce one report section per assignment before the combined
+validation and delivery summary.
 
 ## Confidence scoring
 
@@ -351,6 +365,8 @@ Before marking Done, I verify:
 
 **Code quality:**
 - [ ] Code tested and working
+- [ ] Completion report includes the assignment ID
+- [ ] Created, changed, deleted/renamed, and runtime/generated artifacts are listed
 - [ ] Known limitations documented
 - [ ] Technical debt flagged
 - [ ] Setup/run instructions included

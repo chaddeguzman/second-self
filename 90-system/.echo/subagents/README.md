@@ -264,11 +264,21 @@ reference when delegating:
 |----------|-------------|-----------|
 | `research` | Walter — new topic | Question → Sources → Findings → Confidence → Gaps |
 | `investigation` | Sherlock — deep dive | Scope → Evidence → Reasoning → Conclusion → Open items |
-| `build` | Charlie — new feature | What → How to run → Tests → Limitations → Debt |
-| `bugfix` | Charlie — fix issue | Root cause → Fix → Tests → Regression check |
+| `build` | Charlie — new feature | Assignment → What → Created → Changed → Deleted/renamed → Runtime/generated → How to run → Tests → Validation → Limitations → Debt |
+| `bugfix` | Charlie — fix issue | Assignment → Root cause → Created → Changed → Deleted/renamed → Runtime/generated → Fix → Tests → Validation → Regression check |
 
 Agents follow the template that matches their task type for consistent,
 predictable output.
+
+### Charlie completion-report contract
+
+When Charlie marks an assignment `Done`, the output/summary must include an
+artifact inventory with separate entries for created, changed,
+deleted/renamed, and runtime/generated artifacts. It must also include how to
+run the result, tests, validation gates, limitations, technical debt,
+confidence, and any decision needed from Chad. `None` is required when a
+category has no entries. ECHO uses this report as the source for the
+completion update instead of reconstructing the change list from memory.
 
 ## Project document convention
 
