@@ -107,6 +107,11 @@ Health checks are read-only. A warning usually means an optional capability is
 degraded; it does not automatically mean that ordinary keyword recall has
 failed.
 
+`python -m second_self capabilities --json` reports the redacted capability
+registry. States are `available`, `degraded`, `disabled`, or `planned`.
+Gmail and Drive are intentionally `disabled` placeholders until their
+read-only, on-demand contracts are implemented and explicitly enabled.
+
 ## Calendar
 
 | What I want | Ask ECHO | Underlying command |
