@@ -15,6 +15,7 @@ from typing import Any
 
 from ..core.paths import SecondSelfPaths, resolve_private_path
 from ..core.scaffold import PUBLIC_SCAFFOLD_FILES
+from .models import BrokerProposal, BrokerSpecification
 
 
 ALLOWED_OPERATIONS = {
@@ -282,9 +283,9 @@ def _assemble_layer1(paths: SecondSelfPaths) -> list[str]:
 
 
 def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, Any]:
-    operation = specification.get("operation")
-    if operation not in ALLOWED_OPERATIONS:
-        raise ValueError(f"operation must be one of {sorted(ALLOWED_OPERATIONS)}")
+    typed_specification = BrokerSpecification.from_payload(specification)
+    specification = typed_specification.as_dict()
+    operation = typed_specification.operation
     affected = _affected(paths, specification)
     proposal_id = datetime.now().strftime("%Y%m%d%H%M%S") + "-" + uuid.uuid4().hex[:8]
     proposal = {
@@ -308,7 +309,9 @@ def propose(paths: SecondSelfPaths, specification: dict[str, Any]) -> dict[str, 
 
 
 def load_proposal(paths: SecondSelfPaths, proposal_id: str) -> dict[str, Any]:
-    return json.loads(_proposal_path(paths, proposal_id).read_text(encoding="utf-8"))
+    payload = json.loads(_proposal_path(paths, proposal_id).read_text(encoding="utf-8"))
+    BrokerProposal.from_payload(payload, validate_schema=False)
+    return payload
 
 
 def _approval_decision(confirmation: str) -> bool:
@@ -553,7 +556,9 @@ def _apply_wiki_process(
     proposal_id: str,
 ) -> list[str]:
     from ..wiki.wiki import validate_wiki_change_set
+    from ..wiki.models import WikiProposal
 
+    WikiProposal.from_payload(specification)
     changes = specification.get("changes", [])
     moves = specification.get("moves", [])
     if not changes:
@@ -756,6 +761,7 @@ def _apply(
     proposal_id: str,
     transaction: dict[str, Any] | None = None,
 ) -> list[str]:
+    BrokerSpecification.from_payload(specification)
     operation = specification["operation"]
     changed: list[str] = []
     if operation in {"edit", "migration"}:

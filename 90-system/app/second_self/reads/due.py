@@ -5,6 +5,7 @@ from typing import Any
 
 from ..core.paths import SecondSelfPaths
 from .dashboard import scan_dashboard
+from .manifest import DocumentManifest
 
 
 def due_items(
@@ -12,9 +13,10 @@ def due_items(
     *,
     overdue_only: bool = False,
     today: date | None = None,
+    manifest: DocumentManifest | None = None,
 ) -> list[dict[str, Any]]:
     today = today or date.today()
-    snapshot = scan_dashboard(paths, today)
+    snapshot = scan_dashboard(paths, today, manifest=manifest)
     results: list[dict[str, Any]] = []
     for item in [*snapshot.layer1, *snapshot.projects]:
         if item.due is None:

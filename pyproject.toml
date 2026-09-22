@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10"]
+dev = ["pytest>=8,<10", "ruff>=0.12,<1", "mypy>=2,<3"]
 semantic = ["fastembed>=0.7,<1", "truststore>=0.10,<1"]
 
 [project.scripts]
@@ -36,3 +36,20 @@ second_self = ["public_scaffold.json", "templates/*.html", "static/*.css", "stat
 [tool.pytest.ini_options]
 testpaths = ["90-system/tests"]
 addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["90-system/app", "90-system/tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["90-system/app/second_self/broker/models.py", "90-system/app/second_self/wiki/models.py"]
+check_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true

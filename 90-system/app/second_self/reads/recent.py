@@ -5,6 +5,7 @@ from typing import Any
 
 from ..core.paths import SecondSelfPaths
 from .dashboard import scan_dashboard
+from .manifest import DocumentManifest
 
 
 def recent_items(
@@ -12,9 +13,10 @@ def recent_items(
     *,
     days: int = 7,
     today: date | None = None,
+    manifest: DocumentManifest | None = None,
 ) -> list[dict[str, Any]]:
     today = today or date.today()
-    snapshot = scan_dashboard(paths, today)
+    snapshot = scan_dashboard(paths, today, manifest=manifest)
     results: list[dict[str, Any]] = []
     for item in [*snapshot.layer1, *snapshot.projects]:
         if item.created is None:
