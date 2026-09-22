@@ -21,8 +21,11 @@ from .wiki import (
     source_id,
     source_hash,
 )
+from .links import format_wikilink
 
 MAX_SOURCES = 10
+LOG_HEADER = re.compile(r"^\| Date \| Operation \| Title \| Details \|$")
+LOG_SEPARATOR = re.compile(r"^\|[-| ]+\|$")
 _TEXT_SUFFIXES = {".md", ".txt"}
 
 _RECOMMENDATION_RULES: tuple[tuple[tuple[str, ...], str], ...] = (
@@ -130,6 +133,9 @@ def _source_page(
         "\n"
         "## Source\n"
         "\n"
+        "- Wiki index: "
+        f"{format_wikilink('index', 'Wiki index')}\n"
+        "\n"
         f"- Archived source: `{destination_relative}`\n"
     )
 
@@ -144,12 +150,23 @@ def _update_index(index_content: str, rows: list[str]) -> str:
 
 def _update_log(log_content: str, entry_row: str) -> str:
     lines = log_content.splitlines()
-    for position, line in enumerate(lines):
-        if line.startswith("|") and "--" in line:
-            return "\n".join(
-                lines[:position] + [entry_row] + lines[position:]
-            ) + "\n"
-    return log_content + "\n" + entry_row + "\n"
+    header_position = next(
+        (position for position, line in enumerate(lines) if LOG_HEADER.match(line)),
+        None,
+    )
+    if header_position is None:
+        lines.extend([
+            "| Date | Operation | Title | Details |",
+            "|------|-----------|-------|---------|",
+        ])
+        return "\n".join(lines + [entry_row]) + "\n"
+    separator_position = header_position + 1
+    if (
+        separator_position >= len(lines)
+        or not LOG_SEPARATOR.match(lines[separator_position])
+    ):
+        lines.insert(separator_position, "|------|-----------|-------|---------|")
+    return "\n".join(lines[: separator_position + 1] + [entry_row] + lines[separator_position + 1 :]) + "\n"
 
 
 def build_wiki_process_spec(
@@ -205,12 +222,13 @@ def build_wiki_process_spec(
                 "source_id": entry["source_id"],
             }
         )
+        page_target = page_relative[:-3]
         index_rows.append(
-            f"| Source | [{Path(source.name).stem}]({page_relative.replace(' ', '%20')}) "
+            f"| Source | {format_wikilink(page_target, Path(source.name).stem)} "
             f"| Dashboard-processed source moved to 04 References/{subfolder}. | — |"
         )
         log_details.append(
-            f"[{Path(source.name).stem}]({page_relative.replace(' ', '%20')}) "
+            f"{format_wikilink(page_target, Path(source.name).stem)} "
             f"moved to 04 References/{subfolder}."
         )
 

@@ -3,27 +3,85 @@
   "$id": "https://github.com/chaddeguzman/second-self/note.schema.json",
   "title": "Second Self Note",
   "type": "object",
-  "required": ["type", "created", "status"],
+  "required": [
+    "type",
+    "created",
+    "status"
+  ],
   "properties": {
     "type": {
       "type": "string",
       "enum": [
-        "capture", "identity", "strategy", "note", "journal", "book",
-        "reference", "quote", "lesson", "review", "decision", "conflict",
-        "import", "project", "handoff"
+        "capture",
+        "identity",
+        "strategy",
+        "note",
+        "journal",
+        "book",
+        "reference",
+        "quote",
+        "lesson",
+        "review",
+        "decision",
+        "conflict",
+        "import",
+        "project",
+        "handoff",
+        "wiki-index",
+        "wiki-log",
+        "wiki-open-questions",
+        "wiki-source",
+        "wiki-topic"
       ]
     },
-    "created": {"type": "string", "format": "date"},
+    "created": {
+      "type": "string",
+      "format": "date"
+    },
     "status": {
       "type": "string",
-      "enum": ["inbox", "proposed", "active", "superseded", "archived"]
+      "enum": [
+        "inbox",
+        "proposed",
+        "active",
+        "superseded",
+        "archived"
+      ]
     },
-    "updated": {"type": "string", "format": "date"},
-    "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-    "source": {"type": ["string", "array"]},
-    "projects": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-    "related": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+    "updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "related": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "source": {
+      "type": [
+        "string",
+        "array"
+      ],
+      "items": {
+        "type": "string"
+      }
+    }
   },
   "additionalProperties": true
 }
-
