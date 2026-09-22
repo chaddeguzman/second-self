@@ -64,6 +64,11 @@
 
 ### CLI Tools
 
+- **Capability status** — `python -m second_self capabilities --json` reports
+  stable, redacted availability states. Gmail and Drive remain disabled future
+  connectors; the registry does not imply OAuth, network access, or write
+  authority.
+
 | Tool | Command | Description | Example |
 |------|---------|-------------|---------|
 | echo-session | `python 90-system/.echo/scripts/echo-session.py create --summary "text"` | Start a new session file (`YYYY-MM-DDTHHMM.md`) and point `current-session.md` at it | Creates today's session with your summary |

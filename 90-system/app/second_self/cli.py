@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import importlib.util
 import json
 import sys
+from time import perf_counter
 from pathlib import Path
 
 from .broker.broker import (
@@ -13,6 +14,7 @@ from .broker.broker import (
     propose,
     recover_wiki_transactions,
 )
+from .capabilities import build_report as build_capability_report
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
 from .evaluation import discover_suites
@@ -34,6 +36,12 @@ from .maintenance.indexes import generate_indexes
 from .maintenance.link_check import build_link_fix_proposal
 from .maintenance.tag_audit import audit_tags, build_tag_audit_proposal
 from .maintenance.validation import validate
+from .observability.retrieval_quality import (
+    RetrievalEvent,
+    append_event,
+    load_events,
+    summarize_events,
+)
 from .projects.projects import register_project, registration_preview
 from .reads.dashboard import legacy_items, scan_dashboard
 from .reads.due import due_items
@@ -145,6 +153,16 @@ def _command_doctor(args: argparse.Namespace) -> int:
     else:
         print(render_text(results, heading="second-self doctor — system health check"))
     return exit_code(results, strict=args.strict)
+
+
+def _command_capabilities(args: argparse.Namespace) -> int:
+    report = build_capability_report()
+    if args.json:
+        _print(report)
+    else:
+        for item in report["capabilities"]:
+            print(f"{item['name']}: {item['state']} — {item['summary']}")
+    return 0
 
 
 def _command_route(args: argparse.Namespace) -> int:
@@ -372,18 +390,33 @@ def _command_search(args: argparse.Namespace) -> int:
 def _command_recall(args: argparse.Namespace) -> int:
     paths = load_paths(require_config=True)
     semantic_index = SemanticIndex(paths.cache / "semantic-memory" / "index.sqlite3")
-    _print(
-        {
-            "results": hybrid_recall(
-                paths,
-                args.query,
-                semantic_index=semantic_index,
-                embedder=FastEmbedder(),
-                max_results=args.max_results,
-                min_score=args.min_score,
-            )
-        }
+    started = perf_counter()
+    results = hybrid_recall(
+        paths,
+        args.query,
+        semantic_index=semantic_index,
+        embedder=FastEmbedder(),
+        max_results=args.max_results,
+        min_score=args.min_score,
     )
+    _print({"results": results})
+    append_event(
+        paths.cache / "retrieval-quality.jsonl",
+        RetrievalEvent.from_results(
+            result_count=len(results),
+            results=results,
+            fallback=not any(item.get("retrieval") in {"semantic", "hybrid"} for item in results),
+            latency_ms=round((perf_counter() - started) * 1000),
+            event_id=f"recall-{round(started * 1000)}",
+        ),
+    )
+    return 0
+
+
+def _command_retrieval_quality(args: argparse.Namespace) -> int:
+    paths = load_paths(require_config=True)
+    summary = summarize_events(load_events(paths.cache / "retrieval-quality.jsonl"))
+    _print(summary)
     return 0
 
 
@@ -600,6 +633,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     doctor.set_defaults(func=_command_doctor)
 
+    capabilities = sub.add_parser(
+        "capabilities", help="show redacted ECHO capability availability"
+    )
+    capabilities.add_argument("--json", action="store_true")
+    capabilities.set_defaults(func=_command_capabilities)
+
     route = sub.add_parser(
         "route",
         help="explain a model route without invoking a provider",
@@ -670,6 +709,11 @@ def build_parser() -> argparse.ArgumentParser:
     recall.add_argument("--max-results", type=int, default=50)
     recall.add_argument("--min-score", type=int, default=0)
     recall.set_defaults(func=_command_recall)
+
+    retrieval_quality = sub.add_parser(
+        "retrieval-quality", help="show redacted retrieval quality metrics"
+    )
+    retrieval_quality.set_defaults(func=_command_retrieval_quality)
 
     recall_index = sub.add_parser(
         "recall-index", help="inspect or rebuild the private semantic index"
