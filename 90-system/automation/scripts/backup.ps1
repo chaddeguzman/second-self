@@ -82,23 +82,31 @@ if (Test-Path -LiteralPath $Archive) {
 }
 
 try {
+    $Nonce = [guid]::NewGuid().ToString("N")
+    $PendingArchive = Join-Path $Destination ".$Base.$Nonce.tar.age.tmp"
+    $PendingChecksum = Join-Path $Destination ".$Base.$Nonce.sha256.tmp"
+    $PendingManifest = Join-Path $Destination ".$Base.$Nonce.manifest.json.tmp"
     tar -cf $TempTar -C (Split-Path -Parent $DataRoot) (Split-Path -Leaf $DataRoot)
     if ($LASTEXITCODE -ne 0) { throw "tar failed." }
-    & $AgePath -p -o $Archive $TempTar
+    & $AgePath -p -o $PendingArchive $TempTar
     if ($LASTEXITCODE -ne 0) { throw "age encryption failed." }
-    $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Archive).Hash.ToLowerInvariant()
-    "$Hash  $([IO.Path]::GetFileName($Archive))" | Set-Content -Encoding ascii -LiteralPath $Checksum
+    $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $PendingArchive).Hash.ToLowerInvariant()
+    "$Hash  $([IO.Path]::GetFileName($Archive))" | Set-Content -Encoding ascii -LiteralPath $PendingChecksum
     [ordered]@{
         format = 1
         created = (Get-Date).ToString("o")
         archive = [IO.Path]::GetFileName($Archive)
         sha256 = $Hash
         schema_version = (Get-Content -Raw -LiteralPath (Join-Path $DataRoot ".second-self-schema")).Trim()
-    } | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath $Manifest
+    } | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath $PendingManifest
+    Move-Item -LiteralPath $PendingArchive -Destination $Archive -ErrorAction Stop
+    Move-Item -LiteralPath $PendingChecksum -Destination $Checksum -ErrorAction Stop
+    Move-Item -LiteralPath $PendingManifest -Destination $Manifest -ErrorAction Stop
     Write-Host "Verified encrypted backup: $Archive"
 }
 finally {
     if (Test-Path -LiteralPath $TempTar) {
         Remove-Item -LiteralPath $TempTar -Force
     }
+    Get-ChildItem -LiteralPath $Destination -Filter ".$Base.*.tmp" -ErrorAction SilentlyContinue | Remove-Item -Force
 }

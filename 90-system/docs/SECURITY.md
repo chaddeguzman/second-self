@@ -56,3 +56,10 @@ Raw-to-References moves use the same single approval as other protected
 changes. Transaction journals store private-relative paths and hashes, not
 source contents or reusable absolute user paths. A failed or interrupted
 transaction must roll back or be recovered before new processing begins.
+# Backup and restore boundary
+
+Backup publication uses temporary artifact names and only publishes archive,
+checksum, and manifest after encryption and digest verification. Restore fails
+closed on checksum or manifest mismatch, unsafe archive paths, links, device
+members, or an unexpected archive root; decrypted tar files and staging folders
+are cleaned in `finally` blocks.

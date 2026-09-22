@@ -18,8 +18,9 @@ $AgePath = if ($Age.Source) { $Age.Source } else { $Age.FullName }
 $Archive = [IO.Path]::GetFullPath($Archive)
 $Destination = [IO.Path]::GetFullPath($Destination)
 $Checksum = "$Archive.sha256"
-if (-not (Test-Path -LiteralPath $Archive) -or -not (Test-Path -LiteralPath $Checksum)) {
-    throw "Archive and matching .sha256 file are required."
+$Manifest = $Archive -replace '\\.tar\\.age$', '.manifest.json'
+if (-not (Test-Path -LiteralPath $Archive) -or -not (Test-Path -LiteralPath $Checksum) -or -not (Test-Path -LiteralPath $Manifest)) {
+    throw "Archive, checksum, and matching manifest are required."
 }
 if (Test-Path -LiteralPath $Destination) {
     $existing = Get-ChildItem -Force -LiteralPath $Destination
@@ -36,18 +37,34 @@ $Actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $Archive).Hash.ToLowerInv
 if ($Expected -ne $Actual) {
     throw "Backup checksum verification failed."
 }
+$ManifestData = Get-Content -Raw -LiteralPath $Manifest | ConvertFrom-Json
+if ($ManifestData.format -ne 1 -or $ManifestData.sha256 -ne $Actual -or $ManifestData.archive -ne [IO.Path]::GetFileName($Archive)) {
+    throw "Backup manifest verification failed."
+}
 
 $TempTar = Join-Path ([IO.Path]::GetTempPath()) "$([IO.Path]::GetFileNameWithoutExtension($Archive)).tar"
+$Staging = Join-Path ([IO.Path]::GetTempPath()) "second-self-restore-$([guid]::NewGuid().ToString('N'))"
+$Policy = Join-Path $PSScriptRoot "backup_archive.py"
 try {
     & $AgePath -d -o $TempTar $Archive
     if ($LASTEXITCODE -ne 0) { throw "age decryption failed." }
-    tar -xf $TempTar -C $Destination
+    python $Policy --validate $TempTar
+    if ($LASTEXITCODE -ne 0) { throw "archive policy validation failed." }
+    New-Item -ItemType Directory -Path $Staging | Out-Null
+    tar -xf $TempTar -C $Staging
     if ($LASTEXITCODE -ne 0) { throw "tar restore failed." }
+    $Roots = Get-ChildItem -LiteralPath $Staging -Force
+    if ($Roots.Count -ne 1 -or -not $Roots[0].PSIsContainer) { throw "restore archive root is invalid." }
+    Remove-Item -LiteralPath $Destination -Force
+    Move-Item -LiteralPath $Roots[0].FullName -Destination $Destination -ErrorAction Stop
     Write-Host "Restore completed: $Destination"
 }
 finally {
     if (Test-Path -LiteralPath $TempTar) {
         Remove-Item -LiteralPath $TempTar -Force
+    }
+    if (Test-Path -LiteralPath $Staging) {
+        Remove-Item -LiteralPath $Staging -Recurse -Force
     }
 }
 

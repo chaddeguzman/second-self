@@ -64,3 +64,15 @@ The agent asks the user in a single prompt which subfolder each source should
 go to (`01 books`, `02 quotes`, `03 research`, `04 guides`, `05 docs`, or
 `06 Uncategorized`). The entire operation — wiki pages plus source moves — is
 submitted as one `wiki_process` proposal and applied together.
+# Reproducible dependency profiles and backup recovery
+
+Install the smallest profile needed: core dependencies use `pip install -e .`,
+semantic work uses `pip install -e .[semantic]`, Calendar integration uses
+`pip install -e .[calendar]`, and contributor tooling uses `pip install -e .[dev]`.
+`requirements.lock` is the checked-in Windows CI lock; verify it before use with
+`python 90-system/automation/scripts/verify-dependency-lock.py`.
+
+Encrypted backup requires the archive, `.sha256`, and `.manifest.json` artifacts.
+Restore verifies all three, decrypts and validates members in a disposable staging
+directory, and refuses a non-empty destination. Test recovery only with the
+synthetic fixture and never a personal vault as a drill target.
