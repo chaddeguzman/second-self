@@ -128,6 +128,23 @@ python -m second_self capabilities --guide --json
 The guide is informational. It does not enable disabled capabilities or grant
 external-action authority.
 
+## Gmail (disabled by default)
+
+When CONN-001 is explicitly enabled and a local OAuth client configuration is
+available, authorize read-only access once and then search bounded metadata:
+
+```powershell
+python -m second_self gmail auth --client-config <local-file>
+$env:SECOND_SELF_GMAIL_ENABLED = "1"
+python -m second_self gmail search "from:team" --limit 20
+```
+
+The enablement variable is process-scoped and must be set deliberately for a
+session; it is not written to the repository or private vault configuration.
+The adapter never sends, drafts, labels, deletes, downloads bodies or
+attachments, or synchronizes in the background. OAuth material is stored in
+the operating-system keyring only.
+
 ## Calendar
 
 | What I want | Ask ECHO | Underlying command |

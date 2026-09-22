@@ -35,10 +35,17 @@ def test_capability_registry_explains_boundary_prerequisites_and_fallback():
 
     gmail = registry["gmail"].as_dict()
     assert gmail["boundary"] == "external_provider_when_enabled"
-    assert gmail["prerequisites"] == ("DOC-002 contract", "explicit enablement")
+    assert gmail["prerequisites"] == (
+        "DOC-002 contract",
+        "explicit enablement",
+        "read-only OAuth consent",
+    )
     assert gmail["approval"] == "explicit_request"
     assert gmail["fallback"] == "remains disabled; local recall is unaffected"
-    assert gmail["examples"] == ("search Gmail metadata",)
+    assert gmail["examples"] == (
+        "python -m second_self gmail auth --client-config <local-file>",
+        "python -m second_self gmail search \"from:team\"",
+    )
 
 
 def test_capability_guide_report_has_state_legend_and_safe_next_steps():
