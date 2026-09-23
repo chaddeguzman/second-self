@@ -151,3 +151,6 @@
   Drive read-only adapters are implemented but remain disabled until explicit
   enablement; Gmail and Drive OAuth material belongs in separate OS keyring
   entries only. Drive returns bounded metadata and never file content.
+- ACT-001 defines typed, approval-bound metadata for future email draft/send
+  and Drive upload actions. It does not authorize or execute any external
+  action; no provider, network, credential, or broker execution path is wired.
