@@ -91,6 +91,10 @@
   `python -m second_self drive search "name contains 'plan'"` performs bounded
   file metadata search. OAuth material stays in a Drive-specific OS keyring
   entry; file content and external writes are not supported.
+- **External actions** — ACT-001 defines typed, approval-bound metadata for
+  future email draft/send and Drive upload actions. It does not authorize or
+  execute any external action: no provider call, network, credential, broker,
+  send, draft, upload, or background action is enabled.
 
 | Tool | Command | Description | Example |
 |------|---------|-------------|---------|

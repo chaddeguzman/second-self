@@ -13,6 +13,15 @@ def test_future_external_connectors_are_explicitly_disabled():
     assert registry["drive"].reason_code == "future_connector"
 
 
+def test_external_actions_remain_planned_after_contract_definition():
+    registry = {item.name: item for item in build_registry()}
+    actions = registry["external-actions"]
+
+    assert actions.state == "planned"
+    assert actions.prerequisites == ("ACT-001 action contract", "scoped permission")
+    assert actions.approval == "explicit_confirmation"
+
+
 def test_registry_has_stable_states_and_no_paths():
     payload = [item.as_dict() for item in build_registry()]
     assert {item["state"] for item in payload} <= {

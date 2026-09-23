@@ -94,10 +94,10 @@ def build_registry() -> tuple[Capability, ...]:
         Capability(
             "external-actions",
             "planned",
-            "Future approval-gated external actions",
+            "Future approval-gated external actions; contract only",
             "future_scope",
             boundary="external_provider_when_enabled",
-            prerequisites=("reviewed action contract", "scoped permission"),
+            prerequisites=("ACT-001 action contract", "scoped permission"),
             approval="explicit_confirmation",
             fallback="does not create, send, upload, or change anything",
             examples=("draft an email for review",),
