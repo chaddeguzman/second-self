@@ -147,7 +147,7 @@
 
 ## Planned (not yet wired)
 - Voice interaction (Phase 2).
-- Further external connectors (Drive — provider-neutral DOC-002 contracts
-  exist; adapter/OAuth work remains separate) and autonomous action (Phase
-  3–4). Gmail's read-only adapter is implemented but remains disabled until
-  explicit enablement; OAuth material belongs in the OS keyring only.
+- Further external connectors and autonomous action (Phase 3–4). Gmail and
+  Drive read-only adapters are implemented but remain disabled until explicit
+  enablement; Gmail and Drive OAuth material belongs in separate OS keyring
+  entries only. Drive returns bounded metadata and never file content.

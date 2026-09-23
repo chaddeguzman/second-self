@@ -31,11 +31,16 @@ from .connectors import (
     ConnectorRequest,
     ConnectorResult,
     ConnectorState,
+    DriveAuthError,
+    DriveCredentialStore,
     GmailAuthError,
     GmailCredentialStore,
+    authorize_drive,
     authorize_gmail,
+    load_drive_credentials,
     load_gmail_credentials,
 )
+from .connectors.drive import DriveConnector
 from .connectors.gmail import GmailConnector
 from .core.paths import CONFIG_PATH, REPO_ROOT, load_paths, write_config
 from .core.scaffold import scaffold
@@ -203,9 +208,22 @@ def _gmail_enabled() -> bool:
     }
 
 
+def _drive_enabled() -> bool:
+    return os.environ.get("SECOND_SELF_DRIVE_ENABLED", "").casefold() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
 def _gmail_client_config(args: argparse.Namespace) -> Path:
     configured = args.client_config or os.environ.get("SECOND_SELF_GMAIL_CLIENT_CONFIG", "")
     return Path(configured) if configured else Path("missing-gmail-client.json")
+
+
+def _drive_client_config(args: argparse.Namespace) -> Path:
+    configured = args.client_config or os.environ.get("SECOND_SELF_DRIVE_CLIENT_CONFIG", "")
+    return Path(configured) if configured else Path("missing-drive-client.json")
 
 
 def _build_gmail_service():
@@ -218,6 +236,18 @@ def _build_gmail_service():
         raise
     except Exception as exc:
         raise GmailAuthError("Gmail service is unavailable") from exc
+
+
+def _build_drive_service():
+    try:
+        from googleapiclient.discovery import build
+
+        credentials = load_drive_credentials(DriveCredentialStore())
+        return build("drive", "v3", credentials=credentials, cache_discovery=False)
+    except DriveAuthError:
+        raise
+    except Exception as exc:
+        raise DriveAuthError("Drive service is unavailable") from exc
 
 
 def _gmail_payload(result: ConnectorResult) -> dict[str, object]:
@@ -244,6 +274,36 @@ def _render_gmail_result(result: ConnectorResult, *, as_json: bool) -> None:
         _print(payload)
         return
     print(f"Gmail: {result.state.value}")
+    if result.message:
+        print(result.message)
+    for item in result.items:
+        print(f"- {item.title} ({item.source_uri})")
+
+
+def _drive_payload(result: ConnectorResult) -> dict[str, object]:
+    return {
+        "version": "drive-connector/v1",
+        "kind": result.kind.value,
+        "state": result.state.value,
+        "message": result.message,
+        "items": [
+            {
+                "id": item.item_id,
+                "title": item.title,
+                "source_uri": item.source_uri,
+                "metadata": dict(item.metadata),
+            }
+            for item in result.items
+        ],
+    }
+
+
+def _render_drive_result(result: ConnectorResult, *, as_json: bool) -> None:
+    payload = _drive_payload(result)
+    if as_json:
+        _print(payload)
+        return
+    print(f"Drive: {result.state.value}")
     if result.message:
         print(result.message)
     for item in result.items:
@@ -288,6 +348,47 @@ def _command_gmail(args: argparse.Namespace) -> int:
             message="Gmail authorization is unavailable; run explicit read-only authorization.",
         )
     _render_gmail_result(result, as_json=args.json)
+    return 0 if result.state is not ConnectorState.UNAVAILABLE else 2
+
+
+def _command_drive(args: argparse.Namespace) -> int:
+    if args.drive_command == "auth":
+        try:
+            authorize_drive(_drive_client_config(args), DriveCredentialStore())
+        except DriveAuthError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        payload = {
+            "version": "drive-auth/v1",
+            "state": "available",
+            "message": "Drive metadata-only authorization stored in the OS keyring.",
+        }
+        if args.json:
+            _print(payload)
+        else:
+            print(payload["message"])
+        return 0
+    request = ConnectorRequest(ConnectorKind.DRIVE, args.query, limit=args.limit)
+    if not _drive_enabled():
+        result = ConnectorResult(
+            ConnectorKind.DRIVE,
+            ConnectorState.DISABLED,
+            message="Drive is disabled; local Second Self recall remains available.",
+        )
+        _render_drive_result(result, as_json=args.json)
+        return 0
+    try:
+        result = DriveConnector(_build_drive_service, enabled=True).search(request)
+    except DriveAuthError:
+        result = ConnectorResult(
+            ConnectorKind.DRIVE,
+            ConnectorState.UNAVAILABLE,
+            message=(
+                "Drive authorization is unavailable; run explicit "
+                "metadata-only authorization."
+            ),
+        )
+    _render_drive_result(result, as_json=args.json)
     return 0 if result.state is not ConnectorState.UNAVAILABLE else 2
 
 
@@ -794,6 +895,18 @@ def build_parser() -> argparse.ArgumentParser:
     gmail_search.add_argument("--limit", type=int, default=20)
     gmail_search.add_argument("--json", action="store_true")
     gmail_search.set_defaults(func=_command_gmail)
+
+    drive = sub.add_parser("drive", help="explicit read-only Drive operations")
+    drive_sub = drive.add_subparsers(dest="drive_command", required=True)
+    drive_auth = drive_sub.add_parser("auth", help="authorize Drive metadata-only access")
+    drive_auth.add_argument("--client-config", type=Path)
+    drive_auth.add_argument("--json", action="store_true")
+    drive_auth.set_defaults(func=_command_drive)
+    drive_search = drive_sub.add_parser("search", help="search bounded Drive metadata")
+    drive_search.add_argument("query")
+    drive_search.add_argument("--limit", type=int, default=20)
+    drive_search.add_argument("--json", action="store_true")
+    drive_search.set_defaults(func=_command_drive)
 
     route = sub.add_parser(
         "route",

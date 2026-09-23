@@ -85,6 +85,12 @@
   `python -m second_self gmail search "from:team"` performs bounded metadata
   search. OAuth material stays in the OS keyring and is never printed or
   committed.
+- **Drive read-only adapter** — `python -m second_self drive auth
+  --client-config <local-file>` performs explicit metadata-only OAuth consent;
+  set `SECOND_SELF_DRIVE_ENABLED=1` for the process, then
+  `python -m second_self drive search "name contains 'plan'"` performs bounded
+  file metadata search. OAuth material stays in a Drive-specific OS keyring
+  entry; file content and external writes are not supported.
 
 | Tool | Command | Description | Example |
 |------|---------|-------------|---------|
