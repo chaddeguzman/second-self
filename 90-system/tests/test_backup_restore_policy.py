@@ -9,6 +9,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "90-system/automation/scripts/backup_archive.py"
+RESTORE_SCRIPT = ROOT / "90-system/automation/scripts/restore.ps1"
 spec = importlib.util.spec_from_file_location("backup_archive", MODULE_PATH)
 assert spec and spec.loader
 archive = importlib.util.module_from_spec(spec)
@@ -48,3 +49,11 @@ def test_archive_policy_rejects_symlink_and_manifest_detects_same_size_change(tm
     (source / "note.md").write_text("bravo", encoding="utf-8")
     with pytest.raises(ValueError, match="inventory digest mismatch"):
         archive.verify_inventory(source, manifest)
+
+
+def test_restore_derives_manifest_from_encrypted_archive_name():
+    script = RESTORE_SCRIPT.read_text(encoding="utf-8")
+    assert (
+        "$Manifest = $Archive -replace '\\.tar\\.age$', '.manifest.json'"
+        in script
+    )

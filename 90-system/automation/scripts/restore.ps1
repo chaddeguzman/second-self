@@ -18,7 +18,7 @@ $AgePath = if ($Age.Source) { $Age.Source } else { $Age.FullName }
 $Archive = [IO.Path]::GetFullPath($Archive)
 $Destination = [IO.Path]::GetFullPath($Destination)
 $Checksum = "$Archive.sha256"
-$Manifest = $Archive -replace '\\.tar\\.age$', '.manifest.json'
+$Manifest = $Archive -replace '\.tar\.age$', '.manifest.json'
 if (-not (Test-Path -LiteralPath $Archive) -or -not (Test-Path -LiteralPath $Checksum) -or -not (Test-Path -LiteralPath $Manifest)) {
     throw "Archive, checksum, and matching manifest are required."
 }
