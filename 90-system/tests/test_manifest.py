@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import date
 from pathlib import Path
 
@@ -42,6 +43,8 @@ def test_manifest_reuses_unchanged_note_and_detects_same_size_replacement(tmp_pa
     assert second_entry.metadata["created"] == date(2026, 9, 22)
 
     note.write_text(_note("Bravo"), encoding="utf-8")
+    stat = note.stat()
+    os.utime(note, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
     third = build_manifest(paths, previous=second)
     third_entry = third.by_relative_path("01-strategy-storage/04 References/note.md")
     assert third_entry is not None
