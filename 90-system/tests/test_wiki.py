@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -163,6 +164,7 @@ def test_stale_wiki_lock_is_recovered_when_no_transaction_is_active(
     lock = second_self.wiki_transactions / ".processing.lock"
     lock.parent.mkdir(parents=True, exist_ok=True)
     lock.touch()
+    os.utime(lock, (1, 1))
     monkeypatch.setattr(broker_module, "WIKI_LOCK_STALE_SECONDS", 0)
     target = second_self.wiki / "topics" / "recovered-lock.md"
     proposal = propose(
