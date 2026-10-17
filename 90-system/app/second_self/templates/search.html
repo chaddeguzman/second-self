@@ -6,14 +6,14 @@
 </nav>
 <section class="page-header narrow">
   <p class="eyebrow">Private search</p>
-  <h1>Search across Layer 1.</h1>
-  <p>Case-insensitive full-text search across Memory, Notes, Journal, Strategy, References, and Reviews.</p>
+  <h1>Find a note.</h1>
+  <p>Search your memories, captures, journal, plans, references, and reviews.</p>
 </section>
 
 <form class="capture-form" method="get" action="{{ url_for('search') }}">
-  <label for="query">Search query</label>
+  <label for="query">Search your notes</label>
   <input id="query" name="q" maxlength="200" value="{{ query or '' }}" autocomplete="off" placeholder="Enter a word or phrase">
-  <div class="field-help">Searches all Layer 1 files. Binary and oversized files are skipped.</div>
+  <div class="field-help">Search by word or phrase. Non-text and oversized files are skipped.</div>
   <div class="form-actions">
     <button class="button" type="submit">Search</button>
     <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>

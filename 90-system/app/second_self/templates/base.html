@@ -1,3 +1,25 @@
+{% macro icon(name) -%}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+{% if name == 'home' %}<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>
+{% elif name == 'inbox' %}<path d="m3 4-2 11v5h22v-5L21 4Z"/><path d="M1 15h6l2 3h6l2-3h6"/>
+{% elif name == 'search' %}<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
+{% elif name == 'journal' %}<path d="M5 3h14v18H5Z"/><path d="M8 3v18M11 8h5M11 12h5"/>
+{% elif name == 'tags' %}<path d="m3 3 9 1 9 9-8 8-9-9Z"/><circle cx="8" cy="8" r="1"/>
+{% elif name == 'recent' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+{% elif name == 'due' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 11h18"/>
+{% elif name == 'shield' %}<path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6Z"/><path d="m8 12 3 3 5-6"/>
+{% elif name == 'plus' %}<path d="M12 5v14M5 12h14"/>
+{% elif name == 'arrow' %}<path d="M5 12h14m-5-5 5 5-5 5"/>
+{% elif name == 'folder' %}<path d="M3 6h7l2 3h9v11H3Z"/>
+{% elif name == 'note' %}<path d="M5 3h10l4 4v14H5Z"/><path d="M15 3v5h4M9 12h6M9 16h4"/>
+{% elif name == 'spark' %}<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/>
+{% elif name == 'menu' %}<path d="M4 6h16M4 12h16M4 18h16"/>
+{% endif %}
+</svg>
+{%- endmacro %}
+{% macro ghost() -%}
+<span class="brand-silhouette" aria-hidden="true"></span>
+{%- endmacro %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,37 +32,37 @@
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="site-header">
-    <div class="shell header-inner">
-      <a class="brand" href="{{ url_for('home') }}" aria-label="Second Self Home">
-        <span class="brand-mark" aria-hidden="true">SS</span>
-        <span>
-          <strong>Second Self</strong>
-          <small>Private local workspace</small>
-        </span>
-      </a>
-      <span class="privacy-pill">Local only</span>
-    </div>
-    <nav class="shell navigation" aria-label="Primary navigation">
-      <a class="{{ 'active' if request.endpoint == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
-      {% if read_only %}
-        <span aria-disabled="true" title="Disabled in read-only mode">Capture <small>Read-only</small></span>
-        <span aria-disabled="true" title="Disabled in read-only mode">Journal <small>Read-only</small></span>
-      {% else %}
-        <a class="{{ 'active' if request.endpoint == 'capture' else '' }}" href="{{ url_for('capture') }}">Capture</a>
-        <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" href="{{ url_for('journal') }}">Journal</a>
-      {% endif %}
-      <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" href="{{ url_for('tag_list') }}">Tags</a>
-      <a class="{{ 'active' if request.endpoint == 'search' else '' }}" href="{{ url_for('search') }}">Search</a>
-      <a class="{{ 'active' if request.endpoint == 'due' else '' }}" href="{{ url_for('due') }}">Due</a>
-      <a class="{{ 'active' if request.endpoint == 'recent' else '' }}" href="{{ url_for('recent') }}">Recent</a>
-      <span aria-disabled="true" title="Coming next">Reviews <small>Coming next</small></span>
-      <span aria-disabled="true" title="Coming next">Conflicts <small>Coming next</small></span>
-      <span aria-disabled="true" title="Coming next">Projects <small>Coming next</small></span>
-      <span aria-disabled="true" title="Coming next">Memory <small>Coming next</small></span>
-    </nav>
+  {% set current_page = {'home':'Home', 'capture':'Capture', 'journal':'Journal', 'search':'Search', 'queue_view':'Inbox', 'tag_list':'Tags', 'tag_view':'Tags', 'recent':'Recent notes', 'due':'Due for review', 'legacy':'File overview', 'preview':'Note', 'broker_view':'Review changes'}.get(request.endpoint, 'Workspace') %}
+  <header class="workspace-topbar">
+    <button type="button" class="menu-toggle" data-toggle-sidebar aria-expanded="false" aria-controls="workspace-sidebar" aria-label="Open navigation">{{ icon('menu') }}</button>
+    <p class="workspace-breadcrumb"><span>Your workspace</span><span aria-hidden="true">/</span><strong>{{ current_page }}</strong></p>
+    <span class="privacy-pill">{{ icon('shield') }} {% if read_only %}Read-only{% else %}Local only{% endif %}</span>
   </header>
-
+  <aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation">
+    <a class="brand" href="{{ url_for('home') }}" aria-label="Second Self Home">
+      {{ ghost() }}<span><strong>Second Self</strong><small>A space for your thoughts</small></span>
+    </a>
+    <nav class="navigation" aria-label="Primary navigation">
+      <p class="nav-label">Workspace</p>
+      <a class="{{ 'active' if request.endpoint == 'home' else '' }}" {% if request.endpoint == 'home' %}aria-current="page"{% endif %} href="{{ url_for('home') }}">{{ icon('home') }} Home</a>
+      <a class="{{ 'active' if request.endpoint == 'queue_view' else '' }}" {% if request.endpoint == 'queue_view' %}aria-current="page"{% endif %} href="{{ url_for('queue_view', queue_key='captures') }}">{{ icon('inbox') }} Inbox</a>
+      <a class="{{ 'active' if request.endpoint == 'search' else '' }}" {% if request.endpoint == 'search' %}aria-current="page"{% endif %} href="{{ url_for('search') }}">{{ icon('search') }} Search</a>
+      {% if read_only %}
+        <span aria-disabled="true">{{ icon('journal') }} Journal <small>Read-only</small></span>
+      {% else %}
+        <a class="{{ 'active' if request.endpoint == 'journal' else '' }}" {% if request.endpoint == 'journal' %}aria-current="page"{% endif %} href="{{ url_for('journal') }}">{{ icon('journal') }} Journal</a>
+      {% endif %}
+      <p class="nav-label secondary-label">Explore</p>
+      <a class="{{ 'active' if request.endpoint == 'recent' else '' }}" {% if request.endpoint == 'recent' %}aria-current="page"{% endif %} href="{{ url_for('recent') }}">{{ icon('recent') }} Recent notes</a>
+      <a class="{{ 'active' if request.endpoint in ('tag_list', 'tag_view') else '' }}" {% if request.endpoint in ('tag_list', 'tag_view') %}aria-current="page"{% endif %} href="{{ url_for('tag_list') }}">{{ icon('tags') }} Tags</a>
+      <a class="{{ 'active' if request.endpoint == 'due' else '' }}" {% if request.endpoint == 'due' %}aria-current="page"{% endif %} href="{{ url_for('due') }}">{{ icon('due') }} Due for review</a>
+    </nav>
+    <div class="sidebar-bottom">
+      {% if not read_only %}<a class="button sidebar-capture" href="{{ url_for('capture') }}">{{ icon('plus') }} New capture</a>{% endif %}
+      <div class="sidebar-note">{{ icon('shield') }}<p>Your notes stay<br>on your computer.</p></div>
+    </div>
+  </aside>
+  <div class="workspace-page">
   <main id="main-content" class="shell main-content">
     {% if not read_only and tags is defined %}
     <dialog id="rename-tag-modal" class="modal" aria-modal="true" aria-labelledby="rename-tag-modal-title">
@@ -78,8 +100,10 @@
   </main>
 
   <footer class="shell site-footer">
-    <p>Markdown remains the source of truth. Capture and journal are the write actions available in this release.</p>
+    <p>Your notes, on your computer.</p>
+    <a href="{{ url_for('home') }}#system-details">System details</a>
     {% if read_only %}<p><strong>Read-only mode is active.</strong></p>{% endif %}
   </footer>
+  </div>
 </body>
 </html>

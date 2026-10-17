@@ -7,7 +7,7 @@
 <section class="page-header narrow">
   <p class="eyebrow">Daily journal</p>
   <h1>Record what happened today.</h1>
-  <p>Creates or appends to today's journal note in 02 Journal. Multiple entries on the same day accumulate under the Notes section.</p>
+  <p>Add a moment, a reflection, or a small win to today's journal. Earlier entries stay in place.</p>
 </section>
 
 {% if read_only %}
@@ -21,9 +21,9 @@
     {% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
     <label for="title">Title <small>(optional)</small></label>
     <input id="title" name="title" maxlength="120" value="{{ title or '' }}" autocomplete="off">
-    <div class="field-help">A short heading for this entry. If omitted, the body is added directly under Notes.</div>
+    <div class="field-help">Add a heading, or leave this blank and start writing below.</div>
 
-    <label for="body">Body</label>
+    <label for="body">Your entry</label>
     <textarea id="body" name="body" maxlength="102400" required rows="14" data-char-count>{{ body or '' }}</textarea>
     <div class="field-help">Markdown is accepted. Maximum 100 KiB. <span class="char-count" data-char-count-for="body"></span></div>
 

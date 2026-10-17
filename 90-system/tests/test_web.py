@@ -70,6 +70,27 @@ def test_home_is_local_private_and_honest_about_unavailable_queues(tmp_path: Pat
     assert response.headers["X-Frame-Options"] == "DENY"
 
 
+def test_brand_image_is_local_and_image_policy_excludes_remote_sources(tmp_path: Path):
+    app, _ = _app(tmp_path)
+    client = app.test_client()
+
+    home = client.get("/")
+    logo = client.get("/static/gengar-logo.png")
+
+    assert b'/static/gengar-logo.png' in home.data
+    assert logo.status_code == 200
+    assert logo.mimetype == "image/png"
+    assert logo.data.startswith(b"\x89PNG\r\n\x1a\n")
+    directives = {
+        parts[0]: parts[1:]
+        for directive in home.headers["Content-Security-Policy"].split(";")
+        if (parts := directive.split())
+    }
+    assert directives["img-src"] == ["'self'"]
+    assert directives["script-src"] == ["'self'"]
+    assert directives["object-src"] == ["'none'"]
+
+
 def test_health_is_content_free_and_bad_host_is_rejected(tmp_path: Path):
     app, _ = _app(tmp_path)
     client = app.test_client()

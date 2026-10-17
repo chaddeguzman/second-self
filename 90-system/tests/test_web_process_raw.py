@@ -119,7 +119,7 @@ def test_process_raw_routes_and_proposal_flow(tmp_path: Path):
 
     home = client.get("/")
     assert home.status_code == 200
-    assert b"Process Raw" in home.data
+    assert b"Organize sources" in home.data
     assert b"process-raw-modal" in home.data
 
     modal_get = client.get("/wiki/process-raw")
@@ -163,7 +163,7 @@ def test_process_raw_button_visible_even_when_raw_is_empty(tmp_path: Path):
     modal = client.get("/wiki/process-raw")
 
     assert home.status_code == 200
-    assert b"Process Raw" in home.data
+    assert b"Organize sources" in home.data
     assert b"process-raw-modal" in home.data
     assert modal.status_code == 200
     assert b"No eligible .md or .txt files" in modal.data
