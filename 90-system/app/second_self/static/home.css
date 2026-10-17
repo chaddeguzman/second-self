@@ -476,6 +476,11 @@ body { font-size: 14px; -webkit-font-smoothing: antialiased; }
 .system-status-list > div { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .system-status-list dt { font-size: 11px; text-transform: none; letter-spacing: 0; }
 .system-status-list dd { color: var(--ink); text-align: right; margin: 0; }
+.status-value { display: inline-flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.status-value::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.status-value.status-good { color: #7dd3a0; }
+.status-value.status-warning { color: #f4cf74; }
+.status-value.status-danger { color: #ff8b9c; }
 .notice, .data-notice { flex-wrap: wrap; font-size: 12px; line-height: 1.7; border: 1px solid #4d293a; }
 .notice-success { border-color: #503269; }
 .record-list article > div { min-width: 0; }
