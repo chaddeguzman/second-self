@@ -360,12 +360,14 @@ mark {
 
 /* Nocturne workspace — violet, ink, and a little mischief. */
 :root { --sidebar-width: 232px; --topbar-height: 66px; }
+.starfield { position: fixed; inset: 0 0 0 var(--sidebar-width); z-index: 0; overflow: hidden; pointer-events: none; }
+.orbit-starfield { position: absolute; top: 0; left: 50%; transform: translateX(-50%); pointer-events: none; }
 body { font-size: 14px; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .icon { width: 19px; height: 19px; flex-shrink: 0; vertical-align: middle; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .shell { width: min(1120px, calc(100% - 80px)); margin-inline: auto; }
-.workspace-topbar { height: var(--topbar-height); margin-left: var(--sidebar-width); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.workspace-topbar { position: relative; z-index: 30; height: var(--topbar-height); margin-left: var(--sidebar-width); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: var(--paper); }
 .workspace-breadcrumb { display: flex; gap: 13px; align-items: center; margin: 0; font-size: 12px; color: var(--muted); }
 .workspace-breadcrumb strong { color: var(--ink); font-weight: 500; }
 .privacy-pill { gap: 6px; font-size: 11px; font-weight: 500; padding: 6px 10px; background: #161020; color: #b7a7cc; border: 1px solid var(--line); }
@@ -392,7 +394,7 @@ body { font-size: 14px; -webkit-font-smoothing: antialiased; }
 .sidebar-note .icon { width: 16px; color: #8d6bb7; }
 .sidebar-note p { font-size: 10px; line-height: 1.7; margin: 0; }
 .menu-toggle { display: none; }
-.workspace-page { margin-left: var(--sidebar-width); }
+.workspace-page { position: relative; z-index: 1; margin-left: var(--sidebar-width); }
 .main-content { padding: 44px 0 38px; min-height: calc(100vh - 140px); }
 .home-welcome { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 8px 0 24px; }
 .welcome-copy { position: relative; z-index: 1; }
@@ -523,7 +525,7 @@ body { font-size: 14px; -webkit-font-smoothing: antialiased; }
   .workspace-breadcrumb > span:first-child { display: none; }
   .workspace-breadcrumb > span:nth-child(2) { display: none; }
   .menu-toggle { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; background: #21152f; border: 1px solid #412a56; border-radius: 7px; color: #d5b5fa; cursor: pointer; }
-  .workspace-sidebar { display: none; position: static; width: 100%; border-right: 0; border-bottom: 1px solid var(--line); padding: 22px; }
+  .workspace-sidebar { display: none; position: relative; width: 100%; border-right: 0; border-bottom: 1px solid var(--line); padding: 22px; }
   .sidebar-open .workspace-sidebar { display: flex; }
   .navigation { margin-top: 25px; }
   .sidebar-bottom { padding-top: 22px; }
@@ -555,6 +557,7 @@ body { font-size: 14px; -webkit-font-smoothing: antialiased; }
   .site-footer { align-items: flex-start; flex-wrap: wrap; }
 }
 @media print {
+  .starfield { display: none !important; }
   .workspace-sidebar, .workspace-topbar, .site-footer { display: none !important; }
   .workspace-page { margin: 0; }
   .shell { width: 100%; }

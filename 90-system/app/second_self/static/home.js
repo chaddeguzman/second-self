@@ -1,6 +1,14 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
+  const starfield = window.IntroModules?.createOrbitStarfield?.({ root: document });
+  if (starfield) {
+    starfield.toggle();
+    window.addEventListener("pagehide", (event) => {
+      if (!event.persisted) starfield.dispose();
+    });
+  }
+
   const menuToggle = document.querySelector("[data-toggle-sidebar]");
   if (menuToggle) {
     const setMenuOpen = (open) => {

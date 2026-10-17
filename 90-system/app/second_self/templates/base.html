@@ -28,9 +28,11 @@
   <meta name="color-scheme" content="dark">
   <title>{% block title %}Second Self Home{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+  <script defer src="{{ url_for('static', filename='orbit-starfield.js') }}"></script>
   <script defer src="{{ url_for('static', filename='home.js') }}"></script>
 </head>
 <body>
+  <div class="starfield" aria-hidden="true"></div>
   <a class="skip-link" href="#main-content">Skip to content</a>
   {% set current_page = {'home':'Home', 'capture':'Capture', 'journal':'Journal', 'search':'Search', 'queue_view':'Inbox', 'tag_list':'Tags', 'tag_view':'Tags', 'recent':'Recent notes', 'due':'Due for review', 'legacy':'File overview', 'preview':'Note', 'broker_view':'Review changes'}.get(request.endpoint, 'Workspace') %}
   <header class="workspace-topbar">
