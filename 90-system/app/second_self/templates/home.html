@@ -1,177 +1,171 @@
 {% extends "base.html" %}
 {% block title %}Home · Second Self{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">Today’s private overview</p>
-    <h1>A calm place to process what matters.</h1>
-    <p>Review structured queues without changing your existing notes or legacy folders.</p>
+<section class="home-welcome" aria-labelledby="welcome-title">
+  <div class="welcome-copy">
+    <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> Your second self</p>
+    <h1 id="welcome-title">Make room for<br>your <span>thoughts.</span></h1>
+    <p>A thought to keep. An idea to explore. It's all here.</p>
   </div>
-  {% if read_only %}
-    <a class="button button-secondary" href="{{ url_for('capture') }}">Capture unavailable</a>
-    <a class="button button-secondary" href="{{ url_for('journal') }}">Journal unavailable</a>
-  {% else %}
-    <a class="button" href="{{ url_for('capture') }}">Quick capture</a>
-    <a class="button button-secondary" href="{{ url_for('journal') }}">Journal entry</a>
-  {% endif %}
+  <div class="welcome-ghost" aria-hidden="true"><img class="gengar-art" src="{{ url_for('static', filename='gengar-logo.png') }}" alt="" width="256" height="256"><span class="ghost-orbit orbit-one"></span><span class="ghost-orbit orbit-two"></span></div>
 </section>
+<form class="home-search" role="search" method="get" action="{{ url_for('search') }}">
+  {{ icon('search') }}
+  <label class="visually-hidden" for="query">Search your notes</label>
+  <input id="query" name="q" type="search" maxlength="200" placeholder="Find a thought, note, or idea…" autocomplete="off">
+  <button class="search-submit" type="submit">Search {{ icon('arrow') }}</button>
+</form>
+<div class="quick-actions">
+  {% if read_only %}
+    <p class="read-only-note">Read-only mode · Browse and search your notes. Saving is disabled.</p>
+  {% else %}
+    <a class="action-card action-capture" href="{{ url_for('capture') }}">
+      <span class="action-icon">{{ icon('plus') }}</span>
+      <span><strong>Capture a thought</strong><small>Get it out of your head. Keep it here.</small></span>
+      {{ icon('arrow') }}
+    </a>
+    <a class="action-card action-journal" href="{{ url_for('journal') }}">
+      <span class="action-icon">{{ icon('journal') }}</span>
+      <span><strong>Write a journal entry</strong><small>A little reflection goes a long way.</small></span>
+      {{ icon('arrow') }}
+    </a>
+  {% endif %}
+</div>
 
-{% if snapshot.legacy_excluded or snapshot.scan_errors %}
-<aside class="data-notice" aria-label="Data quality notice">
-  <strong>Legacy-safe view</strong>
-    <span>
-      {{ snapshot.legacy_excluded }} unstructured file{{ '' if snapshot.legacy_excluded == 1 else 's' }}
-      excluded from operational counts.
-      {% if snapshot.scan_errors %}
-        {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be scanned safely.
-      {% endif %}
-    </span>
-    <a class="card-link" href="{{ url_for('legacy') }}">View excluded files</a>
+{% if snapshot.scan_errors %}
+<aside class="notice notice-error" role="alert">
+  {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be read. This overview may be incomplete.
+  <a href="{{ url_for('legacy') }}">Review files</a>
 </aside>
 {% endif %}
-
-<section class="projects-panel" aria-label="Local-agent foundation status">
-  <div class="section-heading compact">
-    <div>
-      <p class="eyebrow">Local-agent foundation</p>
-      <h2>System status</h2>
-    </div>
-    <span class="state-label">{{ snapshot.foundation.version }}</span>
-  </div>
-  <div class="card-grid">
-    {% for area, state in snapshot.foundation.areas.items() %}
-      <article class="queue-card">
-        <h3>{{ area|replace('-', ' ')|title }}</h3>
-        <p>{{ state|replace('-', ' ')|title }}</p>
-      </article>
-    {% endfor %}
-  </div>
-</section>
-
-<section class="section-heading">
-  <div>
-    <p class="eyebrow">Unified inbox</p>
-    <h2>Action queues</h2>
-  </div>
-  <p><span data-stat="scanned_files">{{ snapshot.scanned_files }}</span> structured or legacy Markdown files checked locally.</p>
-</section>
+{% if snapshot.wiki.interrupted_transactions %}
+<aside class="notice notice-error" role="alert">
+  Source processing was interrupted. Run <code>second-self wiki recover</code> before organizing more sources.
+</aside>
+{% endif %}
+{% set foundation_alerts = ['attention', 'fail', 'failed', 'error', 'warning', 'warn'] %}
+{% for area, state in snapshot.foundation.areas.items() if state|lower in foundation_alerts %}
+<aside class="notice" role="status">{{ area|replace('-', ' ')|title }} needs attention. <a href="#system-details">See system details</a></aside>
+{% endfor %}
 
 {% set queue = snapshot.queues['captures'] %}
-<div class="projects-panel">
+<div class="home-grid">
+<section class="projects-panel inbox-panel" aria-labelledby="inbox-title">
   <div class="section-heading compact">
     <div>
-      <p class="eyebrow">Unified inbox</p>
-      <h2>{{ queue.label }}</h2>
+      <p class="eyebrow">A place to come back to</p>
+      <h2 id="inbox-title">Your inbox</h2>
     </div>
     <span class="state-label">
       {% if queue.state == 'unavailable' %}Not configured yet
-      {% elif queue.state == 'scan-error' %}Needs attention
-      {% elif queue.state == 'configured-empty' %}Clear
-      {% else %}<span data-stat="captures">{{ queue.items|length }}</span> file{{ '' if queue.items|length == 1 else 's' }}{% endif %}
+      {% elif queue.state == 'scan-error' %}Could not load
+      {% elif queue.state == 'configured-empty' %}All clear
+      {% else %}<span data-stat="captures">{{ queue.items|length }}</span>&nbsp;waiting{% endif %}
     </span>
   </div>
   {% if queue.state == 'unavailable' %}
-    <div class="empty-panel large">
-      <strong>Not configured yet</strong>
-      <p>{{ queue.unavailable_reason }}</p>
-    </div>
+    <div class="empty-panel"><strong>Not configured yet</strong><p>{{ queue.unavailable_reason }}</p></div>
   {% elif queue.state == 'scan-error' %}
-    <div class="notice notice-error">This queue could not be scanned safely. No zero count was assumed.</div>
+    <div class="notice notice-error" role="alert">Your inbox could not be read. Its contents may still be there; try refreshing.</div>
   {% elif queue.items %}
-    <ul class="record-list">
-      {% for item in queue.items %}
+    <p class="section-description">Things you've saved, ready to revisit.</p>
+    <ul class="record-list inbox-list">
+      {% for item in queue.items[:5] %}
         <li>
           <article>
-            <div>
+            <span class="note-icon">{{ icon('note') }}</span>
+            <div class="inbox-item-title">
               {% if item.preview_eligible %}
-                <h2><a href="{{ preview_url(item) }}">{{ item.title }}</a></h2>
+                <h3><a href="{{ preview_url(item) }}">{{ item.title }}</a></h3>
               {% else %}
-                <h2>{{ item.title }}</h2>
+                <h3>{{ item.title }}</h3>
               {% endif %}
-              <p class="path">{{ item.relative_path }}</p>
+              <p class="item-description">{{ item.record_type|upper }}{% if item.created %} · {{ item.created }}{% endif %}{% if not item.preview_eligible %} · Preview unavailable{% endif %}</p>
             </div>
-            <dl>
-              <div><dt>Type</dt><dd>{{ item.record_type }}</dd></div>
-              <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
-              {% if item.created %}<div><dt>Date</dt><dd>{{ item.created }}</dd></div>{% endif %}
-              {% if item.size_bytes is not none %}<div><dt>Size</dt><dd>{{ item.size_bytes }} B</dd></div>{% endif %}
-            </dl>
+            {% if item.preview_eligible %}<a class="item-open" href="{{ preview_url(item) }}" aria-label="Open {{ item.title }}">Open <span aria-hidden="true">↗</span></a>{% endif %}
           </article>
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <div class="empty-panel large">
-      <strong>This queue is clear.</strong>
-      <p>No files are waiting in 01 Capture/00 Raw.</p>
-    </div>
+    <div class="empty-panel inbox-empty"><strong>You're all caught up.</strong><p>New captures will appear here when you're ready to revisit them.</p></div>
   {% endif %}
-</div>
-
-<section class="projects-panel">
-  <div class="section-heading compact">
-    <div>
-      <p class="eyebrow">LLM Wiki</p>
-      <h2>Knowledge processing</h2>
-    </div>
-    <span class="state-label">
-      {% if snapshot.wiki.enabled %}Configured{% else %}Not initialized{% endif %}
-    </span>
-  </div>
-  <div class="card-grid">
-    <article class="queue-card">
-      <span class="count" data-stat="wiki_pending">{{ snapshot.wiki.pending|length }}</span>
-      <h3>Pending Raw sources</h3>
-      <p>{{ snapshot.wiki.unsupported|length }} unsupported and {{ snapshot.wiki.duplicates|length }} duplicate source(s).</p>
-      {% if not read_only %}
-        <button type="button" class="button" data-open="process-raw-modal">Process Raw</button>
-      {% endif %}
-    </article>
-    <article class="queue-card">
-      <span class="count">{{ snapshot.wiki.processed_sources }}</span>
-      <h3>Processed sources</h3>
-      <p>{{ snapshot.wiki.changed_curated|length }} changed and {{ snapshot.wiki.unprocessed_curated|length }} unprocessed curated note(s).</p>
-    </article>
-    <article class="queue-card">
-      <span class="count">{{ snapshot.wiki.interrupted_transactions|length }}</span>
-      <h3>Recovery</h3>
-      <p>{% if snapshot.wiki.interrupted_transactions %}Run <code>second-self wiki recover</code>.{% else %}No interrupted transactions.{% endif %}</p>
-    </article>
+  <div class="panel-actions">
+    <a class="text-link" href="{{ url_for('queue_view', queue_key='captures') }}">View full inbox <span aria-hidden="true">→</span></a>
+    {% if not read_only %}<button type="button" class="button button-secondary" data-open="process-raw-modal">Organize sources</button>{% endif %}
   </div>
 </section>
 
-<section class="projects-panel">
+<aside class="focus-column" aria-label="Projects and reflection">
+<section class="projects-panel" aria-labelledby="projects-title">
   <div class="section-heading compact">
-    <div>
-      <p class="eyebrow">Current work</p>
-      <h2>Active projects</h2>
-    </div>
-    <span class="count" data-stat="active_projects">{{ snapshot.active_projects|length }}</span>
+    <div><p class="eyebrow">In focus</p><h2 id="projects-title">Active projects</h2></div>
+    <span class="state-label"><span data-stat="active_projects">{{ snapshot.active_projects|length }}</span>&nbsp;active</span>
   </div>
   {% if snapshot.active_projects %}
     <ul class="project-list">
       {% for project in snapshot.active_projects[:5] %}
-        <li>
-          <a href="{{ preview_url(project) }}">{{ project.title }}</a>
-          <span>{{ project.status }}</span>
-        </li>
+        <li><span class="project-icon">{{ icon('folder') }}</span><a href="{{ preview_url(project) }}">{{ project.title }}</a><span class="project-state">{{ project.status }}</span></li>
       {% endfor %}
     </ul>
+    {% if snapshot.active_projects|length > 5 %}
+      <details class="more-projects"><summary>Show {{ snapshot.active_projects|length - 5 }} more projects</summary>
+        <ul class="project-list">{% for project in snapshot.active_projects[5:] %}<li><span class="project-icon">{{ icon('folder') }}</span><a href="{{ preview_url(project) }}">{{ project.title }}</a><span class="project-state">{{ project.status }}</span></li>{% endfor %}</ul>
+      </details>
+    {% endif %}
   {% else %}
-    <div class="empty-panel">
-      <strong>No direct active project records found.</strong>
-      <p>Nested project repositories are intentionally not scanned.</p>
-    </div>
+    <div class="empty-panel"><strong>No active projects to show.</strong><p>Projects marked active in your project records will appear here.</p></div>
   {% endif %}
 </section>
+
+<section class="reflection-card" aria-labelledby="reflection-title">
+  <span class="reflection-icon">{{ icon('spark') }}</span>
+  <p class="eyebrow">A moment to reflect</p>
+  <h2 id="reflection-title">What stayed with<br>you today?</h2>
+  <p>The small things are worth remembering, too.</p>
+  {% if not read_only %}<a class="text-link" href="{{ url_for('journal') }}">Open your journal {{ icon('arrow') }}</a>{% endif %}
+</section>
+</aside>
+</div>
+
+<details id="system-details" class="system-details">
+  <summary>System details <span>Storage, processing, and diagnostics</span></summary>
+  <div class="system-details-body">
+    <h2>System status</h2>
+    <p class="section-description">Configuration checks, not a guarantee that every service is running.</p>
+    <dl class="system-status-list">
+      {% for area, state in snapshot.foundation.areas.items() %}
+        <div><dt>{{ area|replace('-', ' ')|title }}</dt><dd>{{ state|replace('-', ' ')|title }}</dd></div>
+      {% endfor %}
+    </dl>
+    <h2>Source processing</h2>
+    <p class="section-description">{% if snapshot.wiki.enabled %}Configured{% else %}Not initialized{% endif %}</p>
+    <dl class="system-status-list">
+      <div><dt>Waiting to be organized</dt><dd data-stat="wiki_pending">{{ snapshot.wiki.pending|length }}</dd></div>
+      <div><dt>Organized sources</dt><dd>{{ snapshot.wiki.processed_sources }}</dd></div>
+      <div><dt>Unsupported files</dt><dd>{{ snapshot.wiki.unsupported|length }}</dd></div>
+      <div><dt>Duplicate sources</dt><dd>{{ snapshot.wiki.duplicates|length }}</dd></div>
+      <div><dt>Changed reference notes</dt><dd>{{ snapshot.wiki.changed_curated|length }}</dd></div>
+      <div><dt>Unprocessed reference notes</dt><dd>{{ snapshot.wiki.unprocessed_curated|length }}</dd></div>
+      <div><dt>Interrupted operations</dt><dd>{{ snapshot.wiki.interrupted_transactions|length }}</dd></div>
+    </dl>
+    <h2>About this overview</h2>
+    <p><span data-stat="scanned_files">{{ snapshot.scanned_files }}</span> Markdown files checked locally. Nested project repositories are not scanned.</p>
+    {% if snapshot.legacy_excluded or snapshot.scan_errors %}
+      <p>{{ snapshot.legacy_excluded }} unstructured file{{ '' if snapshot.legacy_excluded == 1 else 's' }} excluded from counts. {{ snapshot.scan_errors }} file{{ '' if snapshot.scan_errors == 1 else 's' }} could not be read.</p>
+      <a href="{{ url_for('legacy') }}">Review excluded files</a>
+    {% endif %}
+    <p class="field-help">Markdown remains the source of truth. {{ snapshot.foundation.version }}</p>
+  </div>
+</details>
 
 {% if not read_only %}
 <dialog id="process-raw-modal" class="modal" aria-modal="true" aria-labelledby="process-raw-modal-title">
   <form class="modal-panel" method="post" action="{{ url_for('wiki_process_raw_submit') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <h3 id="process-raw-modal-title">Process Raw sources</h3>
+    <h3 id="process-raw-modal-title">Organize sources</h3>
     {% if raw_sources %}
-      <p class="muted">Choose an 04 References destination for each file. Recommendations are pre-selected.</p>
+      <p class="muted">Choose a References folder for each file. You will review the proposed changes before anything is moved.</p>
       <div class="process-raw-list">
         {% for source in raw_sources %}
           <div class="process-raw-row">
@@ -188,7 +182,7 @@
         {% endfor %}
       </div>
       <div class="form-actions">
-        <button type="submit" class="button">Create proposal</button>
+        <button type="submit" class="button">Review proposed changes</button>
         <button type="button" class="button button-secondary" data-close="process-raw-modal">Cancel</button>
       </div>
     {% else %}

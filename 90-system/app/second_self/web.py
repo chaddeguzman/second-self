@@ -250,7 +250,7 @@ def create_app(
     def security_headers(response):  # type: ignore[no-untyped-def]
         response.headers["Cache-Control"] = "no-store"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; img-src 'none'; object-src 'none'; "
+            "default-src 'self'; img-src 'self'; object-src 'none'; "
             "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; "
             "style-src 'self'; script-src 'self'"
         )

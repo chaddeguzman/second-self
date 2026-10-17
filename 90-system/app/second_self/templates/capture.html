@@ -6,8 +6,8 @@
 </nav>
 <section class="page-header narrow">
   <p class="eyebrow">Private inbox</p>
-  <h1>Capture what is on your mind.</h1>
-  <p>Your wording is preserved in a new structured inbox record. Nothing else is edited or classified.</p>
+  <h1>Capture a thought.</h1>
+  <p>Save an idea, a reminder, or something to come back to.</p>
 </section>
 
 {% if read_only %}
@@ -23,12 +23,12 @@
     <input id="title" name="title" maxlength="120" required value="{{ title or '' }}" autocomplete="off">
     <div class="field-help">A short, single-line description.</div>
 
-    <label for="body">Body</label>
+    <label for="body">Your note</label>
     <textarea id="body" name="body" maxlength="102400" required rows="14" data-char-count>{{ body or '' }}</textarea>
     <div class="field-help">Markdown is accepted. Maximum 100 KiB. <span class="char-count" data-char-count-for="body"></span></div>
 
     <div class="form-actions">
-      <button class="button" type="submit">Save to private inbox</button>
+      <button class="button" type="submit">Save to inbox</button>
       <a class="button button-secondary" href="{{ url_for('home') }}">Cancel</a>
     </div>
   </form>

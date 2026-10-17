@@ -1,6 +1,24 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
+  const menuToggle = document.querySelector("[data-toggle-sidebar]");
+  if (menuToggle) {
+    const setMenuOpen = (open) => {
+      document.body.classList.toggle("sidebar-open", open);
+      menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    };
+    menuToggle.addEventListener("click", () => {
+      setMenuOpen(menuToggle.getAttribute("aria-expanded") !== "true");
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) {
+        setMenuOpen(false);
+        menuToggle.focus();
+      }
+    });
+  }
+
   document.querySelectorAll("textarea[data-char-count]").forEach((textarea) => {
     const max = Number(textarea.getAttribute("maxlength") || 0);
     const counter = document.querySelector(
