@@ -45,6 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
       statElements.forEach((element) => {
         const key = element.getAttribute("data-stat");
         if (key in stats) {
+          const countSeverity = element.getAttribute("data-count-severity");
+          if (countSeverity) {
+            if (!Number.isInteger(stats[key]) || stats[key] < 0) return;
+            const severity = stats[key] === 0 ? "good" : countSeverity;
+            const meaning = { good: "Good", warning: "Review", danger: "Needs attention" }[severity];
+            element.classList.remove("status-good", "status-warning", "status-danger");
+            element.classList.add(`status-${severity}`);
+            element.setAttribute("title", meaning);
+            element.setAttribute("aria-label", `${meaning}: ${stats[key]}`);
+          }
           element.textContent = String(stats[key]);
         }
       });

@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% macro source_count(value, nonzero='warning', stat=None) -%}
+{% set severity = 'good' if value == 0 or nonzero == 'good' else nonzero %}
+{% set meaning = {'good':'Good', 'warning':'Review', 'danger':'Needs attention'}[severity] %}
+<dd class="status-value status-{{ severity }}" title="{{ meaning }}" aria-label="{{ meaning }}: {{ value }}"{% if stat %} data-stat="{{ stat }}" data-count-severity="{{ nonzero }}"{% endif %}>{{ value }}</dd>
+{%- endmacro %}
 {% block title %}Home · Second Self{% endblock %}
 {% block content %}
 <section class="home-welcome" aria-labelledby="welcome-title">
@@ -135,19 +140,21 @@
     <p class="section-description">Configuration checks, not a guarantee that every service is running.</p>
     <dl class="system-status-list">
       {% for area, state in snapshot.foundation.areas.items() %}
-        <div><dt>{{ area|replace('-', ' ')|title }}</dt><dd>{{ state|replace('-', ' ')|title }}</dd></div>
+        {% set normalized_state = state|lower %}
+        {% set severity = 'good' if normalized_state in ['ok', 'good', 'ready', 'policy-ready', 'command-available'] else 'danger' if normalized_state in ['fail', 'failed', 'error', 'danger', 'attention'] else 'warning' %}
+        <div><dt>{{ area|replace('-', ' ')|title }}</dt><dd class="status-value status-{{ severity }}">{{ state|replace('-', ' ')|title }}</dd></div>
       {% endfor %}
     </dl>
     <h2>Source processing</h2>
-    <p class="section-description">{% if snapshot.wiki.enabled %}Configured{% else %}Not initialized{% endif %}</p>
+    <p class="section-description"><span class="status-value status-{{ 'good' if snapshot.wiki.enabled else 'warning' }}">{% if snapshot.wiki.enabled %}Configured{% else %}Not initialized{% endif %}</span></p>
     <dl class="system-status-list">
-      <div><dt>Waiting to be organized</dt><dd data-stat="wiki_pending">{{ snapshot.wiki.pending|length }}</dd></div>
-      <div><dt>Organized sources</dt><dd>{{ snapshot.wiki.processed_sources }}</dd></div>
-      <div><dt>Unsupported files</dt><dd>{{ snapshot.wiki.unsupported|length }}</dd></div>
-      <div><dt>Duplicate sources</dt><dd>{{ snapshot.wiki.duplicates|length }}</dd></div>
-      <div><dt>Changed reference notes</dt><dd>{{ snapshot.wiki.changed_curated|length }}</dd></div>
-      <div><dt>Unprocessed reference notes</dt><dd>{{ snapshot.wiki.unprocessed_curated|length }}</dd></div>
-      <div><dt>Interrupted operations</dt><dd>{{ snapshot.wiki.interrupted_transactions|length }}</dd></div>
+      <div><dt>Waiting to be organized</dt>{{ source_count(snapshot.wiki.pending|length, 'warning', 'wiki_pending') }}</div>
+      <div><dt>Organized sources</dt>{{ source_count(snapshot.wiki.processed_sources, 'good') }}</div>
+      <div><dt>Unsupported files</dt>{{ source_count(snapshot.wiki.unsupported|length, 'warning') }}</div>
+      <div><dt>Duplicate sources</dt>{{ source_count(snapshot.wiki.duplicates|length, 'warning') }}</div>
+      <div><dt>Changed reference notes</dt>{{ source_count(snapshot.wiki.changed_curated|length, 'warning') }}</div>
+      <div><dt>Unprocessed reference notes</dt>{{ source_count(snapshot.wiki.unprocessed_curated|length, 'warning') }}</div>
+      <div><dt>Interrupted operations</dt>{{ source_count(snapshot.wiki.interrupted_transactions|length, 'danger') }}</div>
     </dl>
     <h2>About this overview</h2>
     <p><span data-stat="scanned_files">{{ snapshot.scanned_files }}</span> Markdown files checked locally. Nested project repositories are not scanned.</p>
