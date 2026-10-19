@@ -9,7 +9,8 @@ from second_self.core.paths import SecondSelfPaths
 from second_self.foundation import SUMMARY_VERSION, foundation_summary
 from second_self.health.system import SystemHealthContext, check_scheduler_state
 from second_self.reads.dashboard import scan_dashboard
-from second_self.scheduler import JobStore, SchedulerState
+from second_self.scheduler import JobRun, JobStore, SchedulerState
+from second_self.web import create_app
 
 
 def _paths(tmp_path: Path) -> SecondSelfPaths:
@@ -90,3 +91,45 @@ def test_corrupt_config_fails_closed_without_path_output(tmp_path: Path) -> None
     serialized = json.dumps(summary)
     assert "C:/private" not in serialized
     assert summary["areas"]["routing"] == "policy-ready"
+
+
+def test_unused_scheduler_has_setup_guidance_without_creating_state(tmp_path: Path) -> None:
+    paths = _paths(tmp_path)
+    _config(paths)
+    app = create_app(paths, read_only=True, secret_key=b"test-only", testing=True)
+
+    response = app.test_client().get("/")
+
+    assert foundation_summary(paths)["areas"]["scheduler"] == "not-configured"
+    assert b"Not configured" in response.data
+    assert b"Set up your first automatic task" in response.data
+    assert b"Scheduler needs attention" not in response.data
+    assert b"Task creation is not available in this UI yet" in response.data
+    assert not (paths.cache / "scheduler" / "jobs.json").exists()
+
+
+def test_empty_scheduler_is_unconfigured_but_invalid_state_still_warns(tmp_path: Path) -> None:
+    paths = _paths(tmp_path)
+    _config(paths)
+    store = JobStore(paths.cache / "scheduler" / "jobs.json")
+    store.write(SchedulerState())
+    assert foundation_summary(paths)["areas"]["scheduler"] == "not-configured"
+    store.path.write_text("{}", encoding="utf-8")
+    assert foundation_summary(paths)["areas"]["scheduler"] == "warn"
+
+
+def test_invalid_nested_scheduler_state_does_not_break_dashboard(tmp_path: Path) -> None:
+    paths = _paths(tmp_path)
+    _config(paths)
+    store = JobStore(paths.cache / "scheduler" / "jobs.json")
+    store.write(SchedulerState())
+    run = JobRun("run-1", "job-1", "2026-10-19T09:00:00+08:00", "succeeded")
+    payload = SchedulerState(runs=(run,)).as_dict()
+    payload["runs"][0]["summary"] = None
+    store.path.write_text(json.dumps(payload), encoding="utf-8")
+    app = create_app(paths, read_only=True, secret_key=b"test-only", testing=True)
+
+    assert foundation_summary(paths)["areas"]["scheduler"] == "warn"
+    response = app.test_client().get("/")
+    assert response.status_code == 200
+    assert b"Scheduler needs attention" in response.data

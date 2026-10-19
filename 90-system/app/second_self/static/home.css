@@ -483,6 +483,12 @@ body { font-size: 14px; -webkit-font-smoothing: antialiased; }
 .status-value.status-good { color: #7dd3a0; }
 .status-value.status-warning { color: #f4cf74; }
 .status-value.status-danger { color: #ff8b9c; }
+.status-value.status-neutral { color: #c0acd2; }
+.scheduler-setup { margin: 0 0 26px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); line-height: 1.7; }
+.scheduler-setup > summary { color: var(--ink); cursor: pointer; font-weight: 600; }
+.scheduler-setup ol { padding-left: 20px; }
+.scheduler-setup li + li { margin-top: 6px; }
+.scheduler-example { color: #c0acd2; }
 .notice, .data-notice { flex-wrap: wrap; font-size: 12px; line-height: 1.7; border: 1px solid #4d293a; }
 .notice-success { border-color: #503269; }
 .record-list article > div { min-width: 0; }
