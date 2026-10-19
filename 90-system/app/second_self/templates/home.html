@@ -141,10 +141,21 @@
     <dl class="system-status-list">
       {% for area, state in snapshot.foundation.areas.items() %}
         {% set normalized_state = state|lower %}
-        {% set severity = 'good' if normalized_state in ['ok', 'good', 'ready', 'policy-ready', 'command-available'] else 'danger' if normalized_state in ['fail', 'failed', 'error', 'danger', 'attention'] else 'warning' %}
-        <div><dt>{{ area|replace('-', ' ')|title }}</dt><dd class="status-value status-{{ severity }}">{{ state|replace('-', ' ')|title }}</dd></div>
+        {% set severity = 'neutral' if normalized_state == 'not-configured' else 'good' if normalized_state in ['ok', 'good', 'ready', 'policy-ready', 'command-available'] else 'danger' if normalized_state in ['fail', 'failed', 'error', 'danger', 'attention'] else 'warning' %}
+        <div><dt>{{ area|replace('-', ' ')|title }}</dt><dd class="status-value status-{{ severity }}">{{ 'Not configured' if normalized_state == 'not-configured' else state|replace('-', ' ')|title }}</dd></div>
       {% endfor %}
     </dl>
+    <details class="scheduler-setup">
+      <summary>Set up your first automatic task</summary>
+      <p>Optional. You can keep using Second Self without scheduled tasks.</p>
+      <ol>
+        <li>Choose one task, such as a weekly review reminder.</li>
+        <li>Decide when it should run, how often, and in which time zone.</li>
+        <li>Ask ECHO to prepare the task, review its action and permissions, then approve enabling it.</li>
+      </ol>
+      <p class="scheduler-example">Example request: “Plan a weekly review reminder for Sundays at 9 AM, Asia/Shanghai. Show me the setup before enabling it.”</p>
+      <p class="field-help">Task creation is not available in this UI yet. Reminder and calendar actions still need implementation. The existing Windows launcher checks for due tasks at sign-in; it does not run continuously. Nothing is enabled by opening this guide.</p>
+    </details>
     <h2>Source processing</h2>
     <p class="section-description"><span class="status-value status-{{ 'good' if snapshot.wiki.enabled else 'warning' }}">{% if snapshot.wiki.enabled %}Configured{% else %}Not initialized{% endif %}</span></p>
     <dl class="system-status-list">

@@ -9,12 +9,20 @@ from .health.system import (
     SystemHealthContext,
     check_evaluation_state,
     check_privacy_validator,
-    check_scheduler_state,
 )
 from .routing import DataOrigin, DataOriginKind, diagnose_policy
-
+from .scheduler import JobStore, SchedulerStateError
 
 SUMMARY_VERSION = "local-agent-foundation/v1"
+
+
+def _scheduler_status(context: SystemHealthContext) -> str:
+    """Distinguish an unused optional scheduler from invalid operational state."""
+    try:
+        state = JobStore(context.cache_root / "scheduler" / "jobs.json").read()
+    except (SchedulerStateError, OSError, TypeError):
+        return "warn"
+    return "ok" if state.jobs else "not-configured"
 
 
 def _routing_status() -> str:
@@ -43,7 +51,7 @@ def foundation_summary(
             "health": check_privacy_validator(context).status.lower(),
             "routing": _routing_status(),
             "evaluation": check_evaluation_state(context).status.lower(),
-            "scheduler": check_scheduler_state(context).status.lower(),
+            "scheduler": _scheduler_status(context),
             "calendar": "command-available" if calendar_script.is_file() else "unavailable",
         },
     }
